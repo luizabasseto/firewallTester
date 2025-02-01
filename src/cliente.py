@@ -22,10 +22,10 @@ def ping(host, count):
 
         if reply:
             elapsed_time = (time.time() - start_time) * 1000
-            print(f"Resposta do {host}: Tempo = {elapsed_time:.2f} ms - {seq}/{count}")
+            print(f"\033[32m\t+ Resposta do {host}: Tempo = {elapsed_time:.2f} ms - {seq}/{count}\033[0m")
             received += 1
         else:
-            print(f"Sem resposta do {host} - {seq}/{count}")
+            print(f"\033[31m\t- Sem resposta do {host} - {seq}/{count}\033[0m")
 
         time.sleep(1)
     return received
@@ -44,23 +44,29 @@ parser.add_argument("protocol", type=str.lower, help="Protocolo utilizado TCP/UD
 parser.add_argument("server_port", type=int, help="Porta do servidor")
 parser.add_argument("testId", type=int, help="ID do teste")
 parser.add_argument("timestamp", type=str, help="Timestamp do teste")
+parser.add_argument("verbose", type=int, help="Nível de verbose - 0,1,2 quanto maior o valor mais detalhes")
 
 args = parser.parse_args()
+verbose = args.verbose
 
 # Inicializando socket de acordo com o protocolo
 client_sock = None
 
 if args.protocol == "udp":
-    print("Protocolo: UDP")
+    if verbose > 0: print("Protocolo: UDP")
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_sock.settimeout(2)
-
+    client_port = client_sock.getsockname()[1]
+# TODO - pegar a porta do cliente
 elif args.protocol == "tcp":
-    print("Protocolo: TCP")
+    if verbose > 0: print("Protocolo: TCP")
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_sock.settimeout(2)
+    client_port = client_sock.getsockname()[1]
+    print(f">>>> {client_port}")
 
 elif args.protocol == "icmp":
+    if verbose > 0: print("Protocolo: ICMP")
     icmp_status = ping(args.server_host, args.server_port)
     client_port = 0  # ICMP não usa portas convencionais
 else:
@@ -93,7 +99,7 @@ message = {
     "timestamp_recv": timestamp,
     "client_host": client_host,
     "client_ip": client_ip,
-    "client_port": 0,
+    "client_port": client_port,
     "server_ip": args.server_host,
     "server_port": args.server_port,
     "protocol": args.protocol,
@@ -115,7 +121,8 @@ json_message = json.dumps(message, indent=4)
 server_address = (args.server_host, args.server_port)
 
 try:
-    print(f"Enviando: {json_message}")
+    print(f"-> Enviando mensagem para: {args.server_host}:{args.server_port}/{args.protocol.upper()}.")
+    if verbose > 0: print(f"Enviando: {json_message}")
 
     if args.protocol == "udp":
         client_sock.sendto(json_message.encode(), server_address)
@@ -126,18 +133,20 @@ try:
     try:
         response, _ = client_sock.recvfrom(1024) if args.protocol == "udp" else (client_sock.recv(1024), None)
         timestamp_response = datetime.now().isoformat()
-        print(f"Tempo de ida e volta da mensagem: {calcular_diferenca_timestamp(message["timestamp_send"], timestamp_response)} ms")
+        print(f"\033[32m\t+ Resposta recebida do servidor {args.server_host}:{args.server_port}/{args.protocol.upper()}->{client_ip}:{client_port}.\033[0m")
+        if verbose > 0: print(f"Tempo de ida e volta da mensagem: {calcular_diferenca_timestamp(message["timestamp_send"], timestamp_response)} ms")
         response_data = response.decode()
-        #print(f"+ Resposta do servidor: {response_data}")
+        if verbose > 2: print(f"+ Resposta do servidor: {response_data}")
         message["timestamp_recv"] = timestamp_response
         message["server_response"] = True
     except socket.timeout:
-        print("- Nenhuma resposta recebida do servidor.")
+        print(f"\033[31m\t- Nenhuma resposta recebida do servidor {args.server_host}:{args.server_port}/{args.protocol.upper()}.\033[0m")
 
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)
-    print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
+
+    if verbose > 0: print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
     print(f"Erro na comunicação: {e}")

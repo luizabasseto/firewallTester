@@ -51,19 +51,22 @@ verbose = args.verbose
 
 # Inicializando socket de acordo com o protocolo
 client_sock = None
+client_port = -1
 
 if args.protocol == "udp":
     if verbose > 0: print("Protocolo: UDP")
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    client_sock.bind(("", 0))
     client_sock.settimeout(2)
     client_port = client_sock.getsockname()[1]
-# TODO - pegar a porta do cliente
+
 elif args.protocol == "tcp":
     if verbose > 0: print("Protocolo: TCP")
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_sock.bind(("", 0))
     client_sock.settimeout(2)
     client_port = client_sock.getsockname()[1]
-    print(f">>>> {client_port}")
+
 
 elif args.protocol == "icmp":
     if verbose > 0: print("Protocolo: ICMP")
@@ -150,6 +153,10 @@ try:
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
     print(f"Erro na comunicação: {e}")
+    dados["tests"].append(message)
+    with open(filename, "w") as file:
+        json.dump(dados, file, indent=4)
+    if verbose > 0: print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
 
 finally:
     if client_sock:

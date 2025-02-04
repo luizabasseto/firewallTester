@@ -27,8 +27,8 @@ class FirewallGUI:
 
         # Dicionário para armazenar hosts (Exemplo: IP -> Hostname)
         self.hosts = {
-            "192.168.1.10": "Host-A",
-            "192.168.1.20": "Host-B"
+            "Host1": "192.168.0.1",
+            "Host2": "192.168.0.2"
         }
 
         # TODO - pegar as informações dos hosts como dicionário
@@ -82,10 +82,15 @@ class FirewallGUI:
 
         #hosts=["Host1", "Host2", "200.200.200.200"]
         hosts = containers.getContainersHostNames()
+        #hosts=[
+        #    "Host1:192.168.0.1",
+        #    "Host1:192.168.0.3",
+        #    "Host2:192.168.0.2"
+        #   ]
 
         protocols=["TCP", "UDP", "ICMP"]
 
-        ipWidth=14
+        ipWidth=20
         portWidth=11
 
         ttk.Label(frame, text="Source IP:").grid(row=0, column=0)

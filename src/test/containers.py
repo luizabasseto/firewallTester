@@ -107,37 +107,42 @@ def getContainersHostNames():
             print("Nenhum contêiner encontrado com hostname contendo:", filter_string)
 
         lista = []
+        outraLista = []
         for container in matching_containers:
-            #print(f"\nContainer localizado: {container['hostname']} - ID: {container['id']}")
+            print(f"\nContainer localizado: {container['hostname']} - ID: {container['id']}")
             # Executa o comando no Docker e processa a saída
             interfaces = get_ip_info_from_docker(container['id'])
             ipContainer = process_ip_info(interfaces)
             lista.extend(ipContainer)
             #print("-" * 20) # Separador para melhor visualização (opcional)
 
+
+        for ip in lista:
+            print(f"{container['hostname']} - {ip}")
+            outraLista.append(container['hostname'].replace(".teste", "")+":"+ip)
         #print(">>>")
         #print(lista)
-        return lista
+        return outraLista
 
 
 # Exemplo de uso
-filter_string = ".test" # parte do nome do container - neste caso todos os containers do teste devem ter em seu nome .test
-matching_containers = get_container_info_by_hostname(filter_string)
+#filter_string = ".test" # parte do nome do container - neste caso todos os containers do teste devem ter em seu nome .test
+#matching_containers = get_container_info_by_hostname(filter_string)
 
-if matching_containers:
-    print(json.dumps(matching_containers, indent=4))
-else:
-    print("Nenhum contêiner encontrado com hostname contendo:", filter_string)
+#if matching_containers:
+#    print(json.dumps(matching_containers, indent=4))
+#else:
+#    print("Nenhum contêiner encontrado com hostname contendo:", filter_string)
 
-lista = []
-for container in matching_containers:
-    print(f"\nContainer localizado: {container['hostname']} - ID: {container['id']}")
+#lista = []
+#for container in matching_containers:
+#    print(f"\nContainer localizado: {container['hostname']} - ID: {container['id']}")
     # Executa o comando no Docker e processa a saída
-    interfaces = get_ip_info_from_docker(container['id'])
-    ipContainer = process_ip_info(interfaces)
-    lista.extend(ipContainer)
-    print("-" * 20) # Separador para melhor visualização (opcional)
+#    interfaces = get_ip_info_from_docker(container['id'])
+#    ipContainer = process_ip_info(interfaces)
+#    lista.extend(ipContainer)
+#    print("-" * 20) # Separador para melhor visualização (opcional)
 
-print(">>>")
-print(lista)
+#print(">>>")
+#print(lista)
 

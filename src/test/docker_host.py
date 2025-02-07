@@ -31,6 +31,27 @@ class DockerHost:
         }
         self.interfaces.append(interface)
 
+    def extract_hostname_ips(self, lista_json):
+        """
+        Extrai o hostname e os IPs de uma lista de objetos JSON.
+
+        :param lista_json: Lista de objetos JSON no formato DockerHost.
+        :return: Lista de strings no formato "hostname: ip".
+        """
+        resultado = []
+
+        # Percorre cada objeto JSON na lista
+        for host in lista_json:
+            hostname = host["hostname"].replace(".teste", "")
+
+            # Percorre cada interface de rede
+            for interface in host["interfaces"]:
+                # Percorre cada IP da interface
+                for ip in interface["ips"]:
+                    resultado.append(f"{hostname}: {ip}")
+
+        return resultado
+
     def add_ip_to_interface(self, interface_name, ip):
         """
         Adiciona um IP a uma interface de rede existente.

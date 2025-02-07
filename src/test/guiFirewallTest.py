@@ -35,8 +35,6 @@ class FirewallGUI:
         #self.hosts = getContainers.pegaContainers()
 
 
-
-
         # Criando a interface das abas
         self.create_hosts_tab()
         self.create_firewall_tab()
@@ -73,6 +71,8 @@ class FirewallGUI:
         """Salvar as portas abertas (lógica futura)"""
         print(f"Host {ip} agora tem as portas abertas: {ports}")
 
+
+
     def create_firewall_tab(self):
         """Cria a interface para os testes de firewall"""
         ttk.Label(self.firewall_frame, text="Teste de Firewall", font=("Arial", 12)).pack(pady=10)
@@ -81,12 +81,9 @@ class FirewallGUI:
         frame.pack(fill="x", padx=10, pady=5)
 
         #hosts=["Host1", "Host2", "200.200.200.200"]
-        hosts = containers.getContainersHostNames()
-        #hosts=[
-        #    "Host1:192.168.0.1",
-        #    "Host1:192.168.0.3",
-        #    "Host2:192.168.0.2"
-        #   ]
+        cont = containers.getContainersHostNames()
+
+        hosts = containers.extract_hostname_ips(cont)
 
         protocols=["TCP", "UDP", "ICMP"]
 

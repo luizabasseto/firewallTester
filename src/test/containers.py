@@ -2,6 +2,7 @@
 
 import subprocess
 import json
+from docker_host import DockerHost
 
 def get_ip_info_from_docker(containerId):
     """Executa o comando 'ip -4 -json a' dentro de um contêiner Docker e retorna o JSON resultante."""
@@ -29,10 +30,11 @@ def run_client_test(containerId):
         print("Erro ao executar o comando Docker:", e)
         return []
 
-def process_ip_info(interfaces):
+def process_ip_info(interfaces, host):
     """Processa a saída JSON do comando 'ip -4 -json a' e exibe interfaces e seus IPs, ignorando 'lo'."""
-    lista=[]
+
     for interface in interfaces:
+        lista=[]
         if interface["ifname"] == "lo":
             continue  # Ignora a interface de loopback
 
@@ -40,15 +42,19 @@ def process_ip_info(interfaces):
         ips = [addr["local"] for addr in interface.get("addr_info", [])]
 
         if ips:
-            print(f"\tInterface: {ifname}")
+            #print(f"\tInterface: {ifname}")
             for ip in ips:
-                print(f"\t\t  IP: {ip}")
+                #print(f"\t\t  IP: {ip}")
                 lista.append(ip)
-    return lista
+
+        host.add_interface(interface["ifname"], lista)
+
+    return host
 
 
 def get_container_info_by_hostname(filter_string):
     """Obtém informações detalhadas dos contêineres Docker cujo hostname contém a string fornecida."""
+    print(f"\nObtendo informações do container: \n\tTodos os containers devem ter o contendo a palavra {filter_string}.")
     try:
         # Obtém todos os contêineres em execução
         result = subprocess.run(
@@ -98,51 +104,44 @@ def get_container_info_by_hostname(filter_string):
 # TODO - fazer método para retornar hostname, interface, IP
 
 def getContainersHostNames():
-        filter_string = ".test"
-        matching_containers = get_container_info_by_hostname(filter_string)
 
-        if matching_containers:
-            print(json.dumps(matching_containers, indent=4))
-        else:
-            print("Nenhum contêiner encontrado com hostname contendo:", filter_string)
+    hosts = []
 
-        lista = []
-        outraLista = []
-        for container in matching_containers:
-            print(f"\nContainer localizado: {container['hostname']} - ID: {container['id']}")
-            # Executa o comando no Docker e processa a saída
-            interfaces = get_ip_info_from_docker(container['id'])
-            ipContainer = process_ip_info(interfaces)
-            lista.extend(ipContainer)
-            #print("-" * 20) # Separador para melhor visualização (opcional)
+    filter_string = ".test" # parte do nome do container - neste caso todos os containers do teste devem ter em seu nome .test
+    matching_containers = get_container_info_by_hostname(filter_string)
+    printContainerList(matching_containers)
+
+    print(f"\nObtendo informações de rede do container: \n\tGerando Json dessas informações!.")
+    for container in matching_containers:
+
+        host = DockerHost(
+            container_id=container['id'],
+            nome=container['name'],
+            hostname=container['hostname']
+        )
+
+        #print(f"\nContainer localizado: {container['hostname']} - ID: {container['id']}")
+        # Executa o comando no Docker e processa a saída
+        interfaces = get_ip_info_from_docker(container['id'])
+        #print(f"interfaces - {interfaces}")
+        host = process_ip_info(interfaces, host)
+        #print(f"IPs - {ipContainer}")
+        #lista.extend(ipContainer)
+
+        hosts.append(host.to_dict())
 
 
-        for ip in lista:
-            print(f"{container['hostname']} - {ip}")
-            outraLista.append(container['hostname'].replace(".teste", "")+":"+ip)
-        #print(">>>")
-        #print(lista)
-        return outraLista
+    hosts_json = json.dumps(hosts, indent=2)
+    print(hosts_json)
+    return hosts
 
+def printContainerList(matching_containers):
+    if matching_containers:
+        print(json.dumps(matching_containers, indent=4))
+    else:
+        print("Nenhum contêiner encontrado com hostname contendo:", filter_string)
 
 # Exemplo de uso
-#filter_string = ".test" # parte do nome do container - neste caso todos os containers do teste devem ter em seu nome .test
-#matching_containers = get_container_info_by_hostname(filter_string)
-
-#if matching_containers:
-#    print(json.dumps(matching_containers, indent=4))
-#else:
-#    print("Nenhum contêiner encontrado com hostname contendo:", filter_string)
-
-#lista = []
-#for container in matching_containers:
-#    print(f"\nContainer localizado: {container['hostname']} - ID: {container['id']}")
-    # Executa o comando no Docker e processa a saída
-#    interfaces = get_ip_info_from_docker(container['id'])
-#    ipContainer = process_ip_info(interfaces)
-#    lista.extend(ipContainer)
-#    print("-" * 20) # Separador para melhor visualização (opcional)
-
-#print(">>>")
-#print(lista)
-
+#hosts = getContainersHostNames()
+#hosts_json = json.dumps(hosts, indent=2)
+#print(hosts_json)

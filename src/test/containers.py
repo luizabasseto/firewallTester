@@ -62,7 +62,7 @@ def extract_hostname_ips(lista_json):
 
     # Percorre cada objeto JSON na lista
     for host in lista_json:
-        hostname = host["hostname"].replace(".teste", "")
+        hostname = host["hostname"]
 
         # Percorre cada interface de rede
         for interface in host["interfaces"]:
@@ -70,6 +70,35 @@ def extract_hostname_ips(lista_json):
             for ip in interface["ips"]:
                 resultado.append(f"{hostname}: {ip}")
 
+    return resultado
+
+def extract_hostname_interface_ips(lista_json):
+    """
+    Extrai o hostname e as interfaces de rede com seus IPs de uma lista de objetos JSON.
+
+    :param lista_json: Lista de objetos JSON no formato DockerHost.
+    :return: Lista de listas no formato [hostname, [interface1, interface2, ...]],
+             onde cada interface é um dicionário {"nome": "eth0", "ips": ["ip1", "ip2"]}.
+    """
+    print(f"\nObtendo lista: hostname e iterfaces:ip.")
+    resultado = []
+
+    # Percorre cada objeto JSON na lista
+    for host in lista_json:
+        hostname = host["hostname"]
+        interfaces = []
+
+        # Percorre cada interface de rede
+        for interface in host["interfaces"]:
+            interface_name = interface["nome"]
+            ips = interface["ips"]
+
+            # Adiciona a interface como um dicionário à lista de interfaces
+            interfaces.append({"nome": interface_name, "ips": ips})
+
+        # Adiciona o hostname e a lista de interfaces ao resultado
+        resultado.append([hostname, interfaces])
+    print(resultado)
     return resultado
 
 def get_container_info_by_hostname(filter_string):

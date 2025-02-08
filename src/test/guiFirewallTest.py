@@ -25,21 +25,15 @@ class FirewallGUI:
         self.notebook.add(self.hosts_frame, text="Hosts")
         self.notebook.add(self.config_frame, text="Configurações")
 
-        # Dicionário para armazenar hosts (Exemplo: IP -> Hostname)
-        self.hosts = {
-            "Host1": "192.168.0.1",
-            "Host2": "192.168.0.2"
-        }
+        self.cont = containers.getContainersHostNames() # obtém as informações dos containers (id, hostname, etc)
 
-        # TODO - pegar as informações dos hosts como dicionário
-        #self.hosts = getContainers.pegaContainers()
-
+        self.hosts = containers.extract_hostname_interface_ips(self.cont) # obtém as informações do hosts (hostname, interfaces, ips))
 
         # Criando a interface das abas
         self.create_hosts_tab()
         self.create_firewall_tab()
 
-    def create_hosts_tab(self):
+    def create_hosts_tab_old(self):
         """Cria a interface da aba de Hosts"""
         ttk.Label(self.hosts_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(pady=10)
 
@@ -54,6 +48,35 @@ class FirewallGUI:
             # Label com informações do host
             lbl = ttk.Label(frame, text=f"IP: {ip}", font=("Arial", 10))
             lbl.pack(side="left")
+
+    def create_hosts_tab(self):
+        """Cria a interface da aba de Hosts"""
+        ttk.Label(self.hosts_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(pady=10)
+
+        for host in self.hosts:
+                hostname = host[0]
+                interfaces = host[1]
+                #print(f"Hostname {hostname} int {interfaces}")
+
+                print(f"create host:\n {hostname}")
+                frame = ttk.Frame(self.hosts_frame)
+                frame.pack(fill="x", padx=10, pady=5)
+
+                btn = ttk.Button(frame, text=f"{hostname}", command=lambda i=hostname, h=hostname: self.edit_ports(i, h))
+                btn.pack(side="left", padx=5)
+
+                if interfaces:
+                    for interface in interfaces:
+                        iface_name = interface['nome']
+                        ips = interface['ips']
+
+                        for ip in ips:
+                            print(f"{hostname}-{iface_name}:{ip}")
+                            lbl = ttk.Label(frame, text=f"{iface_name}:{ip}; ", font=("Arial", 10))
+                            lbl.pack(side="left")
+                else:
+                        lbl = ttk.Label(frame, text=f"Host sem IP configurado!; ", font=("Arial", 10))
+                        lbl.pack(side="left")
 
     def edit_ports(self, ip, hostname):
         """Abre uma nova janela para editar as portas do host"""
@@ -80,24 +103,21 @@ class FirewallGUI:
         frame = ttk.Frame(self.firewall_frame)
         frame.pack(fill="x", padx=10, pady=5)
 
-        #hosts=["Host1", "Host2", "200.200.200.200"]
-        cont = containers.getContainersHostNames()
-
-        hosts = containers.extract_hostname_ips(cont)
+        hosts_ips = containers.extract_hostname_ips(self.cont)
 
         protocols=["TCP", "UDP", "ICMP"]
 
-        ipWidth=20
+        ipWidth=25
         portWidth=11
 
         ttk.Label(frame, text="Source IP:").grid(row=0, column=0)
         #src_ip = ttk.Entry(frame)
-        src_ip = ttk.Combobox(frame, values=hosts, width=ipWidth)
+        src_ip = ttk.Combobox(frame, values=hosts_ips, width=ipWidth)
         src_ip.current(0)
         src_ip.grid(row=1, column=0)
 
         ttk.Label(frame, text="Destination IP:").grid(row=0, column=1)
-        dst_ip = ttk.Combobox(frame, values=hosts, width=ipWidth)
+        dst_ip = ttk.Combobox(frame, values=hosts_ips, width=ipWidth)
         dst_ip.current(1)
         dst_ip.grid(row=1, column=1)
 

@@ -5,4 +5,5 @@ RUN apt update && apt install -y iptables tcpdump lynx iproute2 net-tools dhcpcd
 RUN pip install scapy psutil
 RUN git clone https://github.com/luizsantos/firewallTester.git
 WORKDIR /firewallTester/src
+CMD git pull
 CMD ["/bin/bash"]

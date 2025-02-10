@@ -53,14 +53,14 @@ verbose = args.verbose
 client_sock = None
 client_port = -1
 
-if args.protocol == "udp":
+if args.protocol.lower() == "udp":
     if verbose > 0: print("Protocolo: UDP")
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_sock.bind(("", 0))
     client_sock.settimeout(2)
     client_port = client_sock.getsockname()[1]
 
-elif args.protocol == "tcp":
+elif args.protocol.lower() == "tcp":
     if verbose > 0: print("Protocolo: TCP")
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_sock.bind(("", 0))
@@ -68,7 +68,7 @@ elif args.protocol == "tcp":
     client_port = client_sock.getsockname()[1]
 
 
-elif args.protocol == "icmp":
+elif args.protocol.lower() == "icmp":
     if verbose > 0: print("Protocolo: ICMP")
     icmp_status = ping(args.server_host, args.server_port)
     client_port = 0  # ICMP não usa portas convencionais
@@ -77,6 +77,7 @@ else:
     quit()
 
 # Obtendo informações do cliente
+# TODO - se o nome do host estiver errado no arquivo /etc/host esse programa não funciona! Bem isso está aqui para pegar o ip do cliente, então não sei se precisa pegar o nome para pegar o IP - ver como fazer isso só pegando o IP - ai uma questão que teria, seria se o cliente tiver mais que um IP.
 client_host = socket.gethostname()
 client_ip = socket.gethostbyname(client_host)
 timestamp = datetime.now().isoformat()
@@ -124,7 +125,7 @@ json_message = json.dumps(message, indent=4)
 server_address = (args.server_host, args.server_port)
 
 try:
-    print(f"-> Enviando mensagem para: {args.server_host}:{args.server_port}/{args.protocol.upper()}.")
+    if verbose > 0: print(f"-> Enviando mensagem para: {args.server_host}:{args.server_port}/{args.protocol.upper()}.")
     if verbose > 0: print(f"Enviando: {json_message}")
 
     if args.protocol == "udp":
@@ -142,8 +143,11 @@ try:
         if verbose > 2: print(f"+ Resposta do servidor: {response_data}")
         message["timestamp_recv"] = timestamp_response
         message["server_response"] = True
+
+    # TODO - enviar essas mensagens para a interface gráfica utilizando o objeto json - colocar um campo observação ou algo do gênero - caso contrário a interface gráfica pode quebrar, já que ela espera o json.
     except socket.timeout:
         print(f"\033[31m\t- Nenhuma resposta recebida do servidor {args.server_host}:{args.server_port}/{args.protocol.upper()}.\033[0m")
+
 
     dados["tests"].append(message)
     with open(filename, "w") as file:
@@ -152,7 +156,7 @@ try:
     if verbose > 0: print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
-    print(f"Erro na comunicação: {e}")
+    verbose > 0: print(f"Erro na comunicação: {e}")
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)
@@ -161,3 +165,6 @@ except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OS
 finally:
     if client_sock:
         client_sock.close()
+
+# print que manda a msg para a interface
+print(message)

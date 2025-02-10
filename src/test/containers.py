@@ -16,11 +16,12 @@ def get_ip_info_from_docker(containerId):
         print("Erro ao executar o comando Docker:", e)
         return []
 
-def run_client_test(containerId):
-    """Executa o comando ."""
+#teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port
+def run_client_test(containerId, dst_ip, protocol, dst_port, teste_id, timestamp, verbose):
+    """Executa o comando tem que passar Id do container, IP de destino, protocol, porta de destino, id do teste, timestamp, verbose"""
     try:
         result = subprocess.run(
-            ["docker", "exec", containerId, "/firewallTester/src/cliente.py", "192.168.122.200", "tcp", "33", "1", "2025", "0"],
+            ["docker", "exec", containerId, "/firewallTester/src/cliente.py", dst_ip, protocol, dst_port, teste_id, "2025", "0"],
             capture_output=True, text=True, check=True
         )
         #return json.loads(result.stdout)
@@ -72,6 +73,36 @@ def extract_hostname_ips(lista_json):
 
     return resultado
 
+def extract_containerid_hostname_ips( ):
+    """
+    Extrai o ID do container, hostname e IPs de uma lista de objetos JSON.
+
+    :param lista_json: Lista de objetos JSON no formato DockerHost.
+    :return: Lista de dicionários no formato {"id": "container_id", "hostname": "hostname", "ip": "ip"}.
+    """
+
+    lista_json = getContainersHostNames()  # obtém as informações dos containers (id, hostname, etc)
+
+    resultado = []
+
+    # Percorre cada objeto JSON na lista
+    for host in lista_json:
+        hostname = host["hostname"]
+        containerid = host["id"]
+
+        # Percorre cada interface de rede
+        for interface in host["interfaces"]:
+            # Percorre cada IP da interface
+            for ip in interface["ips"]:
+                # Adiciona um dicionário com as informações do container
+                resultado.append({
+                    "id": containerid,
+                    "hostname": hostname,
+                    "ip": ip
+                })
+
+    return resultado
+
 def extract_hostname_interface_ips(lista_json):
     """
     Extrai o hostname e as interfaces de rede com seus IPs de uma lista de objetos JSON.
@@ -98,7 +129,7 @@ def extract_hostname_interface_ips(lista_json):
 
         # Adiciona o hostname e a lista de interfaces ao resultado
         resultado.append([hostname, interfaces])
-    print(resultado)
+    print(f"resultado: {resultado}")
     return resultado
 
 def get_container_info_by_hostname(filter_string):

@@ -1197,6 +1197,19 @@
             "server_port": 80,
             "protocol": "tcp",
             "server_response": true
+        },
+        {
+            "id": 1,
+            "timestamp_teste": "2025",
+            "timestamp_send": "2025-02-09T21:59:38.242698",
+            "timestamp_recv": "2025-02-09T21:59:38.244560",
+            "client_host": "host2",
+            "client_ip": "172.17.0.3",
+            "client_port": 54907,
+            "server_ip": "172.17.0.3",
+            "server_port": 80,
+            "protocol": "tcp",
+            "server_response": true
         }
     ]
 }

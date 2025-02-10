@@ -144,7 +144,7 @@ def main():
     threads = []
     nome_arquivo = "conf/portas.conf"  # Substitua pelo nome do seu arquivo
     tuplas = read_ports_from_file(nome_arquivo)
-    print(f"\Iniciando servidores com portas presentes no arquivo: {nome_arquivo} - Esse arquivo deve conter linhas com porta/protocolo, exemplo 80/tcp")
+    print(f"Iniciando servidores com portas presentes no arquivo: {nome_arquivo} - Esse arquivo deve conter linhas com porta/protocolo, exemplo 80/tcp")
     if tuplas:
         print("Tuplas lidas do arquivo:")
         #for porta, protocolo in tuplas:

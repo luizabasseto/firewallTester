@@ -43,7 +43,20 @@ class FirewallGUI:
 
     def create_hosts_tab(self):
         """Cria a interface da aba de Hosts"""
-        ttk.Label(self.hosts_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(pady=10)
+
+        self.top_frame = tk.Frame(self.hosts_frame)
+        self.top_frame.pack(pady=10)
+
+        ttk.Label(self.top_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(pady=10)
+
+        # Botão para Ligar todos os servidores nos containers
+        ttk.Button(self.top_frame, text="Ligar Servidores", command=self.start_servers).pack(side=tk.LEFT, padx=10)
+        # Botão para executar todos os testes
+        ttk.Button(self.top_frame, text="Atualizar Hosts", command=self.update_hosts).pack(padx=10)
+
+        # Frame para os botões inferiores
+        self.bottom_frame = tk.Frame(self.hosts_frame)
+        self.bottom_frame.pack(pady=10)
 
         for container in self.containers_data:
             container_id = container["id"]
@@ -51,7 +64,7 @@ class FirewallGUI:
             ip = container["ip"]
 
             # Cria um frame para cada host
-            frame = ttk.Frame(self.hosts_frame)
+            frame = ttk.Frame(self.bottom_frame)
             frame.pack(fill="x", padx=10, pady=5)
 
             # Botão com o hostname (ou container_id, se preferir)
@@ -238,6 +251,14 @@ class FirewallGUI:
         for teste in self.tests:
             teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
             print(f"Executando teste - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
+
+    def start_servers(self):
+        """Inicia server.py nos containers"""
+        print("start_servers")
+
+    def update_hosts(self):
+        """Atualiza dados dos hosts/containers - verifica por exemplo se algum container foi criado ou exluido, se alguma configuração de rede mudou, etc"""
+        print("update_hosts")
 
 # Executando a aplicação
 if __name__ == "__main__":

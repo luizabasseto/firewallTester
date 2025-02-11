@@ -47,7 +47,7 @@ class FirewallGUI:
         self.top_frame = tk.Frame(self.hosts_frame)
         self.top_frame.pack(pady=10)
 
-        ttk.Label(self.top_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(pady=10)
+        ttk.Label(self.top_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(padx=10)
 
         # Botão para Ligar todos os servidores nos containers
         ttk.Button(self.top_frame, text="Ligar Servidores", command=self.start_servers).pack(side=tk.LEFT, padx=10)
@@ -255,6 +255,9 @@ class FirewallGUI:
     def start_servers(self):
         """Inicia server.py nos containers"""
         print("start_servers")
+        for container in self.containers_data:
+            container_id = container["id"]
+            # TODO - enviar comando de ligar container por container... criar método para isso em containers.py
 
     def update_hosts(self):
         """Atualiza dados dos hosts/containers - verifica por exemplo se algum container foi criado ou exluido, se alguma configuração de rede mudou, etc"""

@@ -156,7 +156,7 @@ try:
     if verbose > 0: print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
-    verbose > 0: print(f"Erro na comunicação: {e}")
+    if verbose > 0: print(f"Erro na comunicação: {e}")
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)

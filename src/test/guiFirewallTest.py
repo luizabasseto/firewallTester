@@ -285,13 +285,20 @@ class FirewallGUI:
         dst_ip =  self.extrair_ip(dst_ip)
 
         print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
-        result = containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
 
-        print(f"resultado do teste na interface: {result}")
-        if result["server_response"] == True:
-            print("sucesso")
-        else:
-            print("falha")
+        result_str = containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
+        try:
+            result = json.loads(result_str)
+            print(result)
+        except json.JSONDecodeError as e:
+            print("Erro ao decodificar JSON:", e)
+
+            # TODO - está dando erro ao processar o json
+
+        # if result["server_response"] == True:
+        #     print("sucesso")
+        # else:
+        #     print("falha")
 
         print(f"indice -- {self.tests}")
 

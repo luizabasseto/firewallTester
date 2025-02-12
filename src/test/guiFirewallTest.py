@@ -2,9 +2,11 @@
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 import uuid  # Para gerar IDs únicos
 import containers
 import json
+import re
 
 class FirewallGUI:
     def __init__(self, root):
@@ -29,12 +31,12 @@ class FirewallGUI:
         self.tests = []
 
         # Obtém dados de container e hosts
-        self.cont = containers.getContainersHostNames() # obtém as informações dos containers (id, hostname, etc)
-        #self.hosts = containers.extract_hostname_interface_ips(self.cont) # obtém as informações do hosts (hostname, interfaces, ips))
-        self.hosts = containers.extract_containerid_hostname_ips(self.cont) # obtém as informações do hosts (hostname, interfaces, ips))
+        #self.
+        self.hosts = containers.extract_containerid_hostname_ips( )  # obtém as informações do hosts (hostname, interfaces, ips))
 
-        print(f"self.hosts{self.hosts}")
-
+        # A função extract_containerid_hostname_ips já retorna uma lista de dicionários
+        self.containers_data = self.hosts
+        print(f"self.containers_data: {self.containers_data}")
 
         # Criando a interface das abas
         self.create_hosts_tab()
@@ -42,14 +44,20 @@ class FirewallGUI:
 
     def create_hosts_tab(self):
         """Cria a interface da aba de Hosts"""
-        ttk.Label(self.hosts_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(pady=10)
 
-        # Exemplo de self.containers_data (substitua pelos seus dados reais)
-        # self.containers_data = [
-        #     {"id": "c1", "hostname": "host1", "ip": "192.168.1.1"},
-        #     {"id": "c2", "hostname": "host2", "ip": "192.168.1.2"},
-        #     {"id": "c3", "hostname": "host3", "ip": "192.168.1.3"},
-        # ]
+        self.top_frame = tk.Frame(self.hosts_frame)
+        self.top_frame.pack(pady=10)
+
+        ttk.Label(self.top_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(padx=10)
+
+        # Botão para Ligar todos os servidores nos containers
+        ttk.Button(self.top_frame, text="Ligar Servidores", command=self.start_servers).pack(side=tk.LEFT, padx=10)
+        # Botão para executar todos os testes
+        ttk.Button(self.top_frame, text="Atualizar Hosts", command=self.update_hosts).pack(padx=10)
+
+        # Frame para os botões inferiores
+        self.bottom_frame = tk.Frame(self.hosts_frame)
+        self.bottom_frame.pack(pady=10)
 
         for container in self.containers_data:
             container_id = container["id"]
@@ -57,7 +65,7 @@ class FirewallGUI:
             ip = container["ip"]
 
             # Cria um frame para cada host
-            frame = ttk.Frame(self.hosts_frame)
+            frame = ttk.Frame(self.bottom_frame)
             frame.pack(fill="x", padx=10, pady=5)
 
             # Botão com o hostname (ou container_id, se preferir)
@@ -68,31 +76,21 @@ class FirewallGUI:
             lbl = ttk.Label(frame, text=f"IP: {ip}", font=("Arial", 10))
             lbl.pack(side="left")
 
-            # Se houver mais de um IP ou interfaces, você pode adaptar aqui
-            # Exemplo: Se o container tiver múltiplos IPs, exiba todos
-            if "interfaces" in container:
-                for interface in container["interfaces"]:
-                    iface_name = interface["nome"]
-                    ips = interface["ips"]
-                    for ip in ips:
-                        lbl = ttk.Label(frame, text=f"{iface_name}:{ip}; ", font=("Arial", 10))
-                        lbl.pack(side="left")
-
-    def edit_ports(self, hostname):
+    def edit_ports(self, container_id):
         """Abre uma nova janela para editar as portas do host"""
         popup = tk.Toplevel(self.root)
-        popup.title(f"Edit {hostname} Ports")
+        popup.title(f"Edit Ports for Container {container_id}")
         popup.geometry("300x200")
 
         ttk.Label(popup, text="Opened Ports:", font=("Arial", 10)).pack(pady=5)
         ports_entry = ttk.Entry(popup, width=30)
         ports_entry.pack(pady=5)
 
-        ttk.Button(popup, text="Save", command=lambda: self.save_ports(hostname, ports_entry.get())).pack(pady=10)
+        ttk.Button(popup, text="Save", command=lambda: self.save_ports(container_id, ports_entry.get())).pack(pady=10)
 
-    def save_ports(self, hostname, ports):
+    def save_ports(self, container_id, ports):
         """Salvar as portas abertas (lógica futura)"""
-        print(f"Host {hostname} agora tem as portas abertas: {ports}")
+        print(f"Container {container_id} agora tem as portas abertas: {ports}")
 
     def create_firewall_tab(self):
         """Cria a interface para os testes de firewall"""
@@ -102,20 +100,26 @@ class FirewallGUI:
         frame_entrada = ttk.Frame(self.firewall_frame)
         frame_entrada.pack(fill="x", padx=10, pady=5)
 
-        # Exemplo de IPs e protocolos
-        hosts_ips = containers.extract_containerid_hostname_ips(self.cont)
+        # Lista de valores exibidos no Combobox (hostname + IP)
+        if self.containers_data:
+            hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
+        else: # se não houver elementos apresenta uma mensagem
+            hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
         protocols = ["TCP", "UDP", "ICMP"]
-        print(f"hosts_ip: {hosts_ips}")
 
         # Componentes de entrada
         ttk.Label(frame_entrada, text="Source IP:").grid(row=0, column=0)
-        self.src_ip = ttk.Combobox(frame_entrada, values=hosts_ips, width=25)
+        self.src_ip = ttk.Combobox(frame_entrada, values=hosts_display, width=25)
         self.src_ip.current(0)
         self.src_ip.grid(row=1, column=0)
 
         ttk.Label(frame_entrada, text="Destination IP:").grid(row=0, column=1)
-        self.dst_ip = ttk.Combobox(frame_entrada, values=hosts_ips, width=25)
-        self.dst_ip.current(1)
+        self.dst_ip = ttk.Combobox(frame_entrada, values=hosts_display, width=25)
+        if len(self.containers_data) > 1: # verifica se há mais que um elemento na lista de hosts, se não houver não dá para setar o segundo como padrão.
+            self.dst_ip.current(1)
+        else:
+            self.dst_ip.current(0)
+
         self.dst_ip.grid(row=1, column=1)
 
         ttk.Label(frame_entrada, text="Protocol:").grid(row=0, column=2)
@@ -140,7 +144,7 @@ class FirewallGUI:
         ttk.Radiobutton(frame_entrada, text="No", variable=self.expected, value="no").grid(row=1, column=6)
 
         # Botão para adicionar/editar teste
-        self.botao_adicionar = ttk.Button(self.firewall_frame, text="Adicionar", command=self.adicionar_editar_teste)
+        self.botao_adicionar = ttk.Button(self.firewall_frame, text="Adicionar", command=self.validar_e_adicionar_teste)
         self.botao_adicionar.pack(pady=10)
 
         # Botão para executar todos os testes
@@ -153,6 +157,28 @@ class FirewallGUI:
         # Variável para armazenar o índice do teste sendo editado
         self.indice_edicao = None
 
+    def validar_e_adicionar_teste(self):
+        """Valida os campos antes de chamar o método adicionar_editar_teste"""
+        # Verifica se os campos obrigatórios estão preenchidos
+
+        if not self.src_ip.get() or not self.dst_ip.get() or not self.protocol.get() or not self.dst_port.get():
+            messagebox.showwarning("Campos obrigatórios", "Por favor, preencha todos os campos obrigatórios.")
+            return
+        if not self.dst_port.get().isdigit():
+            messagebox.showwarning("Campos obrigatórios", "Por favor, a porta deve ser um número entre 1-65535.")
+            return
+        try:
+            porta = 1<= int(self.dst_port.get())
+            if not 1 <= porta <=65536:
+                messagebox.showwarning("Campos obrigatórios", "Por favor, a porta deve ser um número entre 1-65535.")
+                return
+        except ValueError:
+            messagebox.showwarning("Porta inválida: erro na conversão.")
+            return
+
+        # Se todos os campos estiverem preenchidos, chama o método adicionar_editar_teste
+        self.adicionar_editar_teste()
+
     def adicionar_editar_teste(self):
         """Adiciona ou edita um teste na lista"""
         src_ip = self.src_ip.get()
@@ -162,16 +188,23 @@ class FirewallGUI:
         dst_port = self.dst_port.get()
         expected = self.expected.get()
 
+        # Obtém o ID do container selecionado no Combobox
+        selected_index = self.src_ip.current()
+        if selected_index >= 0 and selected_index < len(self.containers_data):
+            container_id = self.containers_data[selected_index]["id"]
+        else:
+            container_id = "N/A"  # Caso nenhum container seja selecionado
+
         if self.indice_edicao is not None:
             # Editar o teste existente, mantendo o ID original
             teste_id = self.tests[self.indice_edicao][0]  # Mantém o ID original
-            self.tests[self.indice_edicao] = (teste_id, src_ip, dst_ip, protocol, src_port, dst_port, expected)
+            self.tests[self.indice_edicao] = (teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected)
             self.indice_edicao = None
             self.botao_adicionar.config(text="Adicionar")
         else:
             # Adicionar novo teste com um ID único
             teste_id = str(uuid.uuid4())  # Gera um ID único
-            self.tests.append((teste_id, src_ip, dst_ip, protocol, src_port, dst_port, expected))
+            self.tests.append((teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected))
 
         # Limpar os campos de entrada
         self.src_ip.set("")
@@ -190,13 +223,13 @@ class FirewallGUI:
             widget.destroy()
 
         for i, teste in enumerate(self.tests):
-            teste_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
+            teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
 
             frame = ttk.Frame(self.tests_frame)
             frame.pack(fill="x", pady=2)
 
             # Exibir os dados do teste
-            test_str = f"{src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
+            test_str = f"Container ID: {container_id} | {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
             ttk.Label(frame, text=test_str).pack(side="left")
 
             # Botões de testar, editar e excluir
@@ -206,7 +239,7 @@ class FirewallGUI:
 
     def editar_teste(self, indice):
         """Preenche os campos de entrada com os dados do teste selecionado para edição"""
-        _, src_ip, dst_ip, protocol, src_port, dst_port, expected = self.tests[indice]
+        _, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = self.tests[indice]
 
         self.src_ip.set(src_ip)
         self.dst_ip.set(dst_ip)
@@ -226,15 +259,37 @@ class FirewallGUI:
         self.tests.pop(indice)
         self.atualizar_exibicao_testes()
 
+    def extrair_ip(self,string):
+        match = re.search(r'\((\d+\.\d+\.\d+\.\d+)\)', string)
+        return match.group(1) if match else None
+
     def testar_linha(self, indice):
         """Executa o teste individual"""
         teste = self.tests[indice]
-        print("Teste executado:", teste)
+        teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
+
+        dst_ip =  self.extrair_ip(dst_ip)
+
+        print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
+        containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
 
     def executar_todos_testes(self):
         """Executa todos os testes"""
         for teste in self.tests:
-            print("Executando todos testes:", teste)
+            teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
+            print(f"Executando teste - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
+
+    def start_servers(self):
+        """Inicia server.py nos containers"""
+        print("start_servers")
+        for container in self.containers_data:
+            container_id = container["id"]
+            containers.start_server(container_id)
+
+
+    def update_hosts(self):
+        """Atualiza dados dos hosts/containers - verifica por exemplo se algum container foi criado ou exluido, se alguma configuração de rede mudou, etc"""
+        print("update_hosts")
 
 # Executando a aplicação
 if __name__ == "__main__":

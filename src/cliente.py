@@ -79,7 +79,7 @@ else:
 # Obtendo informações do cliente
 # TODO - se o nome do host estiver errado no arquivo /etc/host esse programa não funciona! Bem isso está aqui para pegar o ip do cliente, então não sei se precisa pegar o nome para pegar o IP - ver como fazer isso só pegando o IP - ai uma questão que teria, seria se o cliente tiver mais que um IP.
 client_host = socket.gethostname()
-client_ip = socket.gethostbyname(client_host)
+client_ip = socket.gethostbyname(client_host) # TODO - se o IP for 0.0.0.0 significa que o host de destino não tem IP, inserir isso no resultado - melhor nem executar a conexão, ou seja, terminar antes e já colocar no objeto json que houve erro.
 timestamp = datetime.now().isoformat()
 
 # Criando diretório e nome do arquivo JSON

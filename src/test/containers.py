@@ -16,6 +16,27 @@ def get_ip_info_from_docker(containerId):
         print("Erro ao executar o comando Docker:", e)
         return []
 
+def start_server(containerId):
+    """Inicia o script de que simula portas servidoras nos containers -."""
+    # TODO - se tiver utilizando DHCP as portas 68 e 69 UDP podem estar em uso, ai não dá para executar essas portas! ver como resolver...
+    print(f"Inicia servidor no container {containerId}")
+    try:
+        result = subprocess.run(
+            # docker exec -d 9a0a52c42ea8 ./server.py
+            ["docker", "exec", "-d", containerId, "./server.py"],
+            capture_output=True, text=True, check=True
+        )
+        try:
+            return json.loads(result.stdout)
+        except json.JSONDecodeError: # na verdade a saída para sucesso do comando não retorna nada, então ele dá o erro do json
+            print("Servidores ligados...")
+            print("Saída recebida:", result.stdout)
+            return None  # Ou algum valor padrão
+
+    except subprocess.CalledProcessError as e:
+        print("Erro ao executar o comando Docker:", e)
+        return []
+
 #teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port
 def run_client_test(containerId, dst_ip, protocol, dst_port, teste_id, timestamp, verbose):
     """Executa o comando tem que passar Id do container, IP de destino, protocol, porta de destino, id do teste, timestamp, verbose"""
@@ -89,17 +110,25 @@ def extract_containerid_hostname_ips( ):
     for host in lista_json:
         hostname = host["hostname"]
         containerid = host["id"]
+        print(f"{hostname} - {host["interfaces"]}")
 
-        # Percorre cada interface de rede
-        for interface in host["interfaces"]:
-            # Percorre cada IP da interface
-            for ip in interface["ips"]:
-                # Adiciona um dicionário com as informações do container
+        if not host["interfaces"]:     # Verifica se há IPs na interface
                 resultado.append({
                     "id": containerid,
                     "hostname": hostname,
-                    "ip": ip
+                    "ip": "0.0.0.0"
                 })
+        else:
+            # Percorre cada interface de rede
+            for interface in host["interfaces"]:
+                # Percorre cada IP da interface
+                for ip in interface["ips"]:
+                    # Adiciona um dicionário com as informações do container
+                    resultado.append({
+                        "id": containerid,
+                        "hostname": hostname,
+                        "ip": ip
+                    })
 
     return resultado
 

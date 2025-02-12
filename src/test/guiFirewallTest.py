@@ -207,12 +207,12 @@ class FirewallGUI:
             self.tests.append((teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected))
 
         # Limpar os campos de entrada
-        self.src_ip.set("")
-        self.dst_ip.set("")
-        self.protocol.set("")
-        self.src_port.delete(0, tk.END)
-        self.dst_port.delete(0, tk.END)
-        self.expected.set("yes")
+        # self.src_ip.set("")
+        # self.dst_ip.set("")
+        # self.protocol.set("")
+        # self.src_port.delete(0, tk.END)
+        # self.dst_port.delete(0, tk.END)
+        # self.expected.set("yes")
 
         # Atualizar a exibição dos testes
         self.atualizar_exibicao_testes()

@@ -231,6 +231,7 @@ class FirewallGUI:
             # Exibir os dados do teste
             test_str = f"Container ID: {container_id} | {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
             ttk.Label(frame, text=test_str).pack(side="left")
+            # TODO - alterar a cor da label caso o teste falhe ou seja executado com sucesso.
 
             # Botões de testar, editar e excluir
             ttk.Button(frame, text="Testar", command=lambda idx=i: self.testar_linha(idx)).pack(side="left", padx=5)
@@ -272,6 +273,9 @@ class FirewallGUI:
 
         print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
         containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
+
+
+        print(f"indice -- {self.tests}")
 
     def executar_todos_testes(self):
         """Executa todos os testes"""

@@ -137,7 +137,7 @@ try:
     try:
         response, _ = client_sock.recvfrom(1024) if args.protocol == "udp" else (client_sock.recv(1024), None)
         timestamp_response = datetime.now().isoformat()
-        print(f"\033[32m\t+ Resposta recebida do servidor {args.server_host}:{args.server_port}/{args.protocol.upper()}->{client_ip}:{client_port}.\033[0m")
+        if verbose > 0 : print(f"\033[32m\t+ Resposta recebida do servidor {args.server_host}:{args.server_port}/{args.protocol.upper()}->{client_ip}:{client_port}.\033[0m")
         if verbose > 0: print(f"Tempo de ida e volta da mensagem: {calcular_diferenca_timestamp(message["timestamp_send"], timestamp_response)} ms")
         response_data = response.decode()
         if verbose > 2: print(f"+ Resposta do servidor: {response_data}")
@@ -146,7 +146,7 @@ try:
 
     # TODO - enviar essas mensagens para a interface gráfica utilizando o objeto json - colocar um campo observação ou algo do gênero - caso contrário a interface gráfica pode quebrar, já que ela espera o json.
     except socket.timeout:
-        print(f"\033[31m\t- Nenhuma resposta recebida do servidor {args.server_host}:{args.server_port}/{args.protocol.upper()}.\033[0m")
+        if verbose > 0 : print(f"\033[31m\t- Nenhuma resposta recebida do servidor {args.server_host}:{args.server_port}/{args.protocol.upper()}.\033[0m")
 
 
     dados["tests"].append(message)

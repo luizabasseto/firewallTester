@@ -48,6 +48,7 @@ def run_client_test(containerId, dst_ip, protocol, dst_port, teste_id, timestamp
         #return json.loads(result.stdout)
         print(f"Retornou código {result.returncode}")
         print(result.stdout)
+        return result.stdout
     except subprocess.CalledProcessError as e:
         print("Erro ao executar o comando Docker:", e)
         return []

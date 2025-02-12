@@ -30,6 +30,9 @@ class FirewallGUI:
         # Lista para armazenar os testes
         self.tests = []
 
+        # Lista de labels
+        #self.test_labels = []
+
         # Obtém dados de container e hosts
         #self.
         self.hosts = containers.extract_containerid_hostname_ips( )  # obtém as informações do hosts (hostname, interfaces, ips))
@@ -230,8 +233,14 @@ class FirewallGUI:
 
             # Exibir os dados do teste
             test_str = f"Container ID: {container_id} | {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
-            ttk.Label(frame, text=test_str).pack(side="left")
-            # TODO - alterar a cor da label caso o teste falhe ou seja executado com sucesso.
+
+            # Salva a label para marcar conforme o teste falhar com ser realizado com sucesso!
+            test_label = ttk.Label(frame, text=test_str)
+            test_label.pack(side="left")  # Configura o layout
+
+            if not hasattr(self, 'test_labels'):
+                self.test_labels = []  # Cria a lista se não existir
+            self.test_labels.append(test_label)
 
             # Botões de testar, editar e excluir
             ttk.Button(frame, text="Testar", command=lambda idx=i: self.testar_linha(idx)).pack(side="left", padx=5)
@@ -269,11 +278,20 @@ class FirewallGUI:
         teste = self.tests[indice]
         teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
 
+        # trocar cor da label
+        test_label = self.test_labels[indice]
+        test_label.config(background="lightgreen", foreground="black")
+
         dst_ip =  self.extrair_ip(dst_ip)
 
         print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
-        containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
+        result = containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
 
+        print(f"resultado do teste na interface: {result}")
+        if result["server_response"] == True:
+            print("sucesso")
+        else:
+            print("falha")
 
         print(f"indice -- {self.tests}")
 

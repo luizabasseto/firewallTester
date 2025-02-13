@@ -286,10 +286,27 @@ class FirewallGUI:
 
         print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
 
-        result_str = containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
+        #result_str = containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
+
+        result_str = "{ "id": 1,
+            "timestamp_teste": 2025,
+            "timestamp_send": "2025-02-13T00:11:57.711983",
+            "timestamp_recv": "2025-02-13T00:11:57.713534",
+            "client_host": "fHost-1.teste",
+            "client_ip": "127.0.1.1",
+            "client_port": 33213,
+            "server_ip": "192.168.122.218",
+            "server_port": 80,
+            "protocol": "tcp",
+            "server_response": true
+            }"
+
+
+        print(f"o valor de result_str: {result_str}")
+
         try:
             result = json.loads(result_str)
-            print(f"O retorno é {result}")
+            print(f"O retorno é {result_str}")
         except json.JSONDecodeError as e:
             print("Erro ao decodificar JSON:", e)
 

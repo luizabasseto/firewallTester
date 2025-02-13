@@ -167,4 +167,4 @@ finally:
         client_sock.close()
 
 # print que manda a msg para a interface
-print(message)
+print(json.dumps(message, indent=4))

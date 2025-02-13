@@ -289,7 +289,7 @@ class FirewallGUI:
         result_str = containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
         try:
             result = json.loads(result_str)
-            print(result)
+            print(f"O retorno é {result}")
         except json.JSONDecodeError as e:
             print("Erro ao decodificar JSON:", e)
 
@@ -300,7 +300,7 @@ class FirewallGUI:
         # else:
         #     print("falha")
 
-        print(f"indice -- {self.tests}")
+
 
     def executar_todos_testes(self):
         """Executa todos os testes"""

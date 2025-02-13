@@ -13,7 +13,7 @@ from scapy.all import IP, ICMP, sr1
 def ping(host, count):
     """Envia pacotes ICMP Echo Request e verifica a resposta."""
     received = 0
-    print(f"\nPING {host}:")
+    if verbose > 0: print(f"\nPING {host}:")
     for seq in range(1, count + 1):
         packet = IP(dst=host) / ICMP()
         start_time = time.time()
@@ -22,10 +22,10 @@ def ping(host, count):
 
         if reply:
             elapsed_time = (time.time() - start_time) * 1000
-            print(f"\033[32m\t+ Resposta do {host}: Tempo = {elapsed_time:.2f} ms - {seq}/{count}\033[0m")
+            if verbose > 0: print(f"\033[32m\t+ Resposta do {host}: Tempo = {elapsed_time:.2f} ms - {seq}/{count}\033[0m")
             received += 1
         else:
-            print(f"\033[31m\t- Sem resposta do {host} - {seq}/{count}\033[0m")
+            if verbose > 0: print(f"\033[31m\t- Sem resposta do {host} - {seq}/{count}\033[0m")
 
         time.sleep(1)
     return received
@@ -73,7 +73,7 @@ elif args.protocol.lower() == "icmp":
     icmp_status = ping(args.server_host, args.server_port)
     client_port = 0  # ICMP não usa portas convencionais
 else:
-    print("Escolha um protocolo válido (TCP, UDP ou ICMP).")
+    if verbose > 0: print("Escolha um protocolo válido (TCP, UDP ou ICMP).")
     quit()
 
 # Obtendo informações do cliente
@@ -117,7 +117,7 @@ if args.protocol == "icmp":
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)
-    print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
+    if verbose > 0: print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
     quit()
 
 # Envio de dados (UDP e TCP)

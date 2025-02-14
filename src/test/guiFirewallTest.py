@@ -31,7 +31,7 @@ class FirewallGUI:
         self.tests = []
 
         # Lista de labels
-        #self.test_labels = []
+        self.test_labels = []
 
         # Obtém dados de container e hosts
         #self.
@@ -224,6 +224,7 @@ class FirewallGUI:
         """Atualiza a exibição dos testes na interface"""
         for widget in self.tests_frame.winfo_children():
             widget.destroy()
+            self.test_labels = []  # Cria a lista se não existir
 
         for i, teste in enumerate(self.tests):
             teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
@@ -238,9 +239,14 @@ class FirewallGUI:
             test_label = ttk.Label(frame, text=test_str)
             test_label.pack(side="left")  # Configura o layout
 
-            if not hasattr(self, 'test_labels'):
-                self.test_labels = []  # Cria a lista se não existir
+            #if not hasattr(self, 'test_labels'):
+            #    self.test_labels = []  # Cria a lista se não existir
             self.test_labels.append(test_label)
+
+            # print()
+            # for lbl in self.test_labels:
+            #     print(f"atualizar_exibicao_testes: {lbl}")
+            #     lbl.config(background="lightgreen", foreground="black")
 
             # Botões de testar, editar e excluir
             ttk.Button(frame, text="Testar", command=lambda idx=i: self.testar_linha(idx)).pack(side="left", padx=5)
@@ -279,8 +285,10 @@ class FirewallGUI:
         teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
 
         # trocar cor da label
+        #test_label = self.test_labels[indice+1]
         test_label = self.test_labels[indice]
-        # test_label.config(background="lightgreen", foreground="black")
+        print(f"indice --> {indice} - label {self.test_labels[indice]}")
+        #test_label.config(background="lightgreen", foreground="black")
 
         dst_ip =  self.extrair_ip(dst_ip)
 
@@ -288,25 +296,27 @@ class FirewallGUI:
 
         result_str = containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
 
-        #print(f"o valor de result_str: {result_str}")
-
         try:
             result = json.loads(result_str)
             print(f"O retorno é {result_str}")
         except json.JSONDecodeError as e:
             print("Erro ao decodificar JSON:", e)
 
-
+        print()
+        for lbl in self.test_labels:
+            print(f"testar linha: {lbl}")
 
         # TODO - trocando a label errado...
         if result["server_response"] == True:
             print("sucesso")
             # trocar cor da label
             test_label.config(background="lightgreen", foreground="black")
+            print(f"sucesso --> {test_label} - indice --> {indice} - label {self.test_labels[indice]}")
         else:
             print("falha")
             # trocar cor da label
             test_label.config(background="lightcoral", foreground="black")
+            print(f"falha --> {test_label} - indice --> {indice} - label {self.test_labels[indice]}")
 
 
 

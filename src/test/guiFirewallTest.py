@@ -287,7 +287,7 @@ class FirewallGUI:
         # trocar cor da label
         #test_label = self.test_labels[indice+1]
         test_label = self.test_labels[indice]
-        print(f"indice --> {indice} - label {self.test_labels[indice]}")
+        #print(f"indice --> {indice} - label {self.test_labels[indice]}")
         #test_label.config(background="lightgreen", foreground="black")
 
         dst_ip =  self.extrair_ip(dst_ip)
@@ -307,12 +307,12 @@ class FirewallGUI:
         #     print(f"testar linha: {lbl}")
 
         # TODO - para preencher a linha com a cor tem quem comparar qual era a expectativa do teste
-        if result["server_response"] == True:
-            print("sucesso")
+        if (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"):
+            print(f"\033[32mTeste ocorreu conforme esperado.\033[0m")
             # trocar cor da label
             test_label.config(background="lightgreen", foreground="black")
         else:
-            print("falha")
+            print(f"\033[31mTeste NÃO ocorreu conforme esperado.\033[0m")
             # trocar cor da label
             test_label.config(background="lightcoral", foreground="black")
 
@@ -320,9 +320,34 @@ class FirewallGUI:
 
     def executar_todos_testes(self):
         """Executa todos os testes"""
+        indice=0
         for teste in self.tests:
             teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
             print(f"Executando teste - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
+            test_label = self.test_labels[indice]
+            dst_ip =  self.extrair_ip(dst_ip)
+
+            print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
+
+            result_str = containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
+
+            try:
+                result = json.loads(result_str)
+                #print(f"O retorno é {result_str}")
+            except json.JSONDecodeError as e:
+                print("Erro ao decodificar JSON:", e)
+
+            if (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"):
+                print(f"\033[32mTeste ocorreu conforme esperado.\033[0m")
+                # trocar cor da label
+                test_label.config(background="lightgreen", foreground="black")
+            else:
+                print(f"\033[31mTeste NÃO ocorreu conforme esperado.\033[0m")
+                # trocar cor da label
+                test_label.config(background="lightcoral", foreground="black")
+
+            indice+=1
+
 
     def start_servers(self):
         """Inicia server.py nos containers"""

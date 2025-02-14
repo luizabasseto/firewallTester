@@ -105,20 +105,20 @@ class FirewallGUI:
 
         # Lista de valores exibidos no Combobox (hostname + IP)
         if self.containers_data:
-            hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
+            self.hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
         else: # se não houver elementos apresenta uma mensagem
-            hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
+            self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
 
         protocols = ["TCP", "UDP", "ICMP"]
 
         # Componentes de entrada
         ttk.Label(frame_entrada, text="Source IP:").grid(row=0, column=0)
-        self.src_ip = ttk.Combobox(frame_entrada, values=hosts_display, width=25)
+        self.src_ip = ttk.Combobox(frame_entrada, values=self.hosts_display, width=25)
         self.src_ip.current(0)
         self.src_ip.grid(row=1, column=0)
 
         ttk.Label(frame_entrada, text="Destination IP:").grid(row=0, column=1)
-        self.dst_ip = ttk.Combobox(frame_entrada, values=hosts_display, width=25)
+        self.dst_ip = ttk.Combobox(frame_entrada, values=self.hosts_display, width=25)
         if len(self.containers_data) > 1: # verifica se há mais que um elemento na lista de hosts, se não houver não dá para setar o segundo como padrão.
             self.dst_ip.current(1)
         else:
@@ -382,13 +382,23 @@ class FirewallGUI:
 
         # Lista de valores exibidos no Combobox (hostname + IP)
         if self.containers_data:
-            hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
+            self.hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
         else: # se não houver elementos apresenta uma mensagem
-            hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
+            self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
+
+        self.src_ip["values"] = self.hosts_display
+        self.dst_ip["values"] = self.hosts_display
+        self.src_ip.current(0)
+        if len(self.dst_ip) > 0:
+            self.dst_ip.current(1)
+        else:
+            self.dst_ip.current(0)
 
         #for widget in self.firewall_frame.winfo_children():
         #    widget.destroy()
         # TODO - atualizar valores Combobox.
+        #self.atualizar_exibicao_testes()
+        
 
 
 

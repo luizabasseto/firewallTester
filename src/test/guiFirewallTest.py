@@ -35,10 +35,10 @@ class FirewallGUI:
 
         # Obtém dados de container e hosts
         #self.
-        self.hosts = containers.extract_containerid_hostname_ips( )  # obtém as informações do hosts (hostname, interfaces, ips))
+        self.containers_data = containers.extract_containerid_hostname_ips( )  # obtém as informações do hosts (hostname, interfaces, ips))
 
         # A função extract_containerid_hostname_ips já retorna uma lista de dicionários
-        self.containers_data = self.hosts
+        #self.containers_data = self.hosts
         print(f"self.containers_data: {self.containers_data}")
 
         # Criando a interface das abas
@@ -108,6 +108,7 @@ class FirewallGUI:
             hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
         else: # se não houver elementos apresenta uma mensagem
             hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
+
         protocols = ["TCP", "UDP", "ICMP"]
 
         # Componentes de entrada
@@ -285,10 +286,7 @@ class FirewallGUI:
         teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
 
         # trocar cor da label
-        #test_label = self.test_labels[indice+1]
         test_label = self.test_labels[indice]
-        #print(f"indice --> {indice} - label {self.test_labels[indice]}")
-        #test_label.config(background="lightgreen", foreground="black")
 
         dst_ip =  self.extrair_ip(dst_ip)
 
@@ -333,7 +331,6 @@ class FirewallGUI:
 
             try:
                 result = json.loads(result_str)
-                #print(f"O retorno é {result_str}")
             except json.JSONDecodeError as e:
                 print("Erro ao decodificar JSON:", e)
 
@@ -360,6 +357,40 @@ class FirewallGUI:
     def update_hosts(self):
         """Atualiza dados dos hosts/containers - verifica por exemplo se algum container foi criado ou exluido, se alguma configuração de rede mudou, etc"""
         print("update_hosts")
+
+        for widget in self.bottom_frame.winfo_children():
+            widget.destroy()
+
+        self.containers_data = containers.extract_containerid_hostname_ips( )  # obtém as informações do hosts (hostname, interfaces, ips))
+
+        for container in self.containers_data:
+            container_id = container["id"]
+            hostname = container["hostname"]
+            ip = container["ip"]
+
+            # Cria um frame para cada host
+            frame = ttk.Frame(self.bottom_frame)
+            frame.pack(fill="x", padx=10, pady=5)
+
+            # Botão com o hostname (ou container_id, se preferir)
+            btn = ttk.Button(frame, text=f"{hostname}", command=lambda cid=container_id: self.edit_ports(cid))
+            btn.pack(side="left", padx=5)
+
+            # Exibe o IP do host
+            lbl = ttk.Label(frame, text=f"IP: {ip}", font=("Arial", 10))
+            lbl.pack(side="left")
+
+        # Lista de valores exibidos no Combobox (hostname + IP)
+        if self.containers_data:
+            hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
+        else: # se não houver elementos apresenta uma mensagem
+            hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
+
+        #for widget in self.firewall_frame.winfo_children():
+        #    widget.destroy()
+        # TODO - atualizar valores Combobox.
+
+
 
 # Executando a aplicação
 if __name__ == "__main__":

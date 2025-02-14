@@ -302,21 +302,19 @@ class FirewallGUI:
         except json.JSONDecodeError as e:
             print("Erro ao decodificar JSON:", e)
 
-        print()
-        for lbl in self.test_labels:
-            print(f"testar linha: {lbl}")
+        # print()
+        # for lbl in self.test_labels:
+        #     print(f"testar linha: {lbl}")
 
-        # TODO - trocando a label errado...
+        # TODO - para preencher a linha com a cor tem quem comparar qual era a expectativa do teste
         if result["server_response"] == True:
             print("sucesso")
             # trocar cor da label
             test_label.config(background="lightgreen", foreground="black")
-            print(f"sucesso --> {test_label} - indice --> {indice} - label {self.test_labels[indice]}")
         else:
             print("falha")
             # trocar cor da label
             test_label.config(background="lightcoral", foreground="black")
-            print(f"falha --> {test_label} - indice --> {indice} - label {self.test_labels[indice]}")
 
 
 

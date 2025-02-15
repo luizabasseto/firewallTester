@@ -7,6 +7,8 @@ import uuid  # Para gerar IDs únicos
 import containers
 import json
 import re
+import ipaddress
+import socket
 
 class FirewallGUI:
     def __init__(self, root):
@@ -132,9 +134,14 @@ class FirewallGUI:
 
         # Componentes de entrada
         ttk.Label(frame_entrada, text="Source IP:").grid(row=0, column=0)
-        self.src_ip = ttk.Combobox(frame_entrada, values=self.hosts_display, width=25)
+        self.src_ip = ttk.Combobox(frame_entrada, values=self.hosts_display, width=25, state="readonly")
         self.src_ip.current(0)
         self.src_ip.grid(row=1, column=0)
+        #permite edição no combobox
+        #self.src_ip["state"] = "normal"
+        # Vincula o evento de seleção
+        #self.src_ip.bind("<<ComboboxSelected>>", self.combobox_add_value)
+
 
         ttk.Label(frame_entrada, text="Destination IP:").grid(row=0, column=1)
         self.dst_ip = ttk.Combobox(frame_entrada, values=self.hosts_display, width=25)
@@ -144,6 +151,11 @@ class FirewallGUI:
             self.dst_ip.current(0)
 
         self.dst_ip.grid(row=1, column=1)
+        # Vincula o evento de seleção
+        self.dst_ip["state"] = "normal"
+
+        # Vincula o evento de seleção
+        #self.dst_ip.bind("<Return>", self.combobox_add_value)
 
         ttk.Label(frame_entrada, text="Protocol:").grid(row=0, column=2)
         self.protocol = ttk.Combobox(frame_entrada, values=protocols, width=6)
@@ -180,6 +192,20 @@ class FirewallGUI:
         # Variável para armazenar o índice do teste sendo editado
         self.indice_edicao = None
 
+    def validar_ip_ou_dominio(self, string):
+        # Regex para IP (IPv4)
+        regex_ip = r'^\d+\.\d+\.\d+\.\d+$'
+        
+        # Regex para domínio (ex: google.com, www.exemplo.com.br)
+        regex_dominio = r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        
+        if re.match(regex_ip, string):
+            return True
+        elif re.match(regex_dominio, string):
+            return True
+        else:
+            return False
+    
     def validar_e_adicionar_teste(self):
         """Valida os campos antes de chamar o método adicionar_editar_teste"""
         # Verifica se os campos obrigatórios estão preenchidos
@@ -198,7 +224,12 @@ class FirewallGUI:
         except ValueError:
             messagebox.showwarning("Porta inválida: erro na conversão.")
             return
-
+        
+        if self.dst_ip.get() not in self.hosts_display:
+            if self.validar_ip_ou_dominio(self.dst_ip.get()) == False:
+                messagebox.showwarning(f"Endereço inválido", "O endereço deve ou: \n1. estar na lista, \n2. ser um IP (8.8.8.8), \n3. um domínio (www.google.com.br).")
+                return
+        # TODO - se for alterado o destino, nestar versão do sistema só pode utilizar o protocolo icmp, não dá para utilizar tcp ou udp, pq o servidor (se existir) não vai reconhecer a mensagem enviada.
         # Se todos os campos estiverem preenchidos, chama o método adicionar_editar_teste
         self.adicionar_editar_teste()
 
@@ -254,7 +285,7 @@ class FirewallGUI:
 
             # Exibir os dados do teste
             #test_str = f"Container ID: {container_id} | {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
-            test_str = f"Container ID: {container_id} | {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
+            test_str = f"{src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
 
             # Salva a label para marcar conforme o teste falhar com ser realizado com sucesso!
             test_label = ttk.Label(frame, text=test_str)
@@ -299,6 +330,14 @@ class FirewallGUI:
     def extrair_ip(self,string):
         match = re.search(r'\((\d+\.\d+\.\d+\.\d+)\)', string)
         return match.group(1) if match else None
+    
+    def extrair_ip_semParenteses(self, string):
+        match = re.search(r'\(?(\d+\.\d+\.\d+\.\d+)\)?', string)  
+        return match.group(1) if match else None
+    
+    def extrair_dominio(self, string):
+        match = re.search(r'\(?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\)?', string)
+        return match.group(1) if match else None
 
     def testar_linha(self, indice):
         """Executa o teste individual"""
@@ -307,8 +346,18 @@ class FirewallGUI:
 
         # trocar cor da label
         test_label = self.test_labels[indice]
+        
+        # TODO - aceitar nomes ou IPs, também seria legal permitir que o usuário teste sítes, ou outros serviços, mas tem que pensar bem em como isso pode ser feito (ai não seria no esquedo do software cliente servidor - teria que ser cliente http, cliente ssh, etc... talvez com nmap, nc, etc)!
+        print(f"valor de dst_ip antes de extrair_ip: {dst_ip}")
+        temp_dst_ip =  self.extrair_ip(dst_ip)
 
-        dst_ip =  self.extrair_ip(dst_ip)
+        if temp_dst_ip == None:
+            temp_dst_ip = self.extrair_ip_semParenteses(dst_ip)
+        else:
+            temp_dst_ip = self.extrair_dominio(dst_ip)
+            if temp_dst_ip == None:
+                print(f"\033[33mO endereço de destino deve ser um IP ou domínio, tal como: 8.8.8.8 ou www.google.com.\033[0m")
+                return
 
         print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
 
@@ -428,6 +477,14 @@ class FirewallGUI:
 
     def save_tests_as(self):
         print("Salvar testes como...")
+    
+    def combobox_add_value(self, event):
+        print("Adiciona valor novo combobox")
+        novo_valor = self.dst_ip.get().strip()  # Obtém e limpa espaços extras do valor digitado
+        if novo_valor and novo_valor not in self.hosts_display:
+            self.hosts_display.append(novo_valor)
+            self.dst_ip["values"] = self.hosts_display
+            self.dst_ip.set(novo_valor)
 
 
 # Executando a aplicação

@@ -110,9 +110,12 @@ message = {
     "server_port": args.server_port,
     "protocol": args.protocol,
     "server_response": False,
-    "status": 'ok',
+    "status" : 0
+    "status_msg": 'ok',
     "message" : 'hello world'
 }
+# se o status for zero, ocorreu tudo bem, caso contrário deu algum erro ,tal como:
+#  1 - erro de rede
 
 # Tratamento para ICMP
 if args.protocol == "icmp":
@@ -161,7 +164,7 @@ try:
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
     if verbose > 0: print(f"Erro na comunicação: {e}")
-    message["status"] = e
+    message["status"] = "Network Error"
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)

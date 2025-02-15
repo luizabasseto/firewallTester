@@ -110,7 +110,7 @@ message = {
     "server_port": args.server_port,
     "protocol": args.protocol,
     "server_response": False,
-    "status" : '0'
+    "status" : '0',
     "status_msg": 'ok',
     "message" : 'hello world'
 }

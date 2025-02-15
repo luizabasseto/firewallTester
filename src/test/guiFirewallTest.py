@@ -253,6 +253,7 @@ class FirewallGUI:
             frame.pack(fill="x", pady=2)
 
             # Exibir os dados do teste
+            #test_str = f"Container ID: {container_id} | {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
             test_str = f"Container ID: {container_id} | {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
 
             # Salva a label para marcar conforme o teste falhar com ser realizado com sucesso!

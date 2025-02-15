@@ -96,6 +96,8 @@ except:
     dados = {"tests": []}
 
 # Criando estrutura do JSON
+# status - é caso aconteça algo, tal como o pacote não pode ser enviado pois o host cliente não tem rota!
+# message - pode ser utilizada para simular, por exemplo o envio de uma mensagem maliciosa na camada de aplicação, tal como com: com uso de palavras impróprias (porn, hacker, etc) ou termos suspeitos ("/etc/shadow")
 message = {
     "id": args.testId,
     "timestamp_teste": filename_timestamp,
@@ -107,7 +109,9 @@ message = {
     "server_ip": args.server_host,
     "server_port": args.server_port,
     "protocol": args.protocol,
-    "server_response": False
+    "server_response": False,
+    "status": "ok",
+    "message" : ""
 }
 
 # Tratamento para ICMP
@@ -157,6 +161,7 @@ try:
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
     if verbose > 0: print(f"Erro na comunicação: {e}")
+    message["status"] = e
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)

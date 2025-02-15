@@ -27,6 +27,27 @@ class FirewallGUI:
         self.notebook.add(self.hosts_frame, text="Hosts")
         self.notebook.add(self.config_frame, text="Configurações")
 
+        # Frame em baixo as abas
+        frame_botton = ttk.Frame(self.root)
+        frame_botton.pack(side=tk.BOTTOM, pady=6)
+        
+        self.button_uptate_host = ttk.Button(frame_botton, text="Atualizar Hosts", command=self.update_hosts)
+        self.button_uptate_host.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        #self.button_uptate_host.pack(padx=5, pady=5)
+
+        self.button_save_tests = ttk.Button(frame_botton, text="Salvar", command=self.save_tests)
+        self.button_save_tests.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        #self.button_save_tests.pack(padx=5, pady=5)
+
+        self.button_save_tests_as = ttk.Button(frame_botton, text="Salvar como", command=self.save_tests_as)
+        self.button_save_tests_as.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
+        #self.button_save_tests_as.pack(padx=5, pady=5)
+
+        frame_botton.grid_columnconfigure(0, weight=1)
+        frame_botton.grid_columnconfigure(1, weight=1)
+        frame_botton.grid_columnconfigure(2, weight=1)
+
+
         # Lista para armazenar os testes
         self.tests = []
 
@@ -55,8 +76,6 @@ class FirewallGUI:
 
         # Botão para Ligar todos os servidores nos containers
         ttk.Button(self.top_frame, text="Ligar Servidores", command=self.start_servers).pack(side=tk.LEFT, padx=10)
-        # Botão para executar todos os testes
-        ttk.Button(self.top_frame, text="Atualizar Hosts", command=self.update_hosts).pack(padx=10)
 
         # Frame para os botões inferiores
         self.bottom_frame = tk.Frame(self.hosts_frame)
@@ -389,7 +408,7 @@ class FirewallGUI:
         self.src_ip["values"] = self.hosts_display
         self.dst_ip["values"] = self.hosts_display
         self.src_ip.current(0)
-        if len(self.dst_ip) > 0:
+        if len(self.containers_data) > 1: # verifica se há mais que um elemento na lista de hosts, se não houver não dá para setar o segundo como padrão.
             self.dst_ip.current(1)
         else:
             self.dst_ip.current(0)
@@ -399,7 +418,11 @@ class FirewallGUI:
         # TODO - atualizar valores Combobox.
         #self.atualizar_exibicao_testes()
         
+    def save_tests(self):
+        print("Salvar testes")
 
+    def save_tests_as(self):
+        print("Salvar testes como...")
 
 
 # Executando a aplicação

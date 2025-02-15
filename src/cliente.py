@@ -164,7 +164,7 @@ try:
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
     if verbose > 0: print(f"Erro na comunicação: {e}")
-    message["status"] = 1
+    message["status"] = '1'
     message["status_msg"] = "Network Error"
     dados["tests"].append(message)
     with open(filename, "w") as file:

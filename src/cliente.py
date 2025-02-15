@@ -125,6 +125,8 @@ if args.protocol == "icmp":
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)
     if verbose > 0: print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
+    # envia icmp para a gui
+    print(json.dumps(message, indent=4))
     quit()
 
 # Envio de dados (UDP e TCP)

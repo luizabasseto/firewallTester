@@ -330,9 +330,13 @@ class FirewallGUI:
             # trocar cor da label
             test_label.config(background="lightgreen", foreground="black")
         else:
-            print(f"\033[31mTeste NÃO ocorreu conforme esperado.\033[0m")
-            # trocar cor da label
-            test_label.config(background="lightcoral", foreground="black")
+            if result["status"] == '0':
+                print(f"\033[31mTeste NÃO ocorreu conforme esperado.\033[0m")
+                # trocar cor da label
+                test_label.config(background="lightcoral", foreground="black")
+            else:
+                print(f"\033[33mHouve algum erro com o host ao enviar o pacote, tal como: configuração errada da rede - IP, GW, etc.\033[0m")
+                test_label.config(background="yellow", foreground="black")
 
 
 

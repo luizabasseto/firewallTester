@@ -13,7 +13,7 @@ from scapy.all import IP, ICMP, sr1
 def ping(host, count):
     """Envia pacotes ICMP Echo Request e verifica a resposta."""
     received = 0
-    count = 0 # ignora a quantidade de msg passada pelo usuário, pois na interface essa é a porta e por exemplo a porta é 80 serão 80 pings...
+    count = 1 # ignora a quantidade de msg passada pelo usuário, pois na interface essa é a porta e por exemplo a porta é 80 serão 80 pings...
     if verbose > 0: print(f"\nPING {host}:")
     for seq in range(1, count + 1):
         packet = IP(dst=host) / ICMP()

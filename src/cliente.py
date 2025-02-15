@@ -110,8 +110,8 @@ message = {
     "server_port": args.server_port,
     "protocol": args.protocol,
     "server_response": False,
-    "status": "ok",
-    "message" : ""
+    "status": 'ok',
+    "message" : 'hello world'
 }
 
 # Tratamento para ICMP

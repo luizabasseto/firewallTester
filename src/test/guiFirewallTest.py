@@ -7,8 +7,6 @@ import uuid  # Para gerar IDs únicos
 import containers
 import json
 import re
-import ipaddress
-import socket
 
 class FirewallGUI:
     def __init__(self, root):

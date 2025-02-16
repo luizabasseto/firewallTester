@@ -130,16 +130,12 @@ message = {
 #  1 - erro de rede
 
 # Tratamento para ICMP
-print("------")
 if args.protocol == "icmp":
     print(f"icmp_status - {icmp_status}") # TODO - NÃO ESTÁ FUNCIONANDO, COM O -1 NÃO ENTRA AQUI...
     if icmp_status < 0:
-        print(f"icmp_status - {icmp_status}")
-        print("icmp status -1")
         message["status"] = "1"
         message["status_msg"] = "Host desconhecido"
     else:
-        print(f"else icmp_status - {icmp_status}")
         message["server_response"] = icmp_status > 0
         message["server_port"] = 8  # ICMP echo reply
         

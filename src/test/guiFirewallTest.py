@@ -130,7 +130,7 @@ class FirewallGUI:
         else: # se não houver elementos apresenta uma mensagem
             self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
         # Ordena a lista por ordem crescente
-        self.hosts_display.sort()
+        #self.hosts_display.sort()
 
         protocols = ["TCP", "UDP", "ICMP"]
 
@@ -236,7 +236,7 @@ class FirewallGUI:
                 messagebox.showwarning(f"Endereço inválido", "O endereço deve ou: \n1. estar na lista, \n2. ser um IP (8.8.8.8), \n3. um domínio (www.google.com.br).")
                 return
             else: # se for fora da lista de hosts do cenário, por enquanto só é possível realizar testes de ping.
-                if self.protocol.get() != "icmp":
+                if self.protocol.get() != "ICMP":
                     messagebox.showwarning(f"Protocolo inválido", "Infelizmente nesta versão só é possível testar hosts externos utilizando ICMP (ping).")
                     return
         # TODO - se for alterado o destino, nestar versão do sistema só pode utilizar o protocolo icmp, não dá para utilizar tcp ou udp, pq o servidor (se existir) não vai reconhecer a mensagem enviada.
@@ -360,14 +360,24 @@ class FirewallGUI:
         # TODO - aceitar nomes ou IPs, também seria legal permitir que o usuário teste sítes, ou outros serviços, mas tem que pensar bem em como isso pode ser feito (ai não seria no esquedo do software cliente servidor - teria que ser cliente http, cliente ssh, etc... talvez com nmap, nc, etc)!
         #print(f"valor de dst_ip antes de extrair_ip: {dst_ip}")
         temp_dst_ip =  self.extrair_ip(dst_ip)
+        print(f"temp_dst_ip {temp_dst_ip}")
 
-        if temp_dst_ip == None:
-            temp_dst_ip = self.extrair_ip_semParenteses(dst_ip)
+        if temp_dst_ip != None:
+            dst_ip = temp_dst_ip
         else:
-            temp_dst_ip = self.extrair_dominio(dst_ip)
-            if temp_dst_ip == None:
-                print(f"\033[33mO endereço de destino deve ser um IP ou domínio, tal como: 8.8.8.8 ou www.google.com.\033[0m")
-                return
+            print("sem parenteses")
+            temp_dst_ip = self.extrair_ip_semParenteses(dst_ip)
+            if temp_dst_ip != None:
+                dst_ip = temp_dst_ip
+            else:
+                print("dominio")
+                temp_dst_ip = self.extrair_dominio(dst_ip)
+                if temp_dst_ip != None:
+                    dst_ip = temp_dst_ip
+                else:
+                    print("invalido")
+                    print(f"\033[33mO endereço de destino deve ser um IP ou domínio, tal como: 8.8.8.8 ou www.google.com.\033[0m")
+                    return
 
         print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
 
@@ -384,16 +394,16 @@ class FirewallGUI:
         #     print(f"testar linha: {lbl}")
 
         # TODO - para preencher a linha com a cor tem quem comparar qual era a expectativa do teste
-        if (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"):
+        if (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"): #and (result["status"] != '0'):
             print(f"\033[32mTeste ocorreu conforme esperado.\033[0m")
             # trocar cor da label
             test_label.config(background="lightgreen", foreground="black")
         else:
-            if result["status"] == '0':
+            if result["status"] == '0': # esperavase sucesse e isso não foi obtido
                 print(f"\033[31mTeste NÃO ocorreu conforme esperado.\033[0m")
                 # trocar cor da label
                 test_label.config(background="lightcoral", foreground="black")
-            else:
+            else: # ocorreu um erro , tal como a rede do host não estava configurada.
                 print(f"\033[33mHouve algum erro com o host ao enviar o pacote, tal como: configuração errada da rede - IP, GW, etc.\033[0m")
                 test_label.config(background="yellow", foreground="black")
 
@@ -469,7 +479,7 @@ class FirewallGUI:
         else: # se não houver elementos apresenta uma mensagem
             self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
         # ordena nomes no combobox
-        self.hosts_display.sort()
+        #self.hosts_display.sort()
         self.src_ip["values"] = self.hosts_display
         self.dst_ip["values"] = self.hosts_display
         self.src_ip.current(0)

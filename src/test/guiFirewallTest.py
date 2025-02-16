@@ -404,7 +404,11 @@ class FirewallGUI:
         self.colorir_labels_resultado(expected, test_label, result)
 
     def colorir_labels_resultado(self, expected, test_label, result):
-        if (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no") and (result["status"] != '0'):
+        if (result["status"] != '0'):
+            # ocorreu um erro , tal como a rede do host não estava configurada.
+            print(f"\033[33mHouve algum erro com o host ao enviar o pacote, tal como: configuração errada da rede - IP, GW, etc.\033[0m")
+            test_label.config(background="yellow", foreground="black")
+        elif (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"):
             print(f"\033[32mTeste ocorreu conforme esperado.\033[0m")
             # trocar cor da label
             test_label.config(background="lightgreen", foreground="black")
@@ -413,9 +417,6 @@ class FirewallGUI:
                 print(f"\033[31mTeste NÃO ocorreu conforme esperado.\033[0m")
                 # trocar cor da label
                 test_label.config(background="lightcoral", foreground="black")
-            else: # ocorreu um erro , tal como a rede do host não estava configurada.
-                print(f"\033[33mHouve algum erro com o host ao enviar o pacote, tal como: configuração errada da rede - IP, GW, etc.\033[0m")
-                test_label.config(background="yellow", foreground="black")
 
 
     def executar_todos_testes(self):

@@ -9,13 +9,6 @@ import time
 from datetime import datetime
 
 from scapy.all import IP, ICMP, sr1
-# TODO - Fazer essa validação para todos logo no inicio, se não passar nem inicia os testes - colocar uma msg no status
-def validar_host(host):
-    try:
-        socket.gethostbyname(host)  # Tenta resolver o nome do host
-        return True  # Host válido
-    except socket.gaierror:
-        return False  # Host inválido
 
 def ping(host, count):
     """Envia pacotes ICMP Echo Request e verifica a resposta."""
@@ -23,10 +16,6 @@ def ping(host, count):
     count = 1 # ignora a quantidade de msg passada pelo usuário, pois na interface essa é a porta e por exemplo a porta é 80 serão 80 pings...
     if verbose > 0: print(f"\nPING {host}:")
     for seq in range(1, count + 1):
-        if not validar_host(host):
-            #print(f"Erro: O host {host} não é valido no cliente no módulo scapy")
-            return 0 # TODO - colocar o valor -1 para caso de erro e colocar uma msg no status
-
         packet = IP(dst=host) / ICMP()
         start_time = time.time()
 

@@ -348,17 +348,8 @@ class FirewallGUI:
     def extrair_dominio(self, string):
         match = re.search(r'\(?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\)?', string)
         return match.group(1) if match else None
-
-    def testar_linha(self, indice):
-        """Executa o teste individual"""
-        teste = self.tests[indice]
-        teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
-
-        # trocar cor da label
-        test_label = self.test_labels[indice]
-        
-        # TODO - aceitar nomes ou IPs, também seria legal permitir que o usuário teste sítes, ou outros serviços, mas tem que pensar bem em como isso pode ser feito (ai não seria no esquedo do software cliente servidor - teria que ser cliente http, cliente ssh, etc... talvez com nmap, nc, etc)!
-        #print(f"valor de dst_ip antes de extrair_ip: {dst_ip}")
+    
+    def extrair_destino(self, dst_ip):
         temp_dst_ip =  self.extrair_ip(dst_ip)
         print(f"temp_dst_ip {temp_dst_ip}")
 
@@ -376,8 +367,24 @@ class FirewallGUI:
                     dst_ip = temp_dst_ip
                 else:
                     print("invalido")
-                    print(f"\033[33mO endereço de destino deve ser um IP ou domínio, tal como: 8.8.8.8 ou www.google.com.\033[0m")
-                    return
+                    print(f"\033[33mNão foi possível estrair o IP de destino na interface:\n\tO endereço de destino deve ser um IP ou domínio, tal como: 8.8.8.8 ou www.google.com.\033[0m")
+                    return None
+        return dst_ip    
+
+    def testar_linha(self, indice):
+        """Executa o teste individual"""
+        teste = self.tests[indice]
+        teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
+
+        # trocar cor da label
+        test_label = self.test_labels[indice]
+        
+        # TODO - aceitar nomes ou IPs, também seria legal permitir que o usuário teste sítes, ou outros serviços, mas tem que pensar bem em como isso pode ser feito (ai não seria no esquedo do software cliente servidor - teria que ser cliente http, cliente ssh, etc... talvez com nmap, nc, etc)!
+        #print(f"valor de dst_ip antes de extrair_ip: {dst_ip}")
+        
+        # se não consegiu extrair o IP de destino digitado pelo usuário para
+        dst_ip = self.extrair_destino(dst_ip)
+        if dst_ip == None: return
 
         print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
 
@@ -394,6 +401,9 @@ class FirewallGUI:
         #     print(f"testar linha: {lbl}")
 
         # TODO - para preencher a linha com a cor tem quem comparar qual era a expectativa do teste
+        self.colorir_labels_resultado(expected, test_label, result)
+
+    def colorir_labels_resultado(self, expected, test_label, result):
         if (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no") and (result["status"] != '0'):
             print(f"\033[32mTeste ocorreu conforme esperado.\033[0m")
             # trocar cor da label
@@ -408,7 +418,6 @@ class FirewallGUI:
                 test_label.config(background="yellow", foreground="black")
 
 
-
     def executar_todos_testes(self):
         """Executa todos os testes"""
         indice=0
@@ -416,7 +425,10 @@ class FirewallGUI:
             teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
             print(f"Executando teste - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
             test_label = self.test_labels[indice]
-            dst_ip =  self.extrair_ip(dst_ip)
+            
+            # se não consegiu extrair o IP de destino digitado pelo usuário para
+            dst_ip = self.extrair_destino(dst_ip)
+            if dst_ip == None: return
 
             print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
 
@@ -427,14 +439,7 @@ class FirewallGUI:
             except json.JSONDecodeError as e:
                 print("Erro ao decodificar JSON:", e)
 
-            if (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"):
-                print(f"\033[32mTeste ocorreu conforme esperado.\033[0m")
-                # trocar cor da label
-                test_label.config(background="lightgreen", foreground="black")
-            else:
-                print(f"\033[31mTeste NÃO ocorreu conforme esperado.\033[0m")
-                # trocar cor da label
-                test_label.config(background="lightcoral", foreground="black")
+            self.colorir_labels_resultado(expected, test_label, result)
 
             indice+=1
 

@@ -131,7 +131,9 @@ message = {
 
 # Tratamento para ICMP
 if args.protocol == "icmp":
+    print(f"icmp_status - {icmp_status}") # TODO - NÃO ESTÁ FUNCIONANDO, COM O -1 NÃO ENTRA AQUI...
     if icmp_status < 0:
+        print("icmo status 1")
         message["status"] = "1"
         message["status_msg"] = "Host desconhecido"
     else:

@@ -65,14 +65,14 @@ verbose = args.verbose
 client_sock = None
 client_port = -1
 
-if args.protocol.lower() == "udp":
+if args.protocol.lower() == "udp" or args.protocol.lower() == "UDP":
     if verbose > 0: print("Protocolo: UDP")
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_sock.bind(("", 0))
     client_sock.settimeout(2)
     client_port = client_sock.getsockname()[1]
 
-elif args.protocol.lower() == "tcp":
+elif args.protocol.lower() == "tcp" or args.protocol.lower() == "TCP":
     if verbose > 0: print("Protocolo: TCP")
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_sock.bind(("", 0))
@@ -80,7 +80,7 @@ elif args.protocol.lower() == "tcp":
     client_port = client_sock.getsockname()[1]
 
 
-elif args.protocol.lower() == "icmp":
+elif args.protocol.lower() == "icmp" or args.protocol.lower() == "ICMP":
     if verbose > 0: print("Protocolo: ICMP")
     icmp_status = ping(args.server_host, args.server_port)
     client_port = 0  # ICMP não usa portas convencionais

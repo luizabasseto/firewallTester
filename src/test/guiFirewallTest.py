@@ -62,7 +62,7 @@ class FirewallGUI:
 
         # A função extract_containerid_hostname_ips já retorna uma lista de dicionários
         #self.containers_data = self.hosts
-        print(f"self.containers_data: {self.containers_data}")
+        #print(f"self.containers_data: {self.containers_data}")
 
         # Criando a interface das abas
         self.create_hosts_tab()
@@ -129,12 +129,18 @@ class FirewallGUI:
             self.hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
         else: # se não houver elementos apresenta uma mensagem
             self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
+        # Ordena a lista por ordem crescente
+        self.hosts_display.sort()
 
         protocols = ["TCP", "UDP", "ICMP"]
 
+        #configurando stilo - para o readonly não ficar cinza
+        style = ttk.Style()
+        style.map("TCombobox", fieldbackground=[("readonly", "white")])
+
         # Componentes de entrada
         ttk.Label(frame_entrada, text="Source IP:").grid(row=0, column=0)
-        self.src_ip = ttk.Combobox(frame_entrada, values=self.hosts_display, width=25, state="readonly")
+        self.src_ip = ttk.Combobox(frame_entrada, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
         self.src_ip.current(0)
         self.src_ip.grid(row=1, column=0)
         #permite edição no combobox
@@ -158,7 +164,7 @@ class FirewallGUI:
         #self.dst_ip.bind("<Return>", self.combobox_add_value)
 
         ttk.Label(frame_entrada, text="Protocol:").grid(row=0, column=2)
-        self.protocol = ttk.Combobox(frame_entrada, values=protocols, width=6)
+        self.protocol = ttk.Combobox(frame_entrada, values=protocols, width=6, state="readonly", style="TCombobox")
         self.protocol.current(0)
         self.protocol.grid(row=1, column=2)
 
@@ -229,6 +235,10 @@ class FirewallGUI:
             if self.validar_ip_ou_dominio(self.dst_ip.get()) == False:
                 messagebox.showwarning(f"Endereço inválido", "O endereço deve ou: \n1. estar na lista, \n2. ser um IP (8.8.8.8), \n3. um domínio (www.google.com.br).")
                 return
+            else: # se for fora da lista de hosts do cenário, por enquanto só é possível realizar testes de ping.
+                if self.protocol.get() != "icmp":
+                    messagebox.showwarning(f"Protocolo inválido", "Infelizmente nesta versão só é possível testar hosts externos utilizando ICMP (ping).")
+                    return
         # TODO - se for alterado o destino, nestar versão do sistema só pode utilizar o protocolo icmp, não dá para utilizar tcp ou udp, pq o servidor (se existir) não vai reconhecer a mensagem enviada.
         # Se todos os campos estiverem preenchidos, chama o método adicionar_editar_teste
         self.adicionar_editar_teste()
@@ -348,7 +358,7 @@ class FirewallGUI:
         test_label = self.test_labels[indice]
         
         # TODO - aceitar nomes ou IPs, também seria legal permitir que o usuário teste sítes, ou outros serviços, mas tem que pensar bem em como isso pode ser feito (ai não seria no esquedo do software cliente servidor - teria que ser cliente http, cliente ssh, etc... talvez com nmap, nc, etc)!
-        print(f"valor de dst_ip antes de extrair_ip: {dst_ip}")
+        #print(f"valor de dst_ip antes de extrair_ip: {dst_ip}")
         temp_dst_ip =  self.extrair_ip(dst_ip)
 
         if temp_dst_ip == None:
@@ -365,9 +375,9 @@ class FirewallGUI:
 
         try:
             result = json.loads(result_str)
-            print(f"O retorno é {result_str}")
+            print(f"O retorno do comando no host é {result_str}")
         except json.JSONDecodeError as e:
-            print("Erro ao decodificar JSON:", e)
+            print("Erro ao decodificar JSON recebido do host:", e)
 
         # print()
         # for lbl in self.test_labels:
@@ -458,7 +468,8 @@ class FirewallGUI:
             self.hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
         else: # se não houver elementos apresenta uma mensagem
             self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
-
+        # ordena nomes no combobox
+        self.hosts_display.sort()
         self.src_ip["values"] = self.hosts_display
         self.dst_ip["values"] = self.hosts_display
         self.src_ip.current(0)

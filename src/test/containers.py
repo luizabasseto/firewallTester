@@ -111,7 +111,7 @@ def extract_containerid_hostname_ips( ):
     for host in lista_json:
         hostname = host["hostname"]
         containerid = host["id"]
-        print(f"{hostname} - {host["interfaces"]}")
+        #print(f"{hostname} - {host["interfaces"]}")
 
         if not host["interfaces"]:     # Verifica se há IPs na interface
                 resultado.append({

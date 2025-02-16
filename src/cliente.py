@@ -25,7 +25,7 @@ def ping(host, count):
     for seq in range(1, count + 1):
         if not validar_host(host):
             #print(f"Erro: O host {host} não é valido no cliente no módulo scapy")
-            return -1 # TODO - colocar o valor -1 para caso de erro e colocar uma msg no status
+            return 0 # TODO - colocar o valor -1 para caso de erro e colocar uma msg no status
 
         packet = IP(dst=host) / ICMP()
         start_time = time.time()
@@ -131,15 +131,8 @@ message = {
 
 # Tratamento para ICMP
 if args.protocol == "icmp":
-    print(f"icmp_status - {icmp_status}") # TODO - NÃO ESTÁ FUNCIONANDO, COM O -1 NÃO ENTRA AQUI...
-    if icmp_status < 0:
-        print("icmo status 1")
-        message["status"] = "1"
-        message["status_msg"] = "Host desconhecido"
-    else:
-        message["server_response"] = icmp_status > 0
-        message["server_port"] = 8  # ICMP echo reply
-        
+    message["server_response"] = icmp_status > 0
+    message["server_port"] = 8  # ICMP echo reply
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)

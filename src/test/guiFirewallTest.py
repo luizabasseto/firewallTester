@@ -394,7 +394,7 @@ class FirewallGUI:
         #     print(f"testar linha: {lbl}")
 
         # TODO - para preencher a linha com a cor tem quem comparar qual era a expectativa do teste
-        if (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no") and (result["status"] != '0'):
+        if (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"): #and (result["status"] != '0'):
             print(f"\033[32mTeste ocorreu conforme esperado.\033[0m")
             # trocar cor da label
             test_label.config(background="lightgreen", foreground="black")

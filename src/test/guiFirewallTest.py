@@ -81,22 +81,7 @@ class FirewallGUI:
         self.bottom_frame = tk.Frame(self.hosts_frame)
         self.bottom_frame.pack(pady=10)
 
-        for container in self.containers_data:
-            container_id = container["id"]
-            hostname = container["hostname"]
-            ip = container["ip"]
-
-            # Cria um frame para cada host
-            frame = ttk.Frame(self.bottom_frame)
-            frame.pack(fill="x", padx=10, pady=5)
-
-            # Botão com o hostname (ou container_id, se preferir)
-            btn = ttk.Button(frame, text=f"{hostname}", command=lambda cid=container_id: self.edit_ports(cid))
-            btn.pack(side="left", padx=5)
-
-            # Exibe o IP do host
-            lbl = ttk.Label(frame, text=f"IP: {ip}", font=("Arial", 10))
-            lbl.pack(side="left")
+        self.apresenta_tela_hosts()
 
     def edit_ports(self, container_id):
         """Abre uma nova janela para editar as portas do host"""
@@ -460,22 +445,7 @@ class FirewallGUI:
 
         self.containers_data = containers.extract_containerid_hostname_ips( )  # obtém as informações do hosts (hostname, interfaces, ips))
 
-        for container in self.containers_data:
-            container_id = container["id"]
-            hostname = container["hostname"]
-            ip = container["ip"]
-
-            # Cria um frame para cada host
-            frame = ttk.Frame(self.bottom_frame)
-            frame.pack(fill="x", padx=10, pady=5)
-
-            # Botão com o hostname (ou container_id, se preferir)
-            btn = ttk.Button(frame, text=f"{hostname}", command=lambda cid=container_id: self.edit_ports(cid))
-            btn.pack(side="left", padx=5)
-
-            # Exibe o IP do host
-            lbl = ttk.Label(frame, text=f"IP: {ip}", font=("Arial", 10))
-            lbl.pack(side="left")
+        self.apresenta_tela_hosts( )
 
         # Lista de valores exibidos no Combobox (hostname + IP)
         if self.containers_data:
@@ -492,11 +462,81 @@ class FirewallGUI:
         else:
             self.dst_ip.current(0)
 
-        #for widget in self.firewall_frame.winfo_children():
-        #    widget.destroy()
-        # TODO - atualizar valores Combobox.
-        #self.atualizar_exibicao_testes()
-        
+    def apresenta_tela_hosts(self):
+        print(f"self.containers_data: {self.containers_data}")
+        cont = containers.getContainersHostNames()
+        print(f"cont :  {json.dumps(cont, indent=4)}")
+
+        row_index = 0  # Linha inicial na grid
+
+        # Carrega os ícones
+        power_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  # Substitua pelo caminho correto do ícone
+        status_on_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  # Ícone para servidor ligado
+        status_off_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  # Ícone para servidor desligado
+
+        for host in cont:
+            print(f"ID: {host['id']}")
+            print(f"Nome: {host['nome']}")
+            print(f"Hostname: {host['hostname']}")
+            print("Interfaces:")
+
+            status = "Ligado" # TODO - criar função para ver se o status do servidor do host está ligado ou desligado.
+
+            container_id = host["id"]
+            container_name = host["nome"]
+            hostname = host["hostname"]
+
+            # Criando um frame para cada host
+            frame = ttk.Frame(self.bottom_frame)
+            frame.grid(row=row_index, column=0, columnspan=3, sticky="w", padx=10, pady=5)
+
+            # Botão para editar portas do host
+            btn = ttk.Button(frame, text=f"{hostname}", command=lambda cid=container_id: self.edit_ports(cid))
+            btn.grid(row=0, column=0, padx=5, pady=2, sticky="w")
+
+            # Label com informações do container
+            lbl_container = ttk.Label(frame, text=f"Container: {container_id} - {container_name}", font=("Arial", 10))
+            lbl_container.grid(row=0, column=1, padx=5, pady=2, sticky="w")
+
+            row_index += 1  # Move para a próxima linha
+
+            for interface in host['interfaces']:
+                print(f"  - Interface: {interface['nome']}")
+                if_name = interface['nome']
+
+                # Criando um sub-frame para alinhar interfaces e IPs juntos
+                interface_frame = ttk.Frame(frame)
+                interface_frame.grid(row=row_index, column=1, columnspan=2, sticky="w", padx=20)
+
+                # TODO - percebi que o comando ip mosta os IPs da interface mesmo que esta interface esteja desligada DOWN.
+                # Label com o nome da interface
+                lbl_interface = ttk.Label(interface_frame, text=f"Interface: {if_name}", font=("Arial", 10, "bold"))
+                lbl_interface.grid(row=0, column=0, sticky="w")
+
+                ip_index = 1
+                for ip in interface['ips']:
+                    lbl_ip = ttk.Label(interface_frame, text=f"IP: {ip}", font=("Arial", 10))
+                    lbl_ip.grid(row=ip_index, column=0, padx=20, sticky="w")
+                    ip_index += 1
+
+                # Status do servidor
+                lbl_status = ttk.Label(interface_frame, text=f"Status do servidor: {status}", font=("Arial", 10))
+                lbl_status.grid(row=ip_index, column=0, padx=5, sticky="w")
+                
+
+                # Botão de Liga/Desliga com ícone
+                btn_toggle = ttk.Button(interface_frame, image=power_icon, command=lambda cid=container_id: self.toggle_server(cid))
+                btn_toggle.image = power_icon  # Mantém a referência para evitar garbage collection
+                btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
+
+                row_index += 2  # Move para a próxima linha no layout
+
+            row_index += 1  # Linha extra para separar os hosts
+
+    # TODO - fazer o botão atualizar o status do servidor do container de ligado para desligado1 (passar a variável do botão)
+    def toggle_server(self, container_id):
+        print(f"Toggling server {container_id}")
+
     def save_tests(self):
         print("Salvar testes")
 

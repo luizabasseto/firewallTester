@@ -37,6 +37,21 @@ def start_server(containerId):
         print("Erro ao executar o comando Docker:", e)
         return []
 
+def get_port_from_container(containerId):
+    print(f"Obtem portas do container - {containerId}")
+
+    comandoNet = ' netstat -atuln | awk \'$1 ~ /^(tcp|udp)$/ {split($4, a, ":"); print $1 "/" a[2]}\' | sort -t \'/\' -k 2n'
+    comando = "docker exec "+containerId+comandoNet
+    
+    #docker exec 9eb8ef3327d1 netstat -atuln | awk '$1 ~ /^(tcp|udp)$/ {split($4, a, ":"); print $1 "/" a[2]}' | sort -t '/' -k 2n
+
+    resultado = subprocess.run(comando, shell=True, capture_output=True, text=True)
+
+    if resultado.returncode == 0:
+        print(resultado.stdout)
+    else:
+        print(f"Erro: {resultado.stderr}")
+
 #teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port
 def run_client_test(containerId, dst_ip, protocol, dst_port, teste_id, timestamp, verbose):
     """Executa o comando tem que passar Id do container, IP de destino, protocol, porta de destino, id do teste, timestamp, verbose"""

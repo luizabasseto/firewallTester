@@ -66,6 +66,8 @@ class FirewallGUI:
         self.create_hosts_tab()
         self.create_firewall_tab()
 
+        self.start_servers()
+
     def create_hosts_tab(self):
         """Cria a interface da aba de Hosts"""
 
@@ -89,8 +91,12 @@ class FirewallGUI:
         popup.title(f"Edit Ports for Container {container_id}")
         popup.geometry("300x200")
 
+        texto = tk.StringVar()
+        portas = containers.get_port_from_container(container_id)
+        texto.set(portas)
+
         ttk.Label(popup, text="Opened Ports:", font=("Arial", 10)).pack(pady=5)
-        ports_entry = ttk.Entry(popup, width=30)
+        ports_entry = ttk.Entry(popup, width=30, textvariable=texto)
         ports_entry.pack(pady=5)
 
         ttk.Button(popup, text="Save", command=lambda: self.save_ports(container_id, ports_entry.get())).pack(pady=10)
@@ -113,7 +119,7 @@ class FirewallGUI:
         else: # se não houver elementos apresenta uma mensagem
             self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
         # Ordena a lista por ordem crescente
-        #self.hosts_display.sort()
+        #self.hosts_display.sort() # TODO - ver se ao ordenar, se acontece algo de estranho nos teste, tal como, dá erro de rede ao enviar TCP/80 do host1 para o host2, mas o contrário não (em um cenário com três hosts), mas no comando direto no host1 funciona normal!
 
         protocols = ["TCP", "UDP", "ICMP"]
 
@@ -431,6 +437,7 @@ class FirewallGUI:
     def start_servers(self):
         """Inicia server.py nos containers"""
         print("start_servers")
+        # TODO - controlar se houve erro ao iniciar o servidor e em qual container.
         for container in self.containers_data:
             container_id = container["id"]
             containers.start_server(container_id)
@@ -536,6 +543,7 @@ class FirewallGUI:
     # TODO - fazer o botão atualizar o status do servidor do container de ligado para desligado1 (passar a variável do botão)
     def toggle_server(self, container_id):
         print(f"Toggling server {container_id}")
+        containers.get_port_from_container(container_id)
 
     def save_tests(self):
         print("Salvar testes")

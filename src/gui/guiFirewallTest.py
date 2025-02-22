@@ -7,6 +7,7 @@ import uuid  # Para gerar IDs únicos
 import containers
 import json
 import re
+import threading
 
 class FirewallGUI:
     def __init__(self, root):
@@ -287,7 +288,8 @@ class FirewallGUI:
         self.botao_adicionar.pack(pady=10)
 
         # Botão para executar todos os testes
-        ttk.Button(self.firewall_frame, text="Executar Testes", command=self.executar_todos_testes).pack(pady=10)
+        #ttk.Button(self.firewall_frame, text="Executar Testes", command=self.executar_todos_testes).pack(pady=10)
+        ttk.Button(self.firewall_frame, text="Executar Testes", command=self.executar_todos_testes_thead).pack(pady=10)
 
         # Frame para exibir os testes adicionados
         self.tests_frame = ttk.Frame(self.firewall_frame)
@@ -393,6 +395,7 @@ class FirewallGUI:
 
         # Atualizar a exibição dos testes
         self.atualizar_exibicao_testes()
+
 
     def atualizar_exibicao_testes(self):
         """Atualiza a exibição dos testes na interface"""
@@ -531,10 +534,36 @@ class FirewallGUI:
                 # trocar cor da label
                 test_label.config(background="lightcoral", foreground="black")
 
+    def popup(self):
+        print("_------>>>>>Abrir progresso")
+        janela_popup = tk.Toplevel(self.root)
+        janela_popup.title("Processando...")
+        janela_popup.geometry("300x120")
+        janela_popup.resizable(False, False)
+    
+    def executar_todos_testes_thead(self):
+        print("Thread para executar todos os testes")
+        janela_popup = tk.Toplevel(self.root)
+        janela_popup.title("Processando...")
+        janela_popup.geometry("300x120")
+        janela_popup.resizable(False, False)
+        
+        status_label = tk.Label(janela_popup, text="Iniciando...", font=("Arial", 10))
+        status_label.pack(pady=10)
 
-    def executar_todos_testes(self):
+        progresso_var = tk.IntVar()
+        barra_progresso = ttk.Progressbar(janela_popup, length=250, mode="determinate", variable=progresso_var)
+        barra_progresso.pack(pady=5)
+
+        self.atualizar_exibicao_testes()
+
+        #threading.Thread(target=self.executar_todos_testes, daemon=True).start()
+        threading.Thread(target=self.executar_todos_testes, args=(janela_popup, progresso_var, status_label), daemon=True).start()
+
+    def executar_todos_testes(self, janela_popup, progresso_var, status_label):
         """Executa todos os testes"""
         indice=0
+        total_lista=len(self.tests)
         for teste in self.tests:
             teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
             print(f"Executando teste - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
@@ -556,6 +585,14 @@ class FirewallGUI:
             self.colorir_labels_resultado(expected, test_label, result)
 
             indice+=1
+
+            progresso_var.set(indice * 20)  # Atualiza a barra de progresso
+            status_label.config(text=f"Processando... {indice+1}/{total_lista}")
+            
+
+        status_label.config(text="Tarefa concluída!")
+        progresso_var.set(100)  # Garante que a barra vá até o final
+        janela_popup.destroy()
 
 
     def start_servers(self):
@@ -671,6 +708,14 @@ class FirewallGUI:
 
     def save_tests(self):
         print("Salvar testes")
+        for i, teste in enumerate(self.tests):
+            teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected = teste
+
+            # Exibir os dados do teste
+            #test_str = f"Container ID: {container_id} | {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
+            test_str = f"{src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})"
+            print(test_str)
+
 
     def save_tests_as(self):
         print("Salvar testes como...")

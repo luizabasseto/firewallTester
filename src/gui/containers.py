@@ -48,9 +48,16 @@ def get_port_from_container(containerId):
     resultado = subprocess.run(comando, shell=True, capture_output=True, text=True)
 
     if resultado.returncode == 0:
-        print(resultado.stdout)
+        # Processa a saída para obter protocolo e porta
+        portas = []
+        for linha in resultado.stdout.splitlines():
+            if '/' in linha:
+                protocolo, porta = linha.split('/')
+                portas.append((protocolo.upper(), int(porta)))  # Adiciona à lista como tupla
+        return portas
     else:
         print(f"Erro: {resultado.stderr}")
+        return []  # Retorna uma lista vazia em caso de erro
 
 #teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port
 def run_client_test(containerId, dst_ip, protocol, dst_port, teste_id, timestamp, verbose):

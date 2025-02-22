@@ -90,7 +90,7 @@ class FirewallGUI:
         popup = tk.Toplevel(self.root)
         popup.title(f"Edit Ports for Container {container_id}")
         popup.geometry("300x200")
-
+        
         texto = tk.StringVar()
         portas = containers.get_port_from_container(container_id)
         texto.set(portas)
@@ -100,6 +100,22 @@ class FirewallGUI:
         ports_entry.pack(pady=5)
 
         ttk.Button(popup, text="Save", command=lambda: self.save_ports(container_id, ports_entry.get())).pack(pady=10)
+
+        colunas = ("Protocolo", "Porta")
+        tabela_portas = ttk.Treeview(popup, columns=colunas, show="headings", selectmode="browse")
+        tabela_portas.heading("Protocolo", text="Protocolo")
+        tabela_portas.heading("Porta", text="Porta")
+        tabela_portas.column("Protocolo", width=150, anchor=tk.CENTER)
+        tabela_portas.column("Porta", width=100, anchor=tk.CENTER)
+        tabela_portas.pack(pady=10)
+        
+        for protocolo, porta in portas:
+                tabela_portas.insert("", tk.END, values=(protocolo, porta))
+
+        #tabela_portas.insert("", tk.END, values=(protocolo, porta))
+
+        # Botão para remover item selecionado
+        #ttk.Button(popup, text="Remover Selecionado", command=remover_porta).pack(pady=5)
 
     def save_ports(self, container_id, ports):
         """Salvar as portas abertas (lógica futura)"""

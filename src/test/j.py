@@ -1,46 +1,38 @@
 import tkinter as tk
-from tkinter import scrolledtext
-import sys
-import time
-import threading
 
-class PrintRedirector:
-    """Redireciona os prints para um widget Tkinter."""
-    def __init__(self, text_widget):
-        self.text_widget = text_widget
+def mostrar_legenda():
+    """Abre uma nova janela com as legendas."""
+    # Cria a janela de legenda
+    legenda_window = tk.Toplevel(root)
+    legenda_window.title("Legenda")
+    legenda_window.geometry("300x150")
 
-    def write(self, message):
-        self.text_widget.insert(tk.END, message)
-        self.text_widget.see(tk.END)  # Rolagem automática para o final
+    # Quadrado verde: Teste realizado com sucesso
+    frame_verde = tk.Frame(legenda_window)
+    frame_verde.pack(pady=5, padx=10, anchor="w")
+    tk.Label(frame_verde, bg="green", width=5, height=2).pack(side="left", padx=5)  # Quadrado verde
+    tk.Label(frame_verde, text="Teste realizado com sucesso").pack(side="left")
 
-    def flush(self):
-        pass  # Necessário para compatibilidade com sys.stdout
+    # Quadrado vermelho: Teste não realizado com sucesso
+    frame_vermelho = tk.Frame(legenda_window)
+    frame_vermelho.pack(pady=5, padx=10, anchor="w")
+    tk.Label(frame_vermelho, bg="red", width=5, height=2).pack(side="left", padx=5)  # Quadrado vermelho
+    tk.Label(frame_vermelho, text="Teste não realizado com sucesso").pack(side="left")
 
-def executar_prints():
-    """Função simulando prints em tempo real."""
-    for i in range(10):
-        print(f"Linha {i+1}: Teste de saída no Tkinter")
-        time.sleep(1)
+    # Quadrado amarelo: Ocorreu alguma falha durante o teste
+    frame_amarelo = tk.Frame(legenda_window)
+    frame_amarelo.pack(pady=5, padx=10, anchor="w")
+    tk.Label(frame_amarelo, bg="yellow", width=5, height=2).pack(side="left", padx=5)  # Quadrado amarelo
+    tk.Label(frame_amarelo, text="Ocorreu alguma falha durante o teste").pack(side="left")
 
-def iniciar_thread():
-    """Inicia os prints em uma thread separada para não travar a GUI."""
-    thread = threading.Thread(target=executar_prints, daemon=True)
-    thread.start()
-
-# Criando a interface
+# Cria a janela principal
 root = tk.Tk()
-root.title("Saída do Programa")
+root.title("Interface com Legenda")
+root.geometry("300x100")
 
-# Criando uma área de texto com barra de rolagem
-text_area = scrolledtext.ScrolledText(root, width=80, height=20)
-text_area.pack(padx=10, pady=10)
+# Botão para mostrar a legenda
+botao_legenda = tk.Button(root, text="Mostrar Legenda", command=mostrar_legenda)
+botao_legenda.pack(pady=20)
 
-# Redirecionando o print para o widget Text
-sys.stdout = PrintRedirector(text_area)
-
-# Botão para iniciar os prints
-btn_iniciar = tk.Button(root, text="Iniciar Prints", command=iniciar_thread)
-btn_iniciar.pack(pady=5)
-
+# Inicia o loop principal da interface
 root.mainloop()
-

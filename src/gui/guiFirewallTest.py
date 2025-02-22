@@ -85,15 +85,15 @@ class FirewallGUI:
 
         self.apresenta_tela_hosts()
 
-    def edit_ports(self, container_id):
+    def edit_ports(self, container_id, hostname):
         """Abre uma nova janela para editar as portas do host"""
         popup = tk.Toplevel(self.root)
-        popup.title(f"Edit Ports for Container {container_id}")
+        popup.title(f"Edit Ports for Container {container_id} - {hostname}:")
         popup.geometry("400x300")  # Aumentei o tamanho para acomodar os botões
 
         portas = containers.get_port_from_container(container_id)
     
-        ttk.Label(popup, text="Opened Ports:", font=("Arial", 10)).pack(pady=5)
+        ttk.Label(popup, text=f"Opened Ports from {hostname}", font=("Arial", 10)).pack(pady=5)
 
         # Cria a Treeview para exibir as portas
         colunas = ("Protocolo", "Porta")
@@ -292,6 +292,21 @@ class FirewallGUI:
         # Frame para exibir os testes adicionados
         self.tests_frame = ttk.Frame(self.firewall_frame)
         self.tests_frame.pack(fill="x", padx=10, pady=10)
+
+        # Frame legenda
+        self.frame_legenda_testes = ttk.LabelFrame(self.firewall_frame, text="Legenda")
+        self.frame_legenda_testes.pack(side="bottom", fill="x", padx=20, pady=15)
+        self.frame_legenda_testes.pack_propagate(False)
+        self.frame_legenda_testes.config(width=700, height=50)
+
+        tk.Label(self.frame_legenda_testes, bg="green", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        tk.Label(self.frame_legenda_testes, text="Teste realizado com sucesso.", font=("Arial", 10)).pack(side="left")
+
+        tk.Label(self.frame_legenda_testes, bg="red", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        tk.Label(self.frame_legenda_testes, text="Teste realizado NÃO obteve sucesso.", font=("Arial", 10)).pack(side="left")
+
+        tk.Label(self.frame_legenda_testes, bg="yellow", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        tk.Label(self.frame_legenda_testes, text="Falha durante o teste (ex. erro em: IP, GW, DNS, Servidor.)", font=("Arial", 10)).pack(side="left")
 
         # Variável para armazenar o índice do teste sendo editado
         self.indice_edicao = None
@@ -607,7 +622,7 @@ class FirewallGUI:
             frame.grid(row=row_index, column=0, columnspan=3, sticky="w", padx=10, pady=5)
 
             # Botão para editar portas do host
-            btn = ttk.Button(frame, text=f"{hostname}", command=lambda cid=container_id: self.edit_ports(cid))
+            btn = ttk.Button(frame, text=f"{hostname}", command=lambda cid=container_id: self.edit_ports(cid, hostname))
             btn.grid(row=0, column=0, padx=5, pady=2, sticky="w")
 
             # Label com informações do container

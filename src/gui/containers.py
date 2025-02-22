@@ -58,6 +58,22 @@ def get_port_from_container(containerId):
     else:
         print(f"Erro: {resultado.stderr}")
         return []  # Retorna uma lista vazia em caso de erro
+    
+def copy_host2container(containerId, fileSrc, fileDest):
+    print(f"Copiar arquivo ({fileSrc}) para o container {containerId}")
+    comando = "docker cp "+fileSrc+" "+ containerId+":"+fileDest
+    try:
+        result = subprocess.run(comando, shell=True, capture_output=True, text=True)
+        print(result.stdout)
+        print("Cópia realizada com sucesso!")
+        return 0
+    except subprocess.CalledProcessError as e:
+        print("Erro ao executar o cópia Docker:", e)
+        return 1
+
+def copy_ports2server(containerId, fileSrc):
+    print(f"Copiar arquivo de portas para o server no container {containerId}")
+    return copy_host2container(containerId, fileSrc, "/firewallTester/src/conf/portas.conf")
 
 #teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port
 def run_client_test(containerId, dst_ip, protocol, dst_port, teste_id, timestamp, verbose):

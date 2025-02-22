@@ -65,7 +65,7 @@ class FirewallGUI:
         # Criando a interface das abas
         self.create_hosts_tab()
         self.create_firewall_tab()
-
+        # Reinicia os servidores
         self.start_servers()
 
     def create_hosts_tab(self):
@@ -89,18 +89,13 @@ class FirewallGUI:
         """Abre uma nova janela para editar as portas do host"""
         popup = tk.Toplevel(self.root)
         popup.title(f"Edit Ports for Container {container_id}")
-        popup.geometry("300x200")
-        
-        texto = tk.StringVar()
+        popup.geometry("400x300")  # Aumentei o tamanho para acomodar os botões
+
         portas = containers.get_port_from_container(container_id)
-        texto.set(portas)
-
+    
         ttk.Label(popup, text="Opened Ports:", font=("Arial", 10)).pack(pady=5)
-        ports_entry = ttk.Entry(popup, width=30, textvariable=texto)
-        ports_entry.pack(pady=5)
 
-        ttk.Button(popup, text="Save", command=lambda: self.save_ports(container_id, ports_entry.get())).pack(pady=10)
-
+        # Cria a Treeview para exibir as portas
         colunas = ("Protocolo", "Porta")
         tabela_portas = ttk.Treeview(popup, columns=colunas, show="headings", selectmode="browse")
         tabela_portas.heading("Protocolo", text="Protocolo")
@@ -108,18 +103,116 @@ class FirewallGUI:
         tabela_portas.column("Protocolo", width=150, anchor=tk.CENTER)
         tabela_portas.column("Porta", width=100, anchor=tk.CENTER)
         tabela_portas.pack(pady=10)
-        
+
+        # Preenche a Treeview com as portas existentes
         for protocolo, porta in portas:
-                tabela_portas.insert("", tk.END, values=(protocolo, porta))
+            tabela_portas.insert("", tk.END, values=(protocolo, porta))
 
-        #tabela_portas.insert("", tk.END, values=(protocolo, porta))
+        # Cria um frame para os botões
+        frame_botoes = ttk.Frame(popup)
+        frame_botoes.pack(pady=10)
 
-        # Botão para remover item selecionado
-        #ttk.Button(popup, text="Remover Selecionado", command=remover_porta).pack(pady=5)
+        # Botão para adicionar linha
+        botao_adicionar = ttk.Button(frame_botoes, text="Adicionar Porta", command=lambda: self.adicionar_linha(tabela_portas))
+        botao_adicionar.pack(side=tk.LEFT, padx=5)
 
-    def save_ports(self, container_id, ports):
+        # Botão para remover linha
+        botao_remover = ttk.Button(frame_botoes, text="Remover Porta", command=lambda: self.remover_linha(tabela_portas))
+        botao_remover.pack(side=tk.LEFT, padx=5)
+
+        ttk.Button(popup, text="Recarregar Portas", command=lambda: self.salvar_portas_em_arquivo(container_id, tabela_portas)).pack(pady=10)
+
+        # Função para adicionar uma nova linha
+    def adicionar_linha(self, tabela_portas):
+        """Abre uma nova janela para adicionar uma porta à Treeview"""
+        popup = tk.Toplevel()
+        popup.title("Adicionar Porta")
+        popup.geometry("300x150")
+
+        # Função para validar e adicionar a porta
+        def adicionar_porta():
+            protocolo = combo_protocolo.get().strip().upper()
+            porta = entry_porta.get().strip()
+
+            # Valida o protocolo
+            if protocolo not in ["TCP", "UDP"]:
+                messagebox.showerror("Erro", "Protocolo inválido! Escolha TCP ou UDP.")
+                return
+
+            # Valida a porta
+            try:
+                porta = int(porta)
+                if porta < 0 or porta > 65535:
+                    raise ValueError
+            except ValueError:
+                messagebox.showerror("Erro", "Porta inválida! Deve ser um número entre 0 e 65535.")
+                return
+
+            # Verifica se a combinação protocolo/porta já existe na tabela
+            for linha in tabela_portas.get_children():
+                valores = tabela_portas.item(linha, "values")
+                if valores[0].upper() == protocolo and valores[1] == str(porta):
+                    messagebox.showerror("Erro", f"A porta {porta}/{protocolo} já existe na tabela!")
+                    return
+
+            # Adiciona a nova porta à Treeview
+            tabela_portas.insert("", tk.END, values=(protocolo, porta))
+            popup.destroy()  # Fecha a janela popup
+
+        # Campo para selecionar o protocolo
+        ttk.Label(popup, text="Protocolo:").pack(pady=5)
+        combo_protocolo = ttk.Combobox(popup, values=["TCP", "UDP"], state="readonly")
+        combo_protocolo.set("TCP")  # Valor padrão
+        combo_protocolo.pack(pady=5)
+
+        # Campo para inserir a porta
+        ttk.Label(popup, text="Porta:").pack(pady=5)
+        entry_porta = ttk.Entry(popup)
+        entry_porta.pack(pady=5)
+
+        # Botão para adicionar a porta
+        ttk.Button(popup, text="Adicionar", command=adicionar_porta).pack(pady=10)
+
+    # Função para remover a linha selecionada
+    def remover_linha(self, tabela_portas):
+        print("remover")
+        selecionado = tabela_portas.selection()
+        if selecionado:  # Verifica se há algo selecionado
+            tabela_portas.delete(selecionado)
+
+    def salvar_portas_em_arquivo(self, containerId, tabela_portas, nome_arquivo="tmp_conf/portas.conf"):
+        """
+        Salva as portas e protocolos da Treeview em um arquivo, no formato "porta/protocolo".
+        
+        :param tabela_portas: A Treeview contendo as colunas "Protocolo" e "Porta".
+        :param nome_arquivo: Nome do arquivo onde os dados serão salvos.
+        """
+        try:
+            with open(nome_arquivo, "w") as arquivo:
+                # Percorre todas as linhas da Treeview
+                for linha in tabela_portas.get_children():
+                    # Obtém os valores da linha (protocolo e porta)
+                    valores = tabela_portas.item(linha, "values")
+                    if len(valores) == 2:  # Verifica se há dois valores (protocolo e porta)
+                        protocolo, porta = valores
+                        # Escreve no arquivo no formato "porta/protocolo"
+                        arquivo.write(f"{porta}/{protocolo}\n")
+            print(f"Portas salvas com sucesso no arquivo {nome_arquivo}!")
+        except Exception as e:
+            print(f"Erro ao salvar as portas: {e}")
+        
+        # recarrega essas portas no container ligando o sevidor com as novas portas.
+        self.reload_ports(containerId, nome_arquivo)
+        # reinicia os servidor
+        containers.start_server(containerId)
+
+        
+
+    def reload_ports(self, container_id, nome_arquivo):
         """Salvar as portas abertas (lógica futura)"""
-        print(f"Container {container_id} agora tem as portas abertas: {ports}")
+        print(f"Recarregar portas do {container_id}")
+
+        containers.copy_ports2server(container_id, nome_arquivo)
 
     def create_firewall_tab(self):
         """Cria a interface para os testes de firewall"""

@@ -257,7 +257,7 @@ def getContainersHostNames():
 
     filter_string = ".test" # parte do nome do container - neste caso todos os containers do teste devem ter em seu nome .test
     matching_containers = get_container_info_by_hostname(filter_string)
-    printContainerList(matching_containers)
+    printContainerList(matching_containers, filter_string)
 
     print(f"\nObtendo informações de rede do container: \n\tGerando Json dessas informações!.")
     for container in matching_containers:
@@ -283,7 +283,7 @@ def getContainersHostNames():
     print(hosts_json)
     return hosts
 
-def printContainerList(matching_containers):
+def printContainerList(matching_containers, filter_string):
     if matching_containers:
         print(json.dumps(matching_containers, indent=4))
     else:

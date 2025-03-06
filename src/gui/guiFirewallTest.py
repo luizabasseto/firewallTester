@@ -27,6 +27,9 @@ import threading
 # TODO - No arquivo container.py - ao ligar um servidor em uma porta já em uso por outro programa que não o server.py, verificar se pode realmente matar tal processo.
 # TODO - Pensar em como acessar alguns serviços reais, tais como HTTP, SSH, MYSQL, etc. e como mostrar isso na interface, atualmente fora do cliente.py/servidor.py só dá para acessar externo o ICMP.
 # TODO - Pensar em testes de pacotes mal formados tal como do nmap ou scapy.
+# TODO - sugerir testes que podem ser comuns em ambientes de empresas.
+# TODO - sugerir testes baseados nos serviços em execução no ambiente.
+# TODO - sugerir testes fundamentados nos testes propostos pelo usuário, tal como: se pediu para host1 acessar HTTP no host3, fazer o contrário também.
 
 class FirewallGUI:
     def __init__(self, root):
@@ -65,7 +68,7 @@ class FirewallGUI:
         self.button_load_tests.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")
 
         self.button_quit = ttk.Button(frame_botton, text="Sair", command=self.confirmar_saida)
-        self.button_quit.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")
+        self.button_quit.grid(row=0, column=6, padx=10, pady=10, sticky="nsew")
         
         frame_botton.grid_columnconfigure(0, weight=1)
         frame_botton.grid_columnconfigure(1, weight=1)
@@ -236,7 +239,8 @@ class FirewallGUI:
 
         # Frame para os campos de entrada
         frame_entrada = ttk.Frame(self.firewall_frame)
-        frame_entrada.pack(fill="x", padx=10, pady=5)
+        #frame_entrada.pack(fill="x", padx=10, pady=5)
+        frame_entrada.pack(pady=10)
 
         # Lista de valores exibidos no Combobox (hostname + IP)
         if self.containers_data:
@@ -252,6 +256,8 @@ class FirewallGUI:
         #configurando stilo - para o readonly não ficar cinza
         style = ttk.Style()
         style.map("TCombobox", fieldbackground=[("readonly", "white")])
+        # cor de fundo da linha selecionada - para não tampar a cor do teste
+
 
         # Componentes de entrada
         ttk.Label(frame_entrada, text="Source IP:").grid(row=0, column=0)
@@ -326,7 +332,7 @@ class FirewallGUI:
 
         # Frame para exibir os testes adicionados na treeview
         self.tests_frame_Tree = ttk.Frame(self.firewall_frame)
-        self.tests_frame_Tree.pack(fill="x", padx=10, pady=10)
+        self.tests_frame_Tree.pack(fill="both", expand=True, padx=10, pady=10)
 
         self.hidden_data = {}  # Dicionário para armazenar Container ID associado ao Teste ID
         self.entries = []
@@ -364,7 +370,7 @@ class FirewallGUI:
         self.tree.heading("Result", text="Result")
         self.tree.column("Result", width=80, anchor="w", stretch=False)
 
-        self.tree.pack(pady=11)
+        self.tree.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Definição das cores
         style = ttk.Style()
@@ -378,7 +384,7 @@ class FirewallGUI:
         self.tree.bind("<Double-1>", self.on_tree_select_double)
 
         btn_frame = tk.Frame(root)
-        btn_frame.pack()
+        btn_frame.pack(side="bottom", fill="x", padx=10, pady=10)
 
         self.button_tree_edit.config(state="disabled")
         self.button_tree_del.config(state="disabled")
@@ -765,8 +771,8 @@ class FirewallGUI:
             self.colorir_labels_resultado_tree(expected,result, values, teste)
 
             indice+=1
-
-            progresso_var.set(indice * 20)  # Atualiza a barra de progresso
+            porcentagem_concluida = (indice / total_lista) * 100
+            progresso_var.set(porcentagem_concluida)  # Atualiza a barra de progresso
             status_label.config(text=f"Processando... {indice}/{total_lista}")
             
 

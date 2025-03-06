@@ -169,7 +169,7 @@ def extract_containerid_hostname_ips( ):
                         "ip": ip
                     })
 
-    return resultado
+    return sorted(resultado, key=lambda x: x["hostname"])
 
 def extract_hostname_interface_ips(lista_json):
     """

@@ -424,6 +424,7 @@ class FirewallGUI:
         selected_index = self.src_ip.current()
         if selected_index >= 0 and selected_index < len(self.containers_data):
             container_id = self.containers_data[selected_index]["id"]
+            print(f"container_data selected_index{selected_index} -  {self.containers_data[selected_index]}")
         else:
             container_id = "N/A"  # Caso nenhum container seja selecionado
         
@@ -772,7 +773,7 @@ class FirewallGUI:
             self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
             messagebox.showerror("Atenção", "Parece que há algo de errado! \n O GNS3 ou os hosts estão ligados?")
         # ordena nomes no combobox
-        #self.hosts_display.sort()
+        #self.hosts_display.sort() # TODO - Ao ordenar o nome no host de oriegem, também tem ordenar - fazer ligação com o id do container, pois está perdendo referência.
         self.src_ip["values"] = self.hosts_display
         self.dst_ip["values"] = self.hosts_display
         self.src_ip.current(0)

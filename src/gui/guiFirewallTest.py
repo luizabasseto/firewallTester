@@ -4,11 +4,29 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import font
+from tkinter import filedialog
 import os
 import containers
 import json
 import re
 import threading
+
+# TODO - Padronizar os nomes de variáveis e funções - utilizar nomes em inglês.
+# TODO - Deixar todas as mensagens print e gráficas em inglês - botões, labels, etc...
+# TODO - Refatorar o código - remover códigos duplicados, ver o que pode ser melhorado talvez com o conceito de orientação à objetos
+# TODO - Remover variáveis e códigos que não estão sendo utilizados - pode ter código inútil principalmente pq mudou-se de label para treeview.
+# TODO - Aba configuração - ver se é necessária e o que colocar lá.
+# TODO - Criar um help para o usuário.
+# TODO - Criar um about - informações de crétido, etc...
+# TODO - Ver a licença que será utilizada.
+# TODO - Pensar se haverá um lugar para editar as regras de firewall, ligar/desligar firewall na interface ou se será tudo no host mesmo.
+# TODO - Ao realizar testes verificar se há erros como testar uma porta fechada no servidor, a interface poderia avisar quanto a isso (deixar, mas avisar).
+# TODO - Verificar o fluxo da mensagem, tal como, chegou no servidor mas não voltou, indicar isso na interface.
+# TODO - Pensar em como mostrar os logs de execução, que vão para o console texto, para a interface, isso ajuda muito a mostrar problemas e o fluxo dos testes.
+# TODO - Pensar em como mostrar detalhes do "pacotes" - objetos JSON retornados por cliente/servidor nos testes.
+# TODO - No arquivo container.py - ao ligar um servidor em uma porta já em uso por outro programa que não o server.py, verificar se pode realmente matar tal processo.
+# TODO - Pensar em como acessar alguns serviços reais, tais como HTTP, SSH, MYSQL, etc. e como mostrar isso na interface, atualmente fora do cliente.py/servidor.py só dá para acessar externo o ICMP.
+# TODO - Pensar em testes de pacotes mal formados tal como do nmap ou scapy.
 
 class FirewallGUI:
     def __init__(self, root):
@@ -33,6 +51,7 @@ class FirewallGUI:
         frame_botton = ttk.Frame(self.root)
         frame_botton.pack(side=tk.BOTTOM, pady=6)
         
+        # TODO - ao atualizar os dados dos hosts, pode ser necessário mudar dados dos testes, principalmente os IDs dos constainers e talvez IPs dos hosts - tal como tem que ser feito ao carregar os testes de um arquivo - pensar em uma solução única para os dois problemas - talvez precise de intervenção do usuário.
         self.button_uptate_host = ttk.Button(frame_botton, text="Atualizar Hosts", command=self.update_hosts)
         self.button_uptate_host.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         
@@ -42,12 +61,18 @@ class FirewallGUI:
         self.button_save_tests_as = ttk.Button(frame_botton, text="Salvar como", command=self.save_tests_as)
         self.button_save_tests_as.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
 
-        self.button_load_tests = ttk.Button(frame_botton, text="Abrir Testes", command=self.load_tests)
-        self.button_load_tests.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")
+        self.button_load_tests = ttk.Button(frame_botton, text="Abrir Testes", command=self.open_tests)
+        self.button_load_tests.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")
+
+        self.button_quit = ttk.Button(frame_botton, text="Sair", command=self.confirmar_saida)
+        self.button_quit.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")
         
         frame_botton.grid_columnconfigure(0, weight=1)
         frame_botton.grid_columnconfigure(1, weight=1)
         frame_botton.grid_columnconfigure(2, weight=1)
+
+        # caminho do nome do arquivo
+        self.save_file_path = None
 
         # Lista para armazenar os testes
         self.tests = []
@@ -563,7 +588,7 @@ class FirewallGUI:
                     return -1
                 
         return 0
-        # TODO - se for alterado o destino, nestar versão do sistema só pode utilizar o protocolo icmp, não dá para utilizar tcp ou udp, pq o servidor (se existir) não vai reconhecer a mensagem enviada.
+        # TODO - se for alterado o destino, nesta versão do sistema só pode utilizar o protocolo icmp, não dá para utilizar tcp ou udp, pq o servidor (se existir) não vai reconhecer a mensagem enviada.
         # Se todos os campos estiverem preenchidos, chama o método adicionar_editar_teste
         #self.adicionar_editar_teste()
 
@@ -594,7 +619,7 @@ class FirewallGUI:
                 if self.protocol.get() != "ICMP":
                     messagebox.showwarning(f"Protocolo inválido", "Infelizmente nesta versão só é possível testar hosts externos utilizando ICMP (ping).")
                     return
-        # TODO - se for alterado o destino, nestar versão do sistema só pode utilizar o protocolo icmp, não dá para utilizar tcp ou udp, pq o servidor (se existir) não vai reconhecer a mensagem enviada.
+        # TODO - se for alterado o destino, nesta versão do sistema só pode utilizar o protocolo icmp, não dá para utilizar tcp ou udp, pq o servidor (se existir) não vai reconhecer a mensagem enviada.
         # Se todos os campos estiverem preenchidos, chama o método adicionar_editar_teste
         self.adicionar_editar_teste()
     
@@ -777,7 +802,7 @@ class FirewallGUI:
             self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
             messagebox.showerror("Atenção", "Parece que há algo de errado! \n O GNS3 ou os hosts estão ligados?")
         # ordena nomes no combobox
-        #self.hosts_display.sort() # TODO - Ao ordenar o nome no host de oriegem, também tem ordenar - fazer ligação com o id do container, pois está perdendo referência.
+        #self.hosts_display.sort() # TODO - Ao ordenar o nome no host de origem, também tem ordenar - fazer ligação com o id do container, pois está perdendo referência.
         self.src_ip["values"] = self.hosts_display
         self.dst_ip["values"] = self.hosts_display
         self.src_ip.current(0)
@@ -832,7 +857,7 @@ class FirewallGUI:
                 interface_frame = ttk.Frame(frame)
                 interface_frame.grid(row=row_index, column=1, columnspan=2, sticky="w", padx=20)
 
-                # TODO - percebi que o comando ip mosta os IPs da interface mesmo que esta interface esteja desligada DOWN.
+                # TODO - percebi que o comando ip mostra os IPs da interface mesmo que esta interface esteja desligada DOWN.
                 # Label com o nome da interface
                 lbl_interface = ttk.Label(interface_frame, text=f"Interface: {if_name}", font=("Arial", 10, "bold"))
                 lbl_interface.grid(row=0, column=0, sticky="w")
@@ -857,51 +882,72 @@ class FirewallGUI:
 
             row_index += 1  # Linha extra para separar os hosts
 
-    # TODO - fazer o botão atualizar o status do servidor do container de ligado para desligado1 (passar a variável do botão)
+    # TODO - fazer o botão atualizar o status do servidor do container de ligado para desligado (passar a variável do botão)
     def toggle_server(self, container_id):
         print(f"Toggling server {container_id}")
         containers.get_port_from_container(container_id)
 
+
+    def save_tests_as(self):
+        """Abre uma janela para salvar os testes em um arquivo JSON."""
+        file_path = filedialog.asksaveasfilename(
+            title="Salvar arquivo de testes",
+            defaultextension=".json",
+            filetypes=[("Arquivos JSON", "*.json"), ("Todos os arquivos", "*.*")]
+        )
+
+        if not file_path:  # Se o usuário cancelar, não faz nada
+            return
+
+        self.save_file_path = file_path
+
+        #print(f"Salvando testes no arquivo: {self.save_file_path}")
+        self.save_tests()
+
     def save_tests(self):
         """Salva os dados da Treeview em um arquivo JSON."""
         print("Salvando testes...")
+        if not self.save_file_path:
+            self.save_tests_as()
+        else:
+            items = self.tree.get_children()
+            tests_data = []
 
-        items = self.tree.get_children()
-        tests_data = []
+            for item in items:
+                values = self.tree.item(item, "values")
+                if values:
+                    # Recupera o Container ID oculto
+                    #teste_id = values[0]
+                    #container_id = self.hidden_data.get(teste_id, "")  
+                    teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result = values
 
-        for item in items:
-            values = self.tree.item(item, "values")
-            if values:
-                # Recupera o Container ID oculto
-                #teste_id = values[0]
-                #container_id = self.hidden_data.get(teste_id, "")  
-                teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result = values
+                    # Monta o dicionário e adiciona à lista
+                    tests_data.append({
+                        "teste_id": teste_id,
+                        "container_id": container_id,
+                        "src_ip": src_ip,
+                        "dst_ip": dst_ip,
+                        "protocol": protocol,
+                        "src_port": src_port,
+                        "dst_port": dst_port,
+                        "expected": expected,
+                        "result": result
+                    })
 
-                # Monta o dicionário e adiciona à lista
-                tests_data.append({
-                    "teste_id": teste_id,
-                    "container_id": container_id,
-                    "src_ip": src_ip,
-                    "dst_ip": dst_ip,
-                    "protocol": protocol,
-                    "src_port": src_port,
-                    "dst_port": dst_port,
-                    "expected": expected,
-                    "result": result
-                })
+            # Escreve no arquivo JSON
+            with open(self.save_file_path, "w") as f:
+                json.dump(tests_data, f, indent=4)
 
-        # Escreve no arquivo JSON
-        with open("tests/testes.json", "w") as f:
-            json.dump(tests_data, f, indent=4)
+            print(f"Testes salvos com sucesso no arquivo: {self.save_file_path}")
 
-        print("Testes salvos com sucesso!")
-
+    # TODO - ao carregar tem que verificar se a origem ainda tem o mesmo nome de container - pois se for em máquinas diferentes ou em projetos diferentes do GNS3 - isso vai mudar!
+    # TODO - também teria que ver se os IPs ainda batem, pois em termos de aula, normalmente o professor dá o nome da máquina e não o IP, então teria que verificar se os IPs são o mesmo, caso não for teria que atualizar o IP, provavelmente com a interação do usuário caso o host tenha mais que um IP (escolher qual IP é do teste, principalmente se for de destino - na origem isso não vai fazer muita diferença)
     def load_tests(self):
         """Carrega os dados do arquivo JSON para a Treeview."""
         print("Carregando testes...")
 
-        if os.path.exists("tests/testes.json"):
-            with open("tests/testes.json", "r") as f:
+        if os.path.exists(self.save_file_path):
+            with open(self.save_file_path, "r") as f:
                 try:
                     tests_data = json.load(f)
                 except json.JSONDecodeError:
@@ -926,16 +972,25 @@ class FirewallGUI:
         else:
             print("Nenhum arquivo de testes encontrado.")
 
-    def save_tests_as(self):
-        print("Salvar testes como...")
-        itens = self.tree.get_children()
-        for teste in itens:
-            values = self.tree.item(teste, "values")
-            teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result = values
-            print(values)
+    def open_tests(self):
+        """Abre uma janela para selecionar um arquivo JSON e carrega os testes."""
+        file_path = filedialog.askopenfilename(
+            title="Abrir arquivo de testes",
+            filetypes=[("Arquivos JSON", "*.json"), ("Todos os arquivos", "*.*")]
+        )
 
-        print("Terminar o salvar como")
-        # TODO - terminar o salvar - nem sei sei precisa!
+        if not file_path:  # Se o usuário cancelar, não faz nada
+            return
+
+        self.save_file_path = file_path
+
+        print(f"Carregando testes do arquivo: {file_path}")
+
+        self.load_tests()
+    
+    def confirmar_saida(self):
+        if messagebox.askyesno("Confirmação", "Deseja realmente sair do programa?"):
+            self.root.destroy()
 
 # Executando a aplicação
 if __name__ == "__main__":

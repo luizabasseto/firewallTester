@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import font
-import uuid  # Para gerar IDs únicos
+import os
 import containers
 import json
 import re
@@ -41,6 +41,9 @@ class FirewallGUI:
         
         self.button_save_tests_as = ttk.Button(frame_botton, text="Salvar como", command=self.save_tests_as)
         self.button_save_tests_as.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
+
+        self.button_load_tests = ttk.Button(frame_botton, text="Abrir Testes", command=self.load_tests)
+        self.button_load_tests.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")
         
         frame_botton.grid_columnconfigure(0, weight=1)
         frame_botton.grid_columnconfigure(1, weight=1)
@@ -701,6 +704,7 @@ class FirewallGUI:
         barra_progresso = ttk.Progressbar(janela_popup, length=250, mode="determinate", variable=progresso_var)
         barra_progresso.pack(pady=5)
 
+        self.tree.selection_set(())
         self.atualizar_exibicao_testes_tree()
 
         threading.Thread(target=self.executar_todos_testes_tree, args=(janela_popup, progresso_var, status_label), daemon=True).start()
@@ -859,15 +863,68 @@ class FirewallGUI:
         containers.get_port_from_container(container_id)
 
     def save_tests(self):
-        print("Salvar testes")
-        itens = self.tree.get_children()
-        for teste in itens:
-            values = self.tree.item(teste, "values")
-            teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result = values
-            print(values)
+        """Salva os dados da Treeview em um arquivo JSON."""
+        print("Salvando testes...")
 
-        print("Terminar o salvar")
-        # TODO - terminar o salvar
+        items = self.tree.get_children()
+        tests_data = []
+
+        for item in items:
+            values = self.tree.item(item, "values")
+            if values:
+                # Recupera o Container ID oculto
+                #teste_id = values[0]
+                #container_id = self.hidden_data.get(teste_id, "")  
+                teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result = values
+
+                # Monta o dicionário e adiciona à lista
+                tests_data.append({
+                    "teste_id": teste_id,
+                    "container_id": container_id,
+                    "src_ip": src_ip,
+                    "dst_ip": dst_ip,
+                    "protocol": protocol,
+                    "src_port": src_port,
+                    "dst_port": dst_port,
+                    "expected": expected,
+                    "result": result
+                })
+
+        # Escreve no arquivo JSON
+        with open("tests/testes.json", "w") as f:
+            json.dump(tests_data, f, indent=4)
+
+        print("Testes salvos com sucesso!")
+
+    def load_tests(self):
+        """Carrega os dados do arquivo JSON para a Treeview."""
+        print("Carregando testes...")
+
+        if os.path.exists("tests/testes.json"):
+            with open("tests/testes.json", "r") as f:
+                try:
+                    tests_data = json.load(f)
+                except json.JSONDecodeError:
+                    print("Erro ao carregar o arquivo JSON.")
+                    return
+
+            # Adiciona os itens na Treeview
+            for test in tests_data:
+                item_id = self.tree.insert("", "end", values=[
+                    test["teste_id"], test["container_id"], test["src_ip"], test["dst_ip"], test["protocol"],
+                    test["src_port"], test["dst_port"], test["expected"], test["result"]
+                ])
+
+                # Restaura o Container ID oculto
+                #self.hidden_data[test["teste_id"]] = test["container_id"]
+
+                # Aplica a cor conforme o resultado
+                #self.apply_row_color(item_id, test["result"])
+
+            print("Testes carregados com sucesso!")
+            self.buttons_normal_state()
+        else:
+            print("Nenhum arquivo de testes encontrado.")
 
     def save_tests_as(self):
         print("Salvar testes como...")

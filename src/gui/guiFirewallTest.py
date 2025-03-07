@@ -59,15 +59,6 @@ class FirewallGUI:
         # TODO - ao atualizar os dados dos hosts, pode ser necessário mudar dados dos testes, principalmente os IDs dos constainers e talvez IPs dos hosts - tal como tem que ser feito ao carregar os testes de um arquivo - pensar em uma solução única para os dois problemas - talvez precise de intervenção do usuário.
         self.button_uptate_host = ttk.Button(frame_botton, text="Atualizar Hosts", command=self.update_hosts)
         self.button_uptate_host.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        
-        self.button_save_tests = ttk.Button(frame_botton, text="Salvar", command=self.save_tests)
-        self.button_save_tests.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-        
-        self.button_save_tests_as = ttk.Button(frame_botton, text="Salvar como", command=self.save_tests_as)
-        self.button_save_tests_as.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
-
-        self.button_load_tests = ttk.Button(frame_botton, text="Abrir Testes", command=self.open_tests)
-        self.button_load_tests.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")
 
         self.button_quit = ttk.Button(frame_botton, text="Sair", command=self.confirmar_saida)
         self.button_quit.grid(row=0, column=6, padx=10, pady=10, sticky="nsew")
@@ -139,20 +130,19 @@ class FirewallGUI:
         self.text.configure(yscrollcommand=scrollbar_vertical.set, xscrollcommand=scrollbar_horizontal.set)
 
         # Adicionar algum texto inicial (opcional)
-        self.text.insert("1.0", "Este é um exemplo de área de edição de texto com barras de rolagem Este é um exemplo de área de edição de texto com barras de rolagem Este é um exemplo de área de edição de texto com barras de rolagem.\n" * 100)
+        #self.text.insert("#Insira as regras para serem aplicadas no firewall aqui.")
 
         # Atalhos de teclado
         self.text.bind("<Control-a>", self.selecionar_tudo)
         #text.bind("<Control-c>", copiar_selecao)
 
+        #frame_botoes_regras = ttk.frame(frame_regras)
+        #frame_botoes_regras(fill="both", expand=True)
+
     def selecionar_tudo(self, event=None):
         """Seleciona todo o texto."""
         self.text.tag_add("sel", "1.0", "end")
         return "break"  # Impede o comportamento padrão do atalho
-
-
-
-        
 
 
     def edit_ports(self, container_id, hostname):
@@ -455,6 +445,18 @@ class FirewallGUI:
 
         tk.Label(self.frame_legenda_testes, bg="yellow", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
         tk.Label(self.frame_legenda_testes, text="Falha durante o teste (ex. erro em: IP, GW, DNS, Servidor.)", font=("Arial", 10)).pack(side="left")
+
+        self.frame_botoes_salvar_testes = ttk.Frame(self.firewall_frame)
+        self.frame_botoes_salvar_testes.pack(pady=10)
+
+        self.button_save_tests = ttk.Button(self.frame_botoes_salvar_testes, text="Salvar testes", command=self.save_tests)
+        self.button_save_tests.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        
+        self.button_save_tests_as = ttk.Button(self.frame_botoes_salvar_testes, text="Salvar testes como", command=self.save_tests_as)
+        self.button_save_tests_as.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
+
+        self.button_load_tests = ttk.Button(self.frame_botoes_salvar_testes, text="Abrir testes", command=self.open_tests)
+        self.button_load_tests.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")
 
     def on_tree_select(self, event):
         print("on_tree_select")

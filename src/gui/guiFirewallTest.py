@@ -45,8 +45,10 @@ class FirewallGUI:
         self.firewall_frame = ttk.Frame(self.notebook)
         self.hosts_frame = ttk.Frame(self.notebook)
         self.config_frame = ttk.Frame(self.notebook)
+        self.regras_firewall = ttk.Frame(self.notebook)
 
         self.notebook.add(self.firewall_frame, text="Teste Firewall")
+        self.notebook.add(self.regras_firewall, text="Regras Firewall")
         self.notebook.add(self.hosts_frame, text="Hosts")
         self.notebook.add(self.config_frame, text="Configurações")
 
@@ -86,6 +88,7 @@ class FirewallGUI:
         # Criando a interface das abas
         self.create_hosts_tab()
         self.create_firewall_tab()
+        self.create_regras_firewall_tab()
         # Reinicia os servidores
         self.start_servers()
 
@@ -105,6 +108,52 @@ class FirewallGUI:
         self.bottom_frame.pack(pady=10)
 
         self.apresenta_tela_hosts()
+
+    def create_regras_firewall_tab(self):
+        """Cria a interface da aba de Hosts"""
+        frame_regras = tk.Frame(self.regras_firewall)
+        frame_regras.pack(fill="both", expand=True, pady=10)  # Expande para preencher a aba
+
+        ttk.Label(frame_regras, text="Editar regras de firewall no host:", font=("Arial", 12)).pack(padx=10)
+        host_regra_firewall = ttk.Combobox(frame_regras, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
+        host_regra_firewall.pack(pady=10)
+        host_regra_firewall.current(0)
+
+        # Frame principal para conter o Text e as Scrollbars
+        frame = ttk.Frame(frame_regras)
+        frame.pack(fill="both", expand=True)  # Expande para preencher o espaço restante
+
+        # Widget Text para edição de texto
+        self.text = tk.Text(frame, wrap="none", undo=True)  # wrap="none" permite rolagem horizontal
+        self.text.pack(side="left", fill="both", expand=True)  # Expande para preencher o frame
+
+        # Scrollbar vertical
+        scrollbar_vertical = ttk.Scrollbar(frame, orient="vertical", command=self.text.yview)
+        scrollbar_vertical.pack(side="right", fill="y")
+
+        # Scrollbar horizontal
+        scrollbar_horizontal = ttk.Scrollbar(frame_regras, orient="horizontal", command=self.text.xview)
+        scrollbar_horizontal.pack(side="bottom", fill="x")
+
+        # Configurar o Text para usar as Scrollbars
+        self.text.configure(yscrollcommand=scrollbar_vertical.set, xscrollcommand=scrollbar_horizontal.set)
+
+        # Adicionar algum texto inicial (opcional)
+        self.text.insert("1.0", "Este é um exemplo de área de edição de texto com barras de rolagem Este é um exemplo de área de edição de texto com barras de rolagem Este é um exemplo de área de edição de texto com barras de rolagem.\n" * 100)
+
+        # Atalhos de teclado
+        self.text.bind("<Control-a>", self.selecionar_tudo)
+        #text.bind("<Control-c>", copiar_selecao)
+
+    def selecionar_tudo(self, event=None):
+        """Seleciona todo o texto."""
+        self.text.tag_add("sel", "1.0", "end")
+        return "break"  # Impede o comportamento padrão do atalho
+
+
+
+        
+
 
     def edit_ports(self, container_id, hostname):
         """Abre uma nova janela para editar as portas do host"""

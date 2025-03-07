@@ -1,3 +1,4 @@
+# docker build --no-cache -t "firewall:py" .
 FROM python
 MAINTAINER Luiz Arthur "luizsantos@utfpr.edu.br"
 RUN apt update -y

@@ -1026,7 +1026,8 @@ class FirewallGUI:
         row_index = 0  # Linha inicial na grid
 
         # Carrega os ícones
-        power_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  # Substitua pelo caminho correto do ícone
+        self.power_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  # Substitua pelo caminho correto do ícone
+        self.power_icon_off = tk.PhotoImage(file="img/system-shutdown-symbolic-off.png")  # Substitua pelo caminho correto do ícone
         status_on_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  # Ícone para servidor ligado
         status_off_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  # Ícone para servidor desligado
 
@@ -1083,9 +1084,9 @@ class FirewallGUI:
             lbl_status.grid(row=ip_index, column=0, padx=5, sticky="w")
 
             # Botão de Liga/Desliga com ícone
-            btn_toggle = ttk.Button(interface_frame, image=power_icon, command=lambda cid=container_id: self.toggle_server(cid))
-            btn_toggle.image = power_icon  # Mantém a referência para evitar garbage collection
-            btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
+            self.btn_toggle = ttk.Button(interface_frame, image=self.power_icon, command=lambda cid=container_id: self.toggle_server(cid))
+            self.btn_toggle.image = self.power_icon  # Mantém a referência para evitar garbage collection
+            self.btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
             row_index += 1  # Linha extra para separar os hosts
 
     # TODO - fazer o botão atualizar o status do servidor do container de ligado para desligado (passar a variável do botão)
@@ -1101,18 +1102,18 @@ class FirewallGUI:
             return "desligado"
 
     def toggle_server(self, container_id):
-        # TODO usei esse botão apenas para testar o ligar e desligar da função anterior, mas tem que fazer o botão funcionar, quando clicar nele ele deve mudar de ligar para desligar
+        # TODO não está funcionando, talvez pq os botões deveriam estar em uma lista, já que são criados em um for. Ah, está funcionando sim, mas só liga e desliga o último ou pelo menos atualiza o último, realmente deve ser pq deveria estar em uma lista.
         print(f"Toggling server {container_id}")
-        containers.get_port_from_container(container_id)
-        cmd = 'docker exec '+ container_id+' ps ax | grep "/usr/local/bin/python ./server.py" | grep -v grep'
-        result = containers.run_command_shell(cmd)
-        print(f"status do container {container_id} {result}")
-        if result !="":
-            print("ligado")
-            return "ligado"
+        imagem_atual = self.btn_toggle["image"][0]
+        print(f"{imagem_atual} - {str(self.power_icon)}")
+        if imagem_atual == str(self.power_icon):
+            print("desliga")
+            self.btn_toggle.config(image=self.power_icon_off, text="desliga")
         else:
-            print("desligado")
-            return "desligado"
+            print("liga")
+            self.btn_toggle.config(image=self.power_icon, text="liga")
+                
+    # TODO - a tab host deveria ter um scroll, já que pode ter mais hosts do que cabe na aba!
 
 
     def save_tests_as(self):

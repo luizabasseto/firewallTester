@@ -132,6 +132,10 @@ class FirewallGUI:
         scroll_x_regras.grid(row=1, column=0, sticky="ew")
         self.text_regras.config(xscrollcommand=scroll_x_regras.set)
 
+        self.reset_firewall = tk.IntVar()
+        checkbtn_zerar_regras = tk.Checkbutton(frame_regras, text="Resetar automáticamente regras do firewall - isso deveria estar em seu script, mas você pode fazer aqui.", variable=self.reset_firewall)
+        checkbtn_zerar_regras.grid(row=2, column=0, sticky="w")
+
         frame_regras.grid_columnconfigure(0, weight=1)
         frame_regras.grid_rowconfigure(0, weight=1)
 
@@ -186,17 +190,12 @@ class FirewallGUI:
         self.btn_aplicar.pack(side=tk.LEFT, padx=10)
         self.btn_aplicar.config(state="disable")
 
+        #self.btn_zerar = tk.Button(frame_botoes, text="Zerar Regras no firewall", command=self.zerar_regras_firewall)
+        #self.btn_zerar.pack(side=tk.LEFT, padx=10)
+        #self.btn_zerar.config(state="disable")
+
         btn_ver_ativas = tk.Button(frame_botoes, text="Mostrar Saída", command=toggle_frame_ativas)
         btn_ver_ativas.pack(side=tk.RIGHT, padx=10)
-
-
-        # selected_index = self.src_ip.current()
-        # if selected_index >= 0 and selected_index < len(self.containers_data):
-        #     container_id = self.containers_data[selected_index]["id"]
-        #     print(f"container_data selected_index{selected_index} -  {self.containers_data[selected_index]}")
-        # else:
-        #     container_id = "N/A"  # Caso nenhum container seja selecionado
-
 
     def on_combobox_host_regras_firewall_select(self, src_ip):
         print("combobox host regras")
@@ -210,6 +209,7 @@ class FirewallGUI:
         self.btn_carregar.config(state="normal")
         self.btn_aplicar.config(state="normal")
         self.btn_listar_regras_firewall.config(state="normal")
+        #self.btn_zerar.config(state="normal")
         self.container_id_host_regras_firewall=container_id
 
     def listar_regras_firewall(self):
@@ -243,6 +243,30 @@ class FirewallGUI:
 
     # TODO - será que seria bom um botão para zerar as regras de firewall?
 
+    def enviar_executar_arquivos_regras_firewall(self, file_rules, reset): # se for reset indica que o caminho é o arquivo de reset, caso contrário são regras
+        print(f"Enviar e executar regras no firewall do host {self.container_id_host_regras_firewall[1]}")
+        
+        if reset!=None:
+            containers.copy_host2container(self.container_id_host_regras_firewall[0], file_rules, "/etc/firewall_reset.sh")
+            command = ["docker", "exec", self.container_id_host_regras_firewall[0], "sh", "/etc/firewall_reset.sh"]
+        else:
+            containers.copy_host2container(self.container_id_host_regras_firewall[0], file_rules, "/etc/firewall.sh")
+            command = ["docker", "exec", self.container_id_host_regras_firewall[0], "sh", "/etc/firewall.sh"]
+
+        result = containers.run_command(command)
+
+        self.text_ativas.delete(1.0, tk.END)
+        if result.stderr:
+            self.text_ativas.delete(1.0, tk.END)
+            self.text_ativas.insert(tk.END, f"\n* Erro ao aplicar as regras de firewall - verifique se há algo de errado nas regras do host {self.container_id_host_regras_firewall[1]}:\n\n")
+            self.text_ativas.insert(tk.END, result.stderr)
+            self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
+            messagebox.showinfo("Atenção", "Algo deu errado ao executar as regras, verifique a saída!")
+        else:
+            self.listar_regras_firewall()
+            self.text_ativas.insert(tk.END, f"\n* Situação do firewall no host {self.container_id_host_regras_firewall[1]} após regras serem aplicadas!\n\n")
+            self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
+
     def aplicar_regras_firewall(self):
         print(f"Aplicar regras no firewall do host {self.container_id_host_regras_firewall[1]}")
         regras = self.text_regras.get("1.0", tk.END)
@@ -250,22 +274,20 @@ class FirewallGUI:
         with open(file_rules, "w", encoding="utf-8") as arquivo:
             arquivo.write(regras)
         print(f"Regras salvas no aquivo {file_rules}")
-
-        containers.copy_host2container(self.container_id_host_regras_firewall[0], file_rules, "/etc/firewall.sh")
-
-        command = ["docker", "exec", self.container_id_host_regras_firewall[0], "sh", "/etc/firewall.sh"]
-        result = containers.run_command(command)
-
-        if result.stderr:
-            self.text_ativas.delete(1.0, tk.END)
-            self.text_ativas.insert(tk.END, f"\n* Erro ao aplicar as regras de firewall - verifique se há algo de errado nas regras do host {self.container_id_host_regras_firewall[1]}:\n\n")
-            self.text_ativas.insert(tk.END, result.stderr)
-            self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
-        else:
-            self.listar_regras_firewall()
-            self.text_ativas.insert(tk.END, f"\n* Situação do firewall no host {self.container_id_host_regras_firewall[1]} após regras serem aplicadas!\n\n")
+        if self.reset_firewall.get() == 1: # se checkbox estiver marcado primeiro zera o firewall, depois aplica as regras.
+            self.enviar_executar_arquivos_regras_firewall("tmp/reset_firewall.sh", 1)
+        
+        self.enviar_executar_arquivos_regras_firewall(file_rules, None)
+        
+        if self.reset_firewall.get() == 1:
+            self.text_ativas.insert(tk.END, f"\n>>Atenção!<< as regras de firewall do host {self.container_id_host_regras_firewall[1]} foram resetadas pela interface mas isso DEVERIA estar em seus comandos de firewall, pois o firewall não faz isso por padrão na vida real!\n\n")
             self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
 
+    def zerar_regras_firewall(self):
+        print(f"Zerar regras de firewall no host {self.container_id_host_regras_firewall[1]}")
+        resposta = messagebox.askyesno("Atenção","Essa ação de zerar as regras do firewall não existe por padrão, ou seja, isso deveria ser feito em suas regras de firewall. Tem certeza que deseja continuar?")
+        if resposta:
+            self.enviar_executar_arquivos_regras_firewall("tmp/reset_firewall.sh", 1)
 
     def selecionar_tudo(self, event=None):
         """Seleciona todo o texto."""

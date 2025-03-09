@@ -132,8 +132,10 @@ message = {
 # Tratamento para ICMP
 if args.protocol == "icmp":
     if icmp_status < 0:
-        message["status"] = "1"
-        message["status_msg"] = "Host desconhecido"
+        # TODO - se o firewall barrar, está dando que é erro! mas foi o firewall, tinha que ver se há como identificar quando é erro e quando é o firewall, por agora vai ficar o status em 0
+        #message["status"] = "1"
+        message["status"] = "0"
+        message["status_msg"] = "Firewall Drop or Host desconhecido"
     else:
         message["server_response"] = icmp_status > 0
         message["server_port"] = 8  # ICMP echo reply
@@ -183,8 +185,11 @@ try:
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
     if verbose > 0: print(f"Erro na comunicação: {e}")
-    message["status"] = '1'
-    message["status_msg"] = "Network Error"
+    # TODO - se o firewall barrar, está dando que é erro! mas foi o firewall, tinha que ver se há como identificar quando é erro e quando é o firewall, por agora vai ficar o status em 0
+    #message["status"] = '1'
+    #message["status_msg"] = "Network Error"
+    message["status"] = '0'
+    message["status_msg"] = "Firewall Drop or Network Error"
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)

@@ -1036,7 +1036,8 @@ class FirewallGUI:
             print(f"Hostname: {host['hostname']}")
             print("Interfaces:")
 
-            status = "Ligado" # TODO - criar função para ver se o status do servidor do host está ligado ou desligado.
+            status = self.verificar_servidor_onoff(host['id'])
+            #status = "Ligado" # TODO - criar função para ver se o status do servidor do host está ligado ou desligado.
 
             container_id = host["id"]
             container_name = host["nome"]
@@ -1075,24 +1076,43 @@ class FirewallGUI:
                     lbl_ip.grid(row=ip_index, column=0, padx=20, sticky="w")
                     ip_index += 1
 
-                # Status do servidor
-                lbl_status = ttk.Label(interface_frame, text=f"Status do servidor: {status}", font=("Arial", 10))
-                lbl_status.grid(row=ip_index, column=0, padx=5, sticky="w")
-                
-
-                # Botão de Liga/Desliga com ícone
-                btn_toggle = ttk.Button(interface_frame, image=power_icon, command=lambda cid=container_id: self.toggle_server(cid))
-                btn_toggle.image = power_icon  # Mantém a referência para evitar garbage collection
-                btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
-
                 row_index += 2  # Move para a próxima linha no layout
 
+            # Status do servidor
+            lbl_status = ttk.Label(interface_frame, text=f"Status do servidor: {status}", font=("Arial", 10))
+            lbl_status.grid(row=ip_index, column=0, padx=5, sticky="w")
+
+            # Botão de Liga/Desliga com ícone
+            btn_toggle = ttk.Button(interface_frame, image=power_icon, command=lambda cid=container_id: self.toggle_server(cid))
+            btn_toggle.image = power_icon  # Mantém a referência para evitar garbage collection
+            btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
             row_index += 1  # Linha extra para separar os hosts
 
     # TODO - fazer o botão atualizar o status do servidor do container de ligado para desligado (passar a variável do botão)
+    def verificar_servidor_onoff(self, container_id):
+        print("Verificar servidor on ou off")
+        cmd = 'docker exec '+ container_id+' ps ax | grep "/usr/local/bin/python ./server.py" | grep -v grep'
+        result = containers.run_command_shell(cmd)
+        if result !="":
+            print("ligado")
+            return "ligado"
+        else:
+            print("desligado")
+            return "desligado"
+
     def toggle_server(self, container_id):
+        # TODO usei esse botão apenas para testar o ligar e desligar da função anterior, mas tem que fazer o botão funcionar, quando clicar nele ele deve mudar de ligar para desligar
         print(f"Toggling server {container_id}")
         containers.get_port_from_container(container_id)
+        cmd = 'docker exec '+ container_id+' ps ax | grep "/usr/local/bin/python ./server.py" | grep -v grep'
+        result = containers.run_command_shell(cmd)
+        print(f"status do container {container_id} {result}")
+        if result !="":
+            print("ligado")
+            return "ligado"
+        else:
+            print("desligado")
+            return "desligado"
 
 
     def save_tests_as(self):

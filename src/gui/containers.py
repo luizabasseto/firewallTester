@@ -49,6 +49,19 @@ def run_command(command):
         print("Erro ao executar o comando Docker:", e)
         return e
 
+# para executar sem precisar separar em lista
+def run_command_shell(command):
+    """Inicia o script de que simula portas servidoras nos containers -."""
+    # TODO - se tiver utilizando DHCP as portas 68 e 69 UDP podem estar em uso, ai não dá para executar essas portas! ver como resolver...
+    print(f"Executa comando {command}")
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        return result.stdout
+
+    except subprocess.CalledProcessError as e:
+        print("Erro ao executar o comando Docker:", e)
+        return None
+
 
 
 def get_port_from_container(containerId):

@@ -102,42 +102,170 @@ class FirewallGUI:
 
     def create_regras_firewall_tab(self):
         """Cria a interface da aba de Hosts"""
-        frame_regras = tk.Frame(self.regras_firewall)
-        frame_regras.pack(fill="both", expand=True, pady=10)  # Expande para preencher a aba
+        # Frame superior para o título
+        frame_titulo = tk.Frame(self.regras_firewall)
+        frame_titulo.pack(fill=tk.X)
 
-        ttk.Label(frame_regras, text="Editar regras de firewall no host:", font=("Arial", 12)).pack(padx=10)
-        host_regra_firewall = ttk.Combobox(frame_regras, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
-        host_regra_firewall.pack(pady=10)
-        host_regra_firewall.current(0)
+        ttk.Label(frame_titulo, text="Editar regras de firewall no host:", font=("Arial", 12, "bold")).pack(padx=10)
+        self.combobox_host_regra_firewall = ttk.Combobox(frame_titulo, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
+        self.combobox_host_regra_firewall.pack(pady=10)
+        #self.combobox_host_regra_firewall.current(0)
+        self.combobox_host_regra_firewall.set("")
 
-        # Frame principal para conter o Text e as Scrollbars
-        frame = ttk.Frame(frame_regras)
-        frame.pack(fill="both", expand=True)  # Expande para preencher o espaço restante
+        self.combobox_host_regra_firewall.bind("<<ComboboxSelected>>", self.on_combobox_host_regras_firewall_select)
 
-        # Widget Text para edição de texto
-        self.text = tk.Text(frame, wrap="none", undo=True)  # wrap="none" permite rolagem horizontal
-        self.text.pack(side="left", fill="both", expand=True)  # Expande para preencher o frame
+        #label_titulo = tk.Label(frame_titulo, text="Editar regras de firewall", font=("Arial", 12, "bold"))
+        #label_titulo.pack(pady=5)
 
-        # Scrollbar vertical
-        scrollbar_vertical = ttk.Scrollbar(frame, orient="vertical", command=self.text.yview)
-        scrollbar_vertical.pack(side="right", fill="y")
+        # Criando LabelFrame para as regras a serem aplicadas
+        frame_regras = ttk.LabelFrame(self.regras_firewall, text="Regras a serem aplicadas no firewall")
+        frame_regras.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
-        # Scrollbar horizontal
-        scrollbar_horizontal = ttk.Scrollbar(frame_regras, orient="horizontal", command=self.text.xview)
-        scrollbar_horizontal.pack(side="bottom", fill="x")
+        self.text_regras = tk.Text(frame_regras, wrap=tk.NONE, height=10, undo=True)
+        self.text_regras.grid(row=0, column=0, sticky="nsew")
 
-        # Configurar o Text para usar as Scrollbars
-        self.text.configure(yscrollcommand=scrollbar_vertical.set, xscrollcommand=scrollbar_horizontal.set)
+        scroll_y_regras = tk.Scrollbar(frame_regras, orient=tk.VERTICAL, command=self.text_regras.yview)
+        scroll_y_regras.grid(row=0, column=1, sticky="ns")
+        self.text_regras.config(yscrollcommand=scroll_y_regras.set)
 
-        # Adicionar algum texto inicial (opcional)
-        #self.text.insert("#Insira as regras para serem aplicadas no firewall aqui.")
+        scroll_x_regras = tk.Scrollbar(frame_regras, orient=tk.HORIZONTAL, command=self.text_regras.xview)
+        scroll_x_regras.grid(row=1, column=0, sticky="ew")
+        self.text_regras.config(xscrollcommand=scroll_x_regras.set)
 
-        # Atalhos de teclado
-        self.text.bind("<Control-a>", self.selecionar_tudo)
-        #text.bind("<Control-c>", copiar_selecao)
+        frame_regras.grid_columnconfigure(0, weight=1)
+        frame_regras.grid_rowconfigure(0, weight=1)
 
-        #frame_botoes_regras = ttk.frame(frame_regras)
-        #frame_botoes_regras(fill="both", expand=True)
+        # Criando LabelFrame para as regras ativas no firewall (inicialmente oculto)
+        frame_ativas = ttk.LabelFrame(self.regras_firewall, text="Regras ativas no firewall")
+        frame_ativas.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        frame_ativas.pack_forget()  # Escondendo inicialmente
+
+        def toggle_frame_ativas():
+            if frame_ativas.winfo_ismapped():
+                frame_ativas.pack_forget()
+                btn_ver_ativas.config(text="Mostrar Saída")
+            else:
+                frame_ativas.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+                btn_ver_ativas.config(text="Esconder Saída")
+
+        def select_all(event):
+            event.widget.tag_add("sel", "1.0", "end")
+            return "break"
+
+        self.text_ativas = tk.Text(frame_ativas, wrap=tk.NONE, height=10)
+        self.text_ativas.grid(row=0, column=0, sticky="nsew")
+        self.text_ativas.bind("<Control-a>", select_all)
+
+        self.text_regras.bind("<Control-a>", select_all)
+
+        scroll_y_ativas = tk.Scrollbar(frame_ativas, orient=tk.VERTICAL, command=self.text_ativas.yview)
+        scroll_y_ativas.grid(row=0, column=1, sticky="ns")
+        self.text_ativas.config(yscrollcommand=scroll_y_ativas.set)
+        self.text_ativas.config(state=tk.NORMAL) # não sei pq, mas se não ativas e desativar o text_ativas, o selecionar tudo não funciona no text_regras
+        #self.text_ativas.config(state=tk.DISABLED)
+
+        scroll_x_ativas = tk.Scrollbar(frame_ativas, orient=tk.HORIZONTAL, command=self.text_ativas.xview)
+        scroll_x_ativas.grid(row=1, column=0, sticky="ew")
+        self.text_ativas.config(xscrollcommand=scroll_x_ativas.set)
+
+        frame_ativas.grid_columnconfigure(0, weight=1)
+        frame_ativas.grid_rowconfigure(0, weight=1)
+        self.btn_listar_regras_firewall = tk.Button(frame_ativas, text="Listar Regras Firewall", command=self.listar_regras_firewall)
+        self.btn_listar_regras_firewall.grid(row=2, column=0)
+        self.btn_listar_regras_firewall.config(state="disabled")
+
+        # Criando os botões
+        frame_botoes = tk.Frame(self.regras_firewall)
+        frame_botoes.pack(pady=10)
+
+        self.btn_carregar = tk.Button(frame_botoes, text="Carregar Regras do firewall", command=self.carregar_regras_firewall)
+        self.btn_carregar.pack(side=tk.LEFT, padx=10)
+        self.btn_carregar.config(state="disabled")
+
+        self.btn_aplicar = tk.Button(frame_botoes, text="Aplicar Regras no firewall", command=self.aplicar_regras_firewall)
+        self.btn_aplicar.pack(side=tk.LEFT, padx=10)
+        self.btn_aplicar.config(state="disable")
+
+        btn_ver_ativas = tk.Button(frame_botoes, text="Mostrar Saída", command=toggle_frame_ativas)
+        btn_ver_ativas.pack(side=tk.RIGHT, padx=10)
+
+
+        # selected_index = self.src_ip.current()
+        # if selected_index >= 0 and selected_index < len(self.containers_data):
+        #     container_id = self.containers_data[selected_index]["id"]
+        #     print(f"container_data selected_index{selected_index} -  {self.containers_data[selected_index]}")
+        # else:
+        #     container_id = "N/A"  # Caso nenhum container seja selecionado
+
+
+    def on_combobox_host_regras_firewall_select(self, src_ip):
+        print("combobox host regras")
+        selected_index = self.combobox_host_regra_firewall.current()
+        if selected_index >= 0 and selected_index < len(self.containers_data):
+            container_id = [self.containers_data[selected_index]["id"], self.containers_data[selected_index]["hostname"]]
+            print(f"container_data selected_index{selected_index} -  {self.containers_data[selected_index]}")
+        else:
+            container_id = "N/A"  # Caso nenhum container seja selecionado
+        print(container_id)
+        self.btn_carregar.config(state="normal")
+        self.btn_aplicar.config(state="normal")
+        self.btn_listar_regras_firewall.config(state="normal")
+        self.container_id_host_regras_firewall=container_id
+
+    def listar_regras_firewall(self):
+        print(f"Listar regras do firewall do host {self.container_id_host_regras_firewall[1]}")
+        
+        self.text_ativas.delete(1.0, tk.END)
+
+        command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n", "-t", "nat"]
+        result = containers.run_command(command)
+        self.text_ativas.insert(tk.END, f"\n* Resultado do comando iptables -t nat -L no host {self.container_id_host_regras_firewall[1]}:\n\n")
+        self.text_ativas.insert(tk.END, result.stdout)
+        
+        command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n"]
+        result = containers.run_command(command)
+        self.text_ativas.insert(tk.END, f"\n* Resultado do comando iptables -L no host {self.container_id_host_regras_firewall[1]}:\n\n")
+        self.text_ativas.insert(tk.END, result.stdout)
+
+        self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
+        
+
+    def carregar_regras_firewall(self):
+        print(f"Carregar regras do firewall do host {self.container_id_host_regras_firewall[1]}")
+
+        resposta = messagebox.askyesno("Confirmação","Isso vai sobrescrever as regras existentes na interface. Tem certeza que deseja continuar?")
+
+        if resposta:
+            command = ["docker", "exec", self.container_id_host_regras_firewall[0], "cat", "/etc/firewall.sh"]
+            result = containers.run_command(command)
+            self.text_regras.delete(1.0, tk.END)
+            self.text_regras.insert(tk.END, result.stdout)
+
+    # TODO - será que seria bom um botão para zerar as regras de firewall?
+
+    def aplicar_regras_firewall(self):
+        print(f"Aplicar regras no firewall do host {self.container_id_host_regras_firewall[1]}")
+        regras = self.text_regras.get("1.0", tk.END)
+        file_rules="tmp/regras.sh"
+        with open(file_rules, "w", encoding="utf-8") as arquivo:
+            arquivo.write(regras)
+        print(f"Regras salvas no aquivo {file_rules}")
+
+        containers.copy_host2container(self.container_id_host_regras_firewall[0], file_rules, "/etc/firewall.sh")
+
+        command = ["docker", "exec", self.container_id_host_regras_firewall[0], "sh", "/etc/firewall.sh"]
+        result = containers.run_command(command)
+
+        if result.stderr:
+            self.text_ativas.delete(1.0, tk.END)
+            self.text_ativas.insert(tk.END, f"\n* Erro ao aplicar as regras de firewall - verifique se há algo de errado nas regras do host {self.container_id_host_regras_firewall[1]}:\n\n")
+            self.text_ativas.insert(tk.END, result.stderr)
+            self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
+        else:
+            self.listar_regras_firewall()
+            self.text_ativas.insert(tk.END, f"\n* Situação do firewall no host {self.container_id_host_regras_firewall[1]} após regras serem aplicadas!\n\n")
+            self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
+
 
     def selecionar_tudo(self, event=None):
         """Seleciona todo o texto."""

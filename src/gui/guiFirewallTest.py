@@ -10,6 +10,8 @@ import containers
 import json
 import re
 import threading
+import webbrowser
+import textwrap
 
 # TODO - Padronizar os nomes de variáveis e funções - utilizar nomes em inglês.
 # TODO - Deixar todas as mensagens print e gráficas em inglês - botões, labels, etc...
@@ -46,11 +48,13 @@ class FirewallGUI:
         self.hosts_frame = ttk.Frame(self.notebook)
         self.config_frame = ttk.Frame(self.notebook)
         self.regras_firewall = ttk.Frame(self.notebook)
+        self.about_frame = ttk.Frame(self.notebook)
 
         self.notebook.add(self.firewall_frame, text="Teste Firewall")
         self.notebook.add(self.regras_firewall, text="Regras Firewall")
         self.notebook.add(self.hosts_frame, text="Hosts")
         self.notebook.add(self.config_frame, text="Configurações")
+        self.notebook.add(self.about_frame, text="About")
 
         # Frame em baixo as abas
         frame_botton = ttk.Frame(self.root)
@@ -85,6 +89,81 @@ class FirewallGUI:
         self.create_regras_firewall_tab()
         # Reinicia os servidores
         self.start_servers()
+        self.create_about_tab()
+
+    def create_about_tab(self):
+        top_frame = tk.Frame(self.about_frame)
+        top_frame.pack(pady=10)
+
+        # Developer Information
+        lbl_title = ttk.Label(top_frame, text="About the Software", font=("Arial", 14, "bold"))
+        lbl_title.pack(pady=10)
+
+        # Software Description
+        description = "This software was developed with the goal of strengthening network security through practical and efficient firewall testing. More than just a testing tool, it stands out as a valuable educational resource, designed to simplify and enhance the learning process about firewalls. Through an intuitive and interactive interface, students can visualize and experiment with the creation and application of firewall rules, making it easier to understand complex concepts and promoting deeper and more effective learning."
+
+        # Create a frame for the description
+        description_frame = ttk.Frame(top_frame)
+        description_frame.pack(pady=10, padx=20, fill="x") #fill x para ocupar toda a largura
+
+        # Simulate full justification using textwrap
+        wrapped_text = textwrap.fill(description, width=70) #aumentei o width para o texto se espalhar mais
+
+        # Get background color from parent frame
+        bg_color = top_frame.cget("background")
+
+        # Use tk.Text for display
+        text_widget = tk.Text(description_frame, wrap="word", width=70, height=8, borderwidth=0, highlightthickness=0, background=bg_color) #aumentei o height e o width
+        text_widget.insert("1.0", wrapped_text)
+        text_widget.config(state="disabled")  # Make it read-only
+        text_widget.pack(pady=10, padx=10, fill="x")
+
+        
+        # Developer
+        lbl_developer_name_head = ttk.Label(top_frame, text="Developer:")
+        lbl_developer_name_head.pack()
+        lbl_developer_name = ttk.Label(top_frame, text=f"Prof. Luiz Arthur Feitosa dos Santos", font=("Arial", 12, "bold"))
+        lbl_developer_name.pack()
+
+        # Clickable Email
+        #lbl_email_text = ttk.Label(top_frame, text="Email: ")
+        #lbl_email_text.pack()
+
+        lbl_email = ttk.Label(top_frame, text=f"luiz.arthur.feitosa.santos@gmail.com\n", foreground="blue", cursor="hand2")
+        lbl_email.pack()
+        lbl_email.bind("<Button-1>", lambda e: webbrowser.open_new_tab("mailto:luiz.arthur.feitosa.santos@gmail.com"))
+
+        lbl_institution_head = ttk.Label(top_frame, text="Institution:")
+        lbl_institution_head.pack()
+        lbl_institution = ttk.Label(top_frame, text=f"UTFPR-CM\n", font=("Arial", 12, "bold"))
+        lbl_institution.pack()
+
+        # Clickable Project Link
+        lbl_project_link_text = ttk.Label(top_frame, text="Project Link: ")
+        lbl_project_link_text.pack()
+
+        lbl_project_link = ttk.Label(top_frame, text=f"https://github.com/luizsantos/firewallTester\n", foreground="blue", cursor="hand2")
+        lbl_project_link.pack()
+        lbl_project_link.bind("<Button-1>", lambda e: webbrowser.open_new_tab("https://github.com/luizsantos/firewallTester"))
+
+        # Clickable License Link
+        lbl_license_text = ttk.Label(top_frame, text="License: ")
+        lbl_license_text.pack()
+
+        lbl_license = ttk.Label(top_frame, text=f"GNU GPL v3\n", foreground="blue", cursor="hand2")
+        lbl_license.pack()
+        lbl_license.bind("<Button-1>", lambda e: webbrowser.open_new_tab("https://www.gnu.org/licenses/gpl-3.0.html"))
+
+        # Help Button
+        btn_help = ttk.Button(top_frame, text="Help", command=self.abrir_ajuda)
+        btn_help.pack(pady=20)
+
+    
+    def abrir_ajuda(self):
+        webbrowser.open_new_tab("https://github.com/luizsantos/firewallTester")  # Substitua pelo URL da sua página de ajuda
+
+
+
 
     def create_hosts_tab(self):
         """Cria a interface da aba de Hosts"""

@@ -73,6 +73,9 @@ class FirewallGUI:
         # Lista para armazenar os testes
         self.tests = []
 
+        # lista de botoes dos hosts
+        self.lista_btn_onOff = []
+
         # Obtém dados de container e hosts
         self.containers_data = containers.extract_containerid_hostname_ips( )  # obtém as informações do hosts (hostname, interfaces, ips))
 
@@ -990,6 +993,13 @@ class FirewallGUI:
             container_id = container["id"]
             containers.start_server(container_id)
 
+        for cid, btn, label_status in self.lista_btn_onOff:
+            #print(f"cid/btn {cid} - {btn}")
+                btn.config(image=self.power_icon, text="liga")
+                status = self.verificar_servidor_onoff(container_id)
+                label_status.config(text=f"Status do servidor: {status}", font=("Arial", 10))
+        
+
 
     def update_hosts(self):
         """Atualiza dados dos hosts/containers - verifica por exemplo se algum container foi criado ou exluido, se alguma configuração de rede mudou, etc"""
@@ -1022,7 +1032,7 @@ class FirewallGUI:
         print(f"self.containers_data: {self.containers_data}")
         cont = containers.getContainersHostNames()
         print(f"cont :  {json.dumps(cont, indent=4)}")
-
+        self.lista_btn_onOff = []
         row_index = 0  # Linha inicial na grid
 
         # Carrega os ícones
@@ -1038,6 +1048,8 @@ class FirewallGUI:
             print("Interfaces:")
 
             status = self.verificar_servidor_onoff(host['id'])
+            
+            
             #status = "Ligado" # TODO - criar função para ver se o status do servidor do host está ligado ou desligado.
 
             container_id = host["id"]
@@ -1084,9 +1096,10 @@ class FirewallGUI:
             lbl_status.grid(row=ip_index, column=0, padx=5, sticky="w")
 
             # Botão de Liga/Desliga com ícone
-            self.btn_toggle = ttk.Button(interface_frame, image=self.power_icon, command=lambda cid=container_id: self.toggle_server(cid))
-            self.btn_toggle.image = self.power_icon  # Mantém a referência para evitar garbage collection
-            self.btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
+            btn_toggle = ttk.Button(interface_frame, image=self.power_icon, command=lambda cid=container_id: self.toggle_server(cid, btn_toggle))
+            btn_toggle.image = self.power_icon  # Mantém a referência para evitar garbage collection
+            btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
+            self.lista_btn_onOff.append((container_id, btn_toggle, lbl_status))
             row_index += 1  # Linha extra para separar os hosts
 
     # TODO - fazer o botão atualizar o status do servidor do container de ligado para desligado (passar a variável do botão)
@@ -1095,23 +1108,33 @@ class FirewallGUI:
         cmd = 'docker exec '+ container_id+' ps ax | grep "/usr/local/bin/python ./server.py" | grep -v grep'
         result = containers.run_command_shell(cmd)
         if result !="":
-            print("ligado")
+            #print("ligado")
             return "ligado"
         else:
-            print("desligado")
+            #print("desligado")
             return "desligado"
 
-    def toggle_server(self, container_id):
-        # TODO não está funcionando, talvez pq os botões deveriam estar em uma lista, já que são criados em um for. Ah, está funcionando sim, mas só liga e desliga o último ou pelo menos atualiza o último, realmente deve ser pq deveria estar em uma lista.
-        print(f"Toggling server {container_id}")
-        imagem_atual = self.btn_toggle["image"][0]
-        print(f"{imagem_atual} - {str(self.power_icon)}")
-        if imagem_atual == str(self.power_icon):
-            print("desliga")
-            self.btn_toggle.config(image=self.power_icon_off, text="desliga")
-        else:
-            print("liga")
-            self.btn_toggle.config(image=self.power_icon, text="liga")
+    # Altera na aba de hosts entre ligado e desligado (altera o botão)
+    def toggle_server(self, container_id, btn):
+        print(f"Alternando servidor para o contêiner ID: {container_id}")  
+        # Encontra o botão correspondente na lista e altera a imagem
+        for cid, btn, label_status in self.lista_btn_onOff:
+            print(f"cid/btn {cid} - {btn}")
+            if cid == container_id:
+                imagem_atual = btn["image"][0]
+                if imagem_atual == str(self.power_icon):
+                    print("desliga")
+                    label_status.config()
+                    containers.stop_server(container_id)
+                    btn.config(image=self.power_icon_off)
+                else:
+                    print("liga")
+                    containers.start_server(container_id)
+                    btn.config(image=self.power_icon, text="liga")
+                status = self.verificar_servidor_onoff(container_id)
+                label_status.config(text=f"Status do servidor: {status}", font=("Arial", 10))
+                break
+
                 
     # TODO - a tab host deveria ter um scroll, já que pode ter mais hosts do que cabe na aba!
 

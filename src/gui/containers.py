@@ -36,6 +36,11 @@ def start_server(containerId):
     except subprocess.CalledProcessError as e:
         print("Erro ao executar o comando Docker:", e)
         return []
+
+def stop_server(containerId):
+    print(f"Para servidor no container {containerId}")
+    command = 'docker exec '+ containerId +' pkill server.py'
+    run_command_shell(command)
     
 def run_command(command):
     """Inicia o script de que simula portas servidoras nos containers -."""

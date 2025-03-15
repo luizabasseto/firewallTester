@@ -36,7 +36,7 @@ import textwrap
 class FirewallGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Firewall Manager")
+        self.root.title("Firewall Tester")
         self.root.geometry("800x600")
 
         # Criando o Notebook (abas)
@@ -50,10 +50,10 @@ class FirewallGUI:
         self.regras_firewall = ttk.Frame(self.notebook)
         self.about_frame = ttk.Frame(self.notebook)
 
-        self.notebook.add(self.firewall_frame, text="Teste Firewall")
-        self.notebook.add(self.regras_firewall, text="Regras Firewall")
+        self.notebook.add(self.firewall_frame, text="Firewall Test")
+        self.notebook.add(self.regras_firewall, text="Firewall Rules")
         self.notebook.add(self.hosts_frame, text="Hosts")
-        self.notebook.add(self.config_frame, text="Configurações")
+        self.notebook.add(self.config_frame, text="Settings")
         self.notebook.add(self.about_frame, text="About")
 
         # Frame em baixo as abas
@@ -61,10 +61,10 @@ class FirewallGUI:
         frame_botton.pack(side=tk.BOTTOM, pady=6)
         
         # TODO - ao atualizar os dados dos hosts, pode ser necessário mudar dados dos testes, principalmente os IDs dos constainers e talvez IPs dos hosts - tal como tem que ser feito ao carregar os testes de um arquivo - pensar em uma solução única para os dois problemas - talvez precise de intervenção do usuário.
-        self.button_uptate_host = ttk.Button(frame_botton, text="Atualizar Hosts", command=self.update_hosts)
+        self.button_uptate_host = ttk.Button(frame_botton, text="Update Hosts", command=self.update_hosts)
         self.button_uptate_host.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        self.button_quit = ttk.Button(frame_botton, text="Sair", command=self.confirmar_saida)
+        self.button_quit = ttk.Button(frame_botton, text="Exit", command=self.confirmar_saida)
         self.button_quit.grid(row=0, column=6, padx=10, pady=10, sticky="nsew")
         
         frame_botton.grid_columnconfigure(0, weight=1)
@@ -174,7 +174,7 @@ class FirewallGUI:
         ttk.Label(self.top_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(padx=10)
 
         # Botão para Ligar todos os servidores nos containers
-        ttk.Button(self.top_frame, text="Ligar Servidores", command=self.start_servers).pack(side=tk.LEFT, padx=10)
+        ttk.Button(self.top_frame, text="Turn on servers", command=self.start_servers).pack(side=tk.LEFT, padx=10)
 
         # Frame para os botões inferiores
         self.bottom_frame = tk.Frame(self.hosts_frame)
@@ -188,7 +188,7 @@ class FirewallGUI:
         frame_titulo = tk.Frame(self.regras_firewall)
         frame_titulo.pack(fill=tk.X)
 
-        ttk.Label(frame_titulo, text="Editar regras de firewall no host:", font=("Arial", 12, "bold")).pack(padx=10)
+        ttk.Label(frame_titulo, text="Edit firewall rules on host:", font=("Arial", 12, "bold")).pack(padx=10)
         self.combobox_host_regra_firewall = ttk.Combobox(frame_titulo, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
         self.combobox_host_regra_firewall.pack(pady=10)
         #self.combobox_host_regra_firewall.current(0)
@@ -200,7 +200,7 @@ class FirewallGUI:
         #label_titulo.pack(pady=5)
 
         # Criando LabelFrame para as regras a serem aplicadas
-        frame_regras = ttk.LabelFrame(self.regras_firewall, text="Regras a serem aplicadas no firewall")
+        frame_regras = ttk.LabelFrame(self.regras_firewall, text="Rules to be applied to the firewall")
         frame_regras.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
         self.text_regras = tk.Text(frame_regras, wrap=tk.NONE, height=10, undo=True)
@@ -215,24 +215,24 @@ class FirewallGUI:
         self.text_regras.config(xscrollcommand=scroll_x_regras.set)
 
         self.reset_firewall = tk.IntVar()
-        checkbtn_zerar_regras = tk.Checkbutton(frame_regras, text="Resetar automáticamente regras do firewall - isso deveria estar em seu script, mas você pode fazer aqui.", variable=self.reset_firewall)
+        checkbtn_zerar_regras = tk.Checkbutton(frame_regras, text="Automatically reset firewall rules – this should be in your script, but you can do it here.", variable=self.reset_firewall)
         checkbtn_zerar_regras.grid(row=2, column=0, sticky="w")
 
         frame_regras.grid_columnconfigure(0, weight=1)
         frame_regras.grid_rowconfigure(0, weight=1)
 
         # Criando LabelFrame para as regras ativas no firewall (inicialmente oculto)
-        frame_ativas = ttk.LabelFrame(self.regras_firewall, text="Regras ativas no firewall")
+        frame_ativas = ttk.LabelFrame(self.regras_firewall, text="Output ")
         frame_ativas.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         frame_ativas.pack_forget()  # Escondendo inicialmente
 
         def toggle_frame_ativas():
             if frame_ativas.winfo_ismapped():
                 frame_ativas.pack_forget()
-                btn_ver_ativas.config(text="Mostrar Saída")
+                btn_ver_ativas.config(text="Show output")
             else:
                 frame_ativas.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-                btn_ver_ativas.config(text="Esconder Saída")
+                btn_ver_ativas.config(text="Hide output")
 
         def select_all(event):
             event.widget.tag_add("sel", "1.0", "end")
@@ -256,7 +256,7 @@ class FirewallGUI:
 
         frame_ativas.grid_columnconfigure(0, weight=1)
         frame_ativas.grid_rowconfigure(0, weight=1)
-        self.btn_listar_regras_firewall = tk.Button(frame_ativas, text="Listar Regras Firewall", command=self.listar_regras_firewall)
+        self.btn_listar_regras_firewall = tk.Button(frame_ativas, text="List firewall rules", command=self.listar_regras_firewall)
         self.btn_listar_regras_firewall.grid(row=2, column=0)
         self.btn_listar_regras_firewall.config(state="disabled")
 
@@ -264,11 +264,11 @@ class FirewallGUI:
         frame_botoes = tk.Frame(self.regras_firewall)
         frame_botoes.pack(pady=10)
 
-        self.btn_carregar = tk.Button(frame_botoes, text="Carregar Regras do firewall", command=self.carregar_regras_firewall)
+        self.btn_carregar = tk.Button(frame_botoes, text="Retrieve firewall rules", command=self.carregar_regras_firewall)
         self.btn_carregar.pack(side=tk.LEFT, padx=10)
         self.btn_carregar.config(state="disabled")
 
-        self.btn_aplicar = tk.Button(frame_botoes, text="Aplicar Regras no firewall", command=self.aplicar_regras_firewall)
+        self.btn_aplicar = tk.Button(frame_botoes, text="Deploy firewall rules", command=self.aplicar_regras_firewall)
         self.btn_aplicar.pack(side=tk.LEFT, padx=10)
         self.btn_aplicar.config(state="disable")
 
@@ -276,15 +276,15 @@ class FirewallGUI:
         #self.btn_zerar.pack(side=tk.LEFT, padx=10)
         #self.btn_zerar.config(state="disable")
 
-        btn_ver_ativas = tk.Button(frame_botoes, text="Mostrar Saída", command=toggle_frame_ativas)
+        btn_ver_ativas = tk.Button(frame_botoes, text="Show output", command=toggle_frame_ativas)
         btn_ver_ativas.pack(side=tk.RIGHT, padx=10)
 
     def on_combobox_host_regras_firewall_select(self, src_ip):
-        print("combobox host regras")
+        #print("combobox host regras")
         selected_index = self.combobox_host_regra_firewall.current()
         if selected_index >= 0 and selected_index < len(self.containers_data):
             container_id = [self.containers_data[selected_index]["id"], self.containers_data[selected_index]["hostname"]]
-            print(f"container_data selected_index{selected_index} -  {self.containers_data[selected_index]}")
+            #print(f"container_data selected_index{selected_index} -  {self.containers_data[selected_index]}")
         else:
             container_id = "N/A"  # Caso nenhum container seja selecionado
         print(container_id)
@@ -295,27 +295,27 @@ class FirewallGUI:
         self.container_id_host_regras_firewall=container_id
 
     def listar_regras_firewall(self):
-        print(f"Listar regras do firewall do host {self.container_id_host_regras_firewall[1]}")
+        print(f"List firewall rules for host {self.container_id_host_regras_firewall[1]}")
         
         self.text_ativas.delete(1.0, tk.END)
 
         command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n", "-t", "nat"]
         result = containers.run_command(command)
-        self.text_ativas.insert(tk.END, f"\n* Resultado do comando iptables -t nat -L no host {self.container_id_host_regras_firewall[1]}:\n\n")
+        self.text_ativas.insert(tk.END, f"\n* Result of the command iptables -t nat -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
         self.text_ativas.insert(tk.END, result.stdout)
         
         command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n"]
         result = containers.run_command(command)
-        self.text_ativas.insert(tk.END, f"\n* Resultado do comando iptables -L no host {self.container_id_host_regras_firewall[1]}:\n\n")
+        self.text_ativas.insert(tk.END, f"\n* Result of the command iptables -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
         self.text_ativas.insert(tk.END, result.stdout)
 
         self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
         
 
     def carregar_regras_firewall(self):
-        print(f"Carregar regras do firewall do host {self.container_id_host_regras_firewall[1]}")
+        print(f"Load firewall rules from hos {self.container_id_host_regras_firewall[1]}")
 
-        resposta = messagebox.askyesno("Confirmação","Isso vai sobrescrever as regras existentes na interface. Tem certeza que deseja continuar?")
+        resposta = messagebox.askyesno("Confirmation","This will overwrite the existing rules in the interface. Are you sure you want to continue?")
 
         if resposta:
             command = ["docker", "exec", self.container_id_host_regras_firewall[0], "cat", "/etc/firewall.sh"]
@@ -326,7 +326,7 @@ class FirewallGUI:
     # TODO - será que seria bom um botão para zerar as regras de firewall?
 
     def enviar_executar_arquivos_regras_firewall(self, file_rules, reset): # se for reset indica que o caminho é o arquivo de reset, caso contrário são regras
-        print(f"Enviar e executar regras no firewall do host {self.container_id_host_regras_firewall[1]}")
+        print(f"Send and execute firewall rules on host {self.container_id_host_regras_firewall[1]}")
         
         if reset!=None:
             containers.copy_host2container(self.container_id_host_regras_firewall[0], file_rules, "/etc/firewall_reset.sh")
@@ -340,13 +340,13 @@ class FirewallGUI:
         self.text_ativas.delete(1.0, tk.END)
         if result.stderr:
             self.text_ativas.delete(1.0, tk.END)
-            self.text_ativas.insert(tk.END, f"\n* Erro ao aplicar as regras de firewall - verifique se há algo de errado nas regras do host {self.container_id_host_regras_firewall[1]}:\n\n")
+            self.text_ativas.insert(tk.END, f"\n* Error applying firewall rules - check if there is something wrong with the rules on host {self.container_id_host_regras_firewall[1]}:\n\n")
             self.text_ativas.insert(tk.END, result.stderr)
             self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
-            messagebox.showinfo("Atenção", "Algo deu errado ao executar as regras, verifique a saída!")
+            messagebox.showinfo("Warning", "Something went wrong while executing the rules, check the output!")
         else:
             self.listar_regras_firewall()
-            self.text_ativas.insert(tk.END, f"\n* Situação do firewall no host {self.container_id_host_regras_firewall[1]} após regras serem aplicadas!\n\n")
+            self.text_ativas.insert(tk.END, f"\n* Firewall status on host {self.container_id_host_regras_firewall[1]} after rules have been applied\n\n")
             self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
 
     def aplicar_regras_firewall(self):
@@ -362,12 +362,12 @@ class FirewallGUI:
         self.enviar_executar_arquivos_regras_firewall(file_rules, None)
         
         if self.reset_firewall.get() == 1:
-            self.text_ativas.insert(tk.END, f"\n>>Atenção!<< as regras de firewall do host {self.container_id_host_regras_firewall[1]} foram resetadas pela interface mas isso DEVERIA estar em seus comandos de firewall, pois o firewall não faz isso por padrão na vida real!\n\n")
+            self.text_ativas.insert(tk.END, f"\n>>Warning!<< The firewall rules of host {self.container_id_host_regras_firewall[1]} were reset via the interface, but this SHOULD be in your firewall commands because firewalls do not reset automatically in real life!\n\n")
             self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
 
     def zerar_regras_firewall(self):
         print(f"Zerar regras de firewall no host {self.container_id_host_regras_firewall[1]}")
-        resposta = messagebox.askyesno("Atenção","Essa ação de zerar as regras do firewall não existe por padrão, ou seja, isso deveria ser feito em suas regras de firewall. Tem certeza que deseja continuar?")
+        resposta = messagebox.askyesno("Warning","This action of resetting firewall rules does not exist by default, meaning this should be handled in your firewall rules. Are you sure you want to continue?")
         if resposta:
             self.enviar_executar_arquivos_regras_firewall("tmp/reset_firewall.sh", 1)
 
@@ -390,8 +390,8 @@ class FirewallGUI:
         # Cria a Treeview para exibir as portas
         colunas = ("Protocolo", "Porta")
         tabela_portas = ttk.Treeview(popup, columns=colunas, show="headings", selectmode="browse")
-        tabela_portas.heading("Protocolo", text="Protocolo")
-        tabela_portas.heading("Porta", text="Porta")
+        tabela_portas.heading("Protocolo", text="Protocol")
+        tabela_portas.heading("Porta", text="Port")
         tabela_portas.column("Protocolo", width=150, anchor=tk.CENTER)
         tabela_portas.column("Porta", width=100, anchor=tk.CENTER)
         tabela_portas.pack(pady=10)
@@ -405,20 +405,20 @@ class FirewallGUI:
         frame_botoes.pack(pady=10)
 
         # Botão para adicionar linha
-        botao_adicionar = ttk.Button(frame_botoes, text="Adicionar Porta", command=lambda: self.adicionar_linha(tabela_portas))
+        botao_adicionar = ttk.Button(frame_botoes, text="Add Port", command=lambda: self.adicionar_linha(tabela_portas))
         botao_adicionar.pack(side=tk.LEFT, padx=5)
 
         # Botão para remover linha
-        botao_remover = ttk.Button(frame_botoes, text="Remover Porta", command=lambda: self.remover_linha(tabela_portas))
+        botao_remover = ttk.Button(frame_botoes, text="Delete Port ", command=lambda: self.remover_linha(tabela_portas))
         botao_remover.pack(side=tk.LEFT, padx=5)
 
-        ttk.Button(popup, text="Recarregar Portas", command=lambda: self.salvar_portas_em_arquivo(container_id, tabela_portas)).pack(pady=10)
+        ttk.Button(popup, text="Reload Ports", command=lambda: self.salvar_portas_em_arquivo(container_id, tabela_portas)).pack(pady=10)
 
         # Função para adicionar uma nova linha
     def adicionar_linha(self, tabela_portas):
         """Abre uma nova janela para adicionar uma porta à Treeview"""
         popup = tk.Toplevel()
-        popup.title("Adicionar Porta")
+        popup.title("Add Port")
         popup.geometry("300x150")
 
         # Função para validar e adicionar a porta
@@ -428,7 +428,7 @@ class FirewallGUI:
 
             # Valida o protocolo
             if protocolo not in ["TCP", "UDP"]:
-                messagebox.showerror("Erro", "Protocolo inválido! Escolha TCP ou UDP.")
+                messagebox.showerror("Error", "Invalid protocol! Choose TCP or UDP.")
                 return
 
             # Valida a porta
@@ -437,14 +437,14 @@ class FirewallGUI:
                 if porta < 0 or porta > 65535:
                     raise ValueError
             except ValueError:
-                messagebox.showerror("Erro", "Porta inválida! Deve ser um número entre 0 e 65535.")
+                messagebox.showerror("Error", "Invalid port! Must be a number between 0 and 65535.")
                 return
 
             # Verifica se a combinação protocolo/porta já existe na tabela
             for linha in tabela_portas.get_children():
                 valores = tabela_portas.item(linha, "values")
                 if valores[0].upper() == protocolo and valores[1] == str(porta):
-                    messagebox.showerror("Erro", f"A porta {porta}/{protocolo} já existe na tabela!")
+                    messagebox.showerror("Error", f"Port {porta}/{protocolo} already exists in the table!")
                     return
 
             # Adiciona a nova porta à Treeview
@@ -452,22 +452,22 @@ class FirewallGUI:
             popup.destroy()  # Fecha a janela popup
 
         # Campo para selecionar o protocolo
-        ttk.Label(popup, text="Protocolo:").pack(pady=5)
+        ttk.Label(popup, text="Protocol:").pack(pady=5)
         combo_protocolo = ttk.Combobox(popup, values=["TCP", "UDP"], state="readonly")
         combo_protocolo.set("TCP")  # Valor padrão
         combo_protocolo.pack(pady=5)
 
         # Campo para inserir a porta
-        ttk.Label(popup, text="Porta:").pack(pady=5)
+        ttk.Label(popup, text="Port:").pack(pady=5)
         entry_porta = ttk.Entry(popup)
         entry_porta.pack(pady=5)
 
         # Botão para adicionar a porta
-        ttk.Button(popup, text="Adicionar", command=adicionar_porta).pack(pady=10)
+        ttk.Button(popup, text="Add", command=adicionar_porta).pack(pady=10)
 
     # Função para remover a linha selecionada
     def remover_linha(self, tabela_portas):
-        print("remover")
+        print("Delete")
         selecionado = tabela_portas.selection()
         if selecionado:  # Verifica se há algo selecionado
             tabela_portas.delete(selecionado)
@@ -489,9 +489,9 @@ class FirewallGUI:
                         protocolo, porta = valores
                         # Escreve no arquivo no formato "porta/protocolo"
                         arquivo.write(f"{porta}/{protocolo}\n")
-            print(f"Portas salvas com sucesso no arquivo {nome_arquivo}!")
+            print(f"Ports successfully saved in file {nome_arquivo}!")
         except Exception as e:
-            print(f"Erro ao salvar as portas: {e}")
+            print(f"Error saving ports: {e}")
         
         # recarrega essas portas no container ligando o sevidor com as novas portas.
         self.reload_ports(containerId, nome_arquivo)
@@ -500,13 +500,13 @@ class FirewallGUI:
 
     def reload_ports(self, container_id, nome_arquivo):
         """Salvar as portas abertas (lógica futura)"""
-        print(f"Recarregar portas do {container_id}")
+        print(f"Reload ports from {container_id}")
 
         containers.copy_ports2server(container_id, nome_arquivo)
 
     def create_firewall_tab(self):
         """Cria a interface para os testes de firewall"""
-        ttk.Label(self.firewall_frame, text="Teste de Firewall", font=("Arial", 12)).pack(pady=10)
+        ttk.Label(self.firewall_frame, text="Firewall Test", font=("Arial", 12)).pack(pady=10)
 
         # Frame para os campos de entrada
         frame_entrada = ttk.Frame(self.firewall_frame)
@@ -518,7 +518,7 @@ class FirewallGUI:
             self.hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
         else: # se não houver elementos apresenta uma mensagem
             self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
-            messagebox.showerror("Atenção", "Parece que há algo de errado! \n O GNS3 ou os hosts estão ligados?")
+            messagebox.showerror("Warning", "Something seems to be wrong! \n Is GNS3 or the hosts turned on?")
         # Ordena a lista por ordem crescente
         #self.hosts_display.sort() # TODO - ver se ao ordenar, se acontece algo de estranho nos teste, tal como, dá erro de rede ao enviar TCP/80 do host1 para o host2, mas o contrário não (em um cenário com três hosts), mas no comando direto no host1 funciona normal!
 
@@ -579,24 +579,24 @@ class FirewallGUI:
 
         button_size=15
         # Criando e adicionando os botões dentro do frame intermediário
-        self.button_tree_add = tk.Button(self.button_frame, text="Adicionar", command=self.add_entry, width=button_size, underline=0)
+        self.button_tree_add = tk.Button(self.button_frame, text="Add", command=self.add_entry, width=button_size, underline=0)
         self.button_tree_add.pack(side="left", padx=5)
         self.root.bind("<Alt-a>", lambda event: self.add_entry())
 
-        self.button_tree_edit = tk.Button(self.button_frame, text="Editar", command=self.edit_entry, width=button_size, underline=0)
+        self.button_tree_edit = tk.Button(self.button_frame, text="Edit", command=self.edit_entry, width=button_size, underline=0)
         self.button_tree_edit.pack(side="left", padx=5)
         # TODO - tem que pensar em quais momentos habilitar e desabilitar os binds, pq da forma que ele está funciona em qualquer lugar!
         #self.root.bind("<Alt-e>", lambda event: self.edit_entry())
 
-        self.button_tree_del = tk.Button(self.button_frame, text="Deletar", command=self.delete_entry, width=button_size, underline=0)
+        self.button_tree_del = tk.Button(self.button_frame, text="Delete", command=self.delete_entry, width=button_size, underline=0)
         self.button_tree_del.pack(side="left", padx=5)
         #self.root.bind("<Alt-d>", lambda event: self.delete_entry())
 
-        self.button_tree_test = tk.Button(self.button_frame, text="Testar linha", command=self.testar_linha_tree, width=button_size, underline=8)
+        self.button_tree_test = tk.Button(self.button_frame, text="Test Line", command=self.testar_linha_tree, width=button_size, underline=8)
         self.button_tree_test.pack(side="left", padx=5)
         #self.root.bind("<Alt-l>", lambda event: self.testar_linha_tree())
 
-        self.button_tree_test_all = tk.Button(self.button_frame, text="Testar tudo", command=self.executar_todos_testes_thead_tree, width=button_size, underline=0)
+        self.button_tree_test_all = tk.Button(self.button_frame, text="Test All", command=self.executar_todos_testes_thead_tree, width=button_size, underline=0)
         self.button_tree_test_all.pack(side="left", padx=5)
         #self.root.bind("<Alt-l>", lambda event: self.executar_todos_testes())
 
@@ -670,24 +670,24 @@ class FirewallGUI:
         self.frame_legenda_testes.config(width=700, height=50)
 
         tk.Label(self.frame_legenda_testes, bg="green", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Teste realizado com sucesso.", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_legenda_testes, text="Test successfully completed.", font=("Arial", 10)).pack(side="left")
 
         tk.Label(self.frame_legenda_testes, bg="red", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Teste realizado NÃO obteve sucesso.", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_legenda_testes, text="Test did not succeed.", font=("Arial", 10)).pack(side="left")
 
         tk.Label(self.frame_legenda_testes, bg="yellow", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Falha durante o teste (ex. erro em: IP, GW, DNS, Servidor.)", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_legenda_testes, text="Test failure (e.g., error in IP, GW, DNS, Server)", font=("Arial", 10)).pack(side="left")
 
         self.frame_botoes_salvar_testes = ttk.Frame(self.firewall_frame)
         self.frame_botoes_salvar_testes.pack(pady=10)
 
-        self.button_save_tests = ttk.Button(self.frame_botoes_salvar_testes, text="Salvar testes", command=self.save_tests)
+        self.button_save_tests = ttk.Button(self.frame_botoes_salvar_testes, text="Save Tests", command=self.save_tests)
         self.button_save_tests.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
         
-        self.button_save_tests_as = ttk.Button(self.frame_botoes_salvar_testes, text="Salvar testes como", command=self.save_tests_as)
+        self.button_save_tests_as = ttk.Button(self.frame_botoes_salvar_testes, text="Save Tests As", command=self.save_tests_as)
         self.button_save_tests_as.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
 
-        self.button_load_tests = ttk.Button(self.frame_botoes_salvar_testes, text="Abrir testes", command=self.open_tests)
+        self.button_load_tests = ttk.Button(self.frame_botoes_salvar_testes, text="Open Tests", command=self.open_tests)
         self.button_load_tests.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")
 
     def on_tree_select(self, event):
@@ -754,7 +754,7 @@ class FirewallGUI:
             #print(f"valores existentes\n{values}\n{existing_values[2:]}")
             if tuple(values) == existing_values[2:]:
                 #print(f"valores iguais - \n{values}\n{existing_values}")
-                messagebox.showwarning("Atenção", "Essa entrada já existe na tabela!")
+                messagebox.showwarning("Warning", "This entry already exists in the table!")
                 return
 
         values=[]
@@ -767,9 +767,9 @@ class FirewallGUI:
     def edit_entry(self):
         """Edita um item existente na Treeview."""
         selected_item = self.tree.selection()
-        print(f"item selecionado {selected_item}")
+        print(f"Selected item {selected_item}")
         if not selected_item:
-            messagebox.showwarning("Atenção", "Selecione um item para editar!")
+            messagebox.showwarning("Warning", "Select an item to edit!")
             return
         
         src_ip = self.src_ip.get()
@@ -786,7 +786,7 @@ class FirewallGUI:
         for item in self.tree.get_children(): # evita teste duplicados TODO - colocar isso em um método, pois está duplicado!
             existing_values = self.tree.item(item, "values")
             if tuple(values) == existing_values[2:]:
-                messagebox.showwarning("Atenção", "Essa entrada já existe na tabela!")
+                messagebox.showwarning("Warning", "This entry already exists in the table!")
                 return
 
         # Obtém o ID do container selecionado no Combobox
@@ -822,13 +822,13 @@ class FirewallGUI:
         self.button_tree_add.config(state="disabled")
         self.button_tree_test.config(state="disabled")
         self.button_tree_test_all.config(state="disabled")
-        self.button_tree_edit.config(text="Salvar Edição")
+        self.button_tree_edit.config(text="Save Edit")
 
     def delete_entry(self): # TODO - refazer a enumeração das linhas ao remover um teste
         """Remove um item da Treeview."""
         selected_item = self.tree.selection()
         if not selected_item:
-            messagebox.showwarning("Atenção", "Selecione um item para deletar!")
+            messagebox.showwarning("Warning", "Select an item to delete!")
             return
         self.tree.delete(selected_item)
 
@@ -853,27 +853,28 @@ class FirewallGUI:
         # Verifica se os campos obrigatórios estão preenchidos
 
         if not self.src_ip.get() or not self.dst_ip.get() or not self.protocol.get() or not self.dst_port.get():
-            messagebox.showwarning("Campos obrigatórios", "Por favor, preencha todos os campos obrigatórios.")
+            messagebox.showwarning("Mandatory fields", "Please fill in all mandatory fields.")
             return -1
         if not self.dst_port.get().isdigit():
-            messagebox.showwarning("Campos obrigatórios", "Por favor, a porta deve ser um número entre 1-65535.")
+            messagebox.showwarning("Mandatory fields", "The port must be a number between 1-65535.")
             return -1
         try:
+            # TODO - esta aceitando porta maiores que 65535! - não sei se é aqui... o validar porta está funcionando quando está sendo cadastrada uma porta para rodar no servidor, verificar como foi feito lá e aplicar o mesmo onde não está correto.
             porta = 1<= int(self.dst_port.get())
             if not 1 <= porta <=65536:
-                messagebox.showwarning("Campos obrigatórios", "Por favor, a porta deve ser um número entre 1-65535.")
+                messagebox.showwarning("Mandatory fields", "The port must be a number between 1-65535.")
                 return -1
         except ValueError:
-            messagebox.showwarning("Porta inválida: erro na conversão.")
+            messagebox.showwarning("Invalid port: conversion error.")
             return -1
         
         if self.dst_ip.get() not in self.hosts_display:
             if self.validar_ip_ou_dominio(self.dst_ip.get()) == False:
-                messagebox.showwarning(f"Endereço inválido", "O endereço deve ou: \n1. estar na lista, \n2. ser um IP (8.8.8.8), \n3. um domínio (www.google.com.br).")
+                messagebox.showwarning(f"Invalid address", "The address must either: \n1. Be on the list, \n2. Be an IP (8.8.8.8), \n3. Be a domain (www.google.com.br).")
                 return -1
             else: # se for fora da lista de hosts do cenário, por enquanto só é possível realizar testes de ping.
                 if self.protocol.get() != "ICMP":
-                    messagebox.showwarning(f"Protocolo inválido", "Infelizmente nesta versão só é possível testar hosts externos utilizando ICMP (ping).")
+                    messagebox.showwarning(f"Invalid protocol", "Unfortunately, in this version, only ICMP (ping) can be used to test external hosts.")
                     return -1
                 
         return 0
@@ -886,27 +887,27 @@ class FirewallGUI:
         # Verifica se os campos obrigatórios estão preenchidos
 
         if not self.src_ip.get() or not self.dst_ip.get() or not self.protocol.get() or not self.dst_port.get():
-            messagebox.showwarning("Campos obrigatórios", "Por favor, preencha todos os campos obrigatórios.")
+            messagebox.showwarning("Mandatory fields", "Please fill in all mandatory fields.")
             return
         if not self.dst_port.get().isdigit():
-            messagebox.showwarning("Campos obrigatórios", "Por favor, a porta deve ser um número entre 1-65535.")
+            messagebox.showwarning("Mandatory fields", "The port must be a number between 1-65535.")
             return
         try:
             porta = 1<= int(self.dst_port.get())
             if not 1 <= porta <=65536:
-                messagebox.showwarning("Campos obrigatórios", "Por favor, a porta deve ser um número entre 1-65535.")
+                messagebox.showwarning("Mandatory fields", "The port must be a number between 1-65535.")
                 return
         except ValueError:
-            messagebox.showwarning("Porta inválida: erro na conversão.")
+            messagebox.showwarning("Invalid port: conversion error.")
             return
         
         if self.dst_ip.get() not in self.hosts_display:
             if self.validar_ip_ou_dominio(self.dst_ip.get()) == False:
-                messagebox.showwarning(f"Endereço inválido", "O endereço deve ou: \n1. estar na lista, \n2. ser um IP (8.8.8.8), \n3. um domínio (www.google.com.br).")
+                messagebox.showwarning(f"Invalid address", "The address must either: \n1. Be on the list, \n2. Be an IP (8.8.8.8), \n3. Be a domain (www.google.com.br).")
                 return
             else: # se for fora da lista de hosts do cenário, por enquanto só é possível realizar testes de ping.
                 if self.protocol.get() != "ICMP":
-                    messagebox.showwarning(f"Protocolo inválido", "Infelizmente nesta versão só é possível testar hosts externos utilizando ICMP (ping).")
+                    messagebox.showwarning(f"Invalid protocol", "Unfortunately, in this version, only ICMP (ping) can be used to test external hosts.")
                     return
         # TODO - se for alterado o destino, nesta versão do sistema só pode utilizar o protocolo icmp, não dá para utilizar tcp ou udp, pq o servidor (se existir) não vai reconhecer a mensagem enviada.
         # Se todos os campos estiverem preenchidos, chama o método adicionar_editar_teste
@@ -939,18 +940,18 @@ class FirewallGUI:
         if temp_dst_ip != None:
             dst_ip = temp_dst_ip
         else:
-            print("sem parenteses")
+            #print("sem parenteses")
             temp_dst_ip = self.extrair_ip_semParenteses(dst_ip)
             if temp_dst_ip != None:
                 dst_ip = temp_dst_ip
             else:
-                print("dominio")
+                #print("dominio")
                 temp_dst_ip = self.extrair_dominio(dst_ip)
                 if temp_dst_ip != None:
                     dst_ip = temp_dst_ip
                 else:
-                    print("invalido")
-                    print(f"\033[33mNão foi possível estrair o IP de destino na interface:\n\tO endereço de destino deve ser um IP ou domínio, tal como: 8.8.8.8 ou www.google.com.\033[0m")
+                    #print("invalido")
+                    print(f"\033[33mCould not extract the destination IP in the interface:\n\tThe destination address must be an IP or domain, such as: 8.8.8.8 or www.google.com.\033[0m")
                     return None
         return dst_ip    
     
@@ -965,7 +966,7 @@ class FirewallGUI:
             dst_ip = self.extrair_destino(dst_ip)
             if dst_ip == None: return
             
-            print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
+            print(f"Test executed - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
 
             result_str = containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
 
@@ -974,7 +975,7 @@ class FirewallGUI:
                 print(f"O retorno do comando no host é {result_str}")
             except (json.JSONDecodeError, TypeError) as e:
                 print("Erro ao processar o JSON recebido do host:", e)
-                messagebox.showerror("Erro", "Não foi possível obter a resposta dos hosts! \n O GNS3 ou os hosts estão ligados?.")
+                messagebox.showerror("Error", "Could not get a response from the hosts! \n Is GNS3 or the hosts turned on?")
                 result = None
                 return
 
@@ -986,32 +987,32 @@ class FirewallGUI:
     def colorir_labels_resultado_tree(self, expected, result, values, selected_item):
         if (result["status"] != '0'):
             # ocorreu um erro , tal como a rede do host não estava configurada.
-            print(f"\033[33mHouve algum erro com o host ao enviar o pacote, tal como: configuração errada da rede - IP, GW, etc.\033[0m")
+            print(f"\033[33mThere was an error with the host when sending the packet, such as a misconfigured network - IP, GW, etc.\033[0m")
             update_values = list(values)
             update_values[-1] = "ERROR"
             self.tree.item(selected_item, values=update_values, tags=("error",))
         elif (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"):
-            print(f"\033[32mTeste ocorreu conforme esperado.\033[0m")
+            print(f"\033[32mThe test occurred as expected.\033[0m")
             # trocar cor da label
             update_values = list(values)
             update_values[-1] = "Pass"
             self.tree.item(selected_item, values=update_values, tags=("yes",))
         else:
             if result["status"] == '0': # esperavase sucesse e isso não foi obtido
-                print(f"\033[31mTeste NÃO ocorreu conforme esperado.\033[0m")
+                print(f"\033[31mThe test did NOT occur as expected.\033[0m")
                 # trocar cor da label
                 update_values = list(values)
                 update_values[-1] = "Fail"
                 self.tree.item(selected_item, values=update_values, tags=("no",))
     
     def executar_todos_testes_thead_tree(self):
-        print("Thread para executar todos os testes - tree")
+        print("Thread to execute all tests.")
         janela_popup = tk.Toplevel(self.root)
-        janela_popup.title("Processando...")
+        janela_popup.title("Processing...")
         janela_popup.geometry("300x120")
         janela_popup.resizable(False, False)
         
-        status_label = tk.Label(janela_popup, text="Iniciando...", font=("Arial", 10))
+        status_label = tk.Label(janela_popup, text="Starting...", font=("Arial", 10))
         status_label.pack(pady=10)
 
         progresso_var = tk.IntVar()
@@ -1033,21 +1034,21 @@ class FirewallGUI:
         for teste in itens:
             values = self.tree.item(teste, "values")
             teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result = values
-            print(f"Executando teste - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
+            print(f"Executing test - Container ID:  {container_id}, Data: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
             
             # se não consegiu extrair o IP de destino digitado pelo usuário para
             dst_ip = self.extrair_destino(dst_ip)
             if dst_ip == None: return
 
-            print(f"Teste executado - Container ID: {container_id}, Dados: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
+            print(f"Executing test - Container ID:  {container_id}, Data: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
 
             result_str = containers.run_client_test(container_id, dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
 
             try:
                 result = json.loads(result_str)
             except (json.JSONDecodeError, TypeError) as e:
-                print("Erro ao processar o JSON recebido do host:", e)
-                messagebox.showerror("Erro", "Não foi possível obter a resposta dos hosts! \n O GNS3 ou os hosts estão ligados?.")
+                print("Error processing the JSON received from the host:", e)
+                messagebox.showerror("Error", "Unable to get a response from the hosts! \n Is GNS3 or the hosts running?")
                 result = None
                 return
 
@@ -1056,10 +1057,10 @@ class FirewallGUI:
             indice+=1
             porcentagem_concluida = (indice / total_lista) * 100
             progresso_var.set(porcentagem_concluida)  # Atualiza a barra de progresso
-            status_label.config(text=f"Processando... {indice}/{total_lista}")
+            status_label.config(text=f"Processing... {indice}/{total_lista}")
             
 
-        status_label.config(text="Tarefa concluída!")
+        status_label.config(text="Task completed!")
         progresso_var.set(100)  # Garante que a barra vá até o final
         janela_popup.destroy()
 
@@ -1076,7 +1077,7 @@ class FirewallGUI:
             #print(f"cid/btn {cid} - {btn}")
                 btn.config(image=self.power_icon, text="liga")
                 status = self.verificar_servidor_onoff(container_id)
-                label_status.config(text=f"Status do servidor: {status}", font=("Arial", 10))
+                label_status.config(text=f"Server Status: {status}", font=("Arial", 10))
         
 
 
@@ -1096,7 +1097,7 @@ class FirewallGUI:
             self.hosts_display = [f"{c['hostname']} ({c['ip']})" for c in self.containers_data]
         else: # se não houver elementos apresenta uma mensagem
             self.hosts_display = ["HOSTS (0.0.0.0)", "HOSTS (0.0.0.0)"]
-            messagebox.showerror("Atenção", "Parece que há algo de errado! \n O GNS3 ou os hosts estão ligados?")
+            messagebox.showerror("Error", "Unable to get a response from the hosts! \n Is GNS3 or the hosts running?")
         # ordena nomes no combobox
         #self.hosts_display.sort() # TODO - Ao ordenar o nome no host de origem, também tem ordenar - fazer ligação com o id do container, pois está perdendo referência.
         self.src_ip["values"] = self.hosts_display
@@ -1171,7 +1172,7 @@ class FirewallGUI:
                 row_index += 2  # Move para a próxima linha no layout
 
             # Status do servidor
-            lbl_status = ttk.Label(interface_frame, text=f"Status do servidor: {status}", font=("Arial", 10))
+            lbl_status = ttk.Label(interface_frame, text=f"Status from server: {status}", font=("Arial", 10))
             lbl_status.grid(row=ip_index, column=0, padx=5, sticky="w")
 
             # Botão de Liga/Desliga com ícone
@@ -1183,35 +1184,35 @@ class FirewallGUI:
 
     # TODO - fazer o botão atualizar o status do servidor do container de ligado para desligado (passar a variável do botão)
     def verificar_servidor_onoff(self, container_id):
-        print("Verificar servidor on ou off")
+        print("Check if server is on or off ")
         cmd = 'docker exec '+ container_id+' ps ax | grep "/usr/local/bin/python ./server.py" | grep -v grep'
         result = containers.run_command_shell(cmd)
         if result !="":
             #print("ligado")
-            return "ligado"
+            return "on"
         else:
             #print("desligado")
-            return "desligado"
+            return "off"
 
     # Altera na aba de hosts entre ligado e desligado (altera o botão)
     def toggle_server(self, container_id, btn):
-        print(f"Alternando servidor para o contêiner ID: {container_id}")  
+        print(f"Toggling server for container ID: {container_id}")  
         # Encontra o botão correspondente na lista e altera a imagem
         for cid, btn, label_status in self.lista_btn_onOff:
             print(f"cid/btn {cid} - {btn}")
             if cid == container_id:
                 imagem_atual = btn["image"][0]
                 if imagem_atual == str(self.power_icon):
-                    print("desliga")
+                    print("off")
                     label_status.config()
                     containers.stop_server(container_id)
                     btn.config(image=self.power_icon_off)
                 else:
-                    print("liga")
+                    print("on")
                     containers.start_server(container_id)
                     btn.config(image=self.power_icon, text="liga")
                 status = self.verificar_servidor_onoff(container_id)
-                label_status.config(text=f"Status do servidor: {status}", font=("Arial", 10))
+                label_status.config(text=f"Server Status: {status}", font=("Arial", 10))
                 break
 
                 
@@ -1221,9 +1222,9 @@ class FirewallGUI:
     def save_tests_as(self):
         """Abre uma janela para salvar os testes em um arquivo JSON."""
         file_path = filedialog.asksaveasfilename(
-            title="Salvar arquivo de testes",
+            title="Save test file",
             defaultextension=".json",
-            filetypes=[("Arquivos JSON", "*.json"), ("Todos os arquivos", "*.*")]
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
         )
 
         if not file_path:  # Se o usuário cancelar, não faz nada
@@ -1236,7 +1237,7 @@ class FirewallGUI:
 
     def save_tests(self):
         """Salva os dados da Treeview em um arquivo JSON."""
-        print("Salvando testes...")
+        print("Saving tests...")
         if not self.save_file_path:
             self.save_tests_as()
         else:
@@ -1268,20 +1269,20 @@ class FirewallGUI:
             with open(self.save_file_path, "w") as f:
                 json.dump(tests_data, f, indent=4)
 
-            print(f"Testes salvos com sucesso no arquivo: {self.save_file_path}")
+            print(f"Tests successfully saved in file: {self.save_file_path}")
 
     # TODO - ao carregar tem que verificar se a origem ainda tem o mesmo nome de container - pois se for em máquinas diferentes ou em projetos diferentes do GNS3 - isso vai mudar!
     # TODO - também teria que ver se os IPs ainda batem, pois em termos de aula, normalmente o professor dá o nome da máquina e não o IP, então teria que verificar se os IPs são o mesmo, caso não for teria que atualizar o IP, provavelmente com a interação do usuário caso o host tenha mais que um IP (escolher qual IP é do teste, principalmente se for de destino - na origem isso não vai fazer muita diferença)
     def load_tests(self):
         """Carrega os dados do arquivo JSON para a Treeview."""
-        print("Carregando testes...")
+        print("Loading tests...")
 
         if os.path.exists(self.save_file_path):
             with open(self.save_file_path, "r") as f:
                 try:
                     tests_data = json.load(f)
                 except json.JSONDecodeError:
-                    print("Erro ao carregar o arquivo JSON.")
+                    print("Error loading the JSON file.")
                     return
 
             # Adiciona os itens na Treeview
@@ -1297,16 +1298,16 @@ class FirewallGUI:
                 # Aplica a cor conforme o resultado
                 #self.apply_row_color(item_id, test["result"])
 
-            print("Testes carregados com sucesso!")
+            print("Tests successfully loaded!")
             self.buttons_normal_state()
         else:
-            print("Nenhum arquivo de testes encontrado.")
+            print("No test files found.")
 
     def open_tests(self):
         """Abre uma janela para selecionar um arquivo JSON e carrega os testes."""
         file_path = filedialog.askopenfilename(
-            title="Abrir arquivo de testes",
-            filetypes=[("Arquivos JSON", "*.json"), ("Todos os arquivos", "*.*")]
+            title="Open test file",
+            filetypes=[("JSON file", "*.json"), ("All files", "*.*")]
         )
 
         if not file_path:  # Se o usuário cancelar, não faz nada
@@ -1314,12 +1315,12 @@ class FirewallGUI:
 
         self.save_file_path = file_path
 
-        print(f"Carregando testes do arquivo: {file_path}")
+        print(f"Loading tests from file: {file_path}")
 
         self.load_tests()
     
     def confirmar_saida(self):
-        if messagebox.askyesno("Confirmação", "Deseja realmente sair do programa?"):
+        if messagebox.askyesno("Confirmation", "Do you really want to exit the program?"):
             self.root.destroy()
 
 # Executando a aplicação

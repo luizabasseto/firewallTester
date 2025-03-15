@@ -45,7 +45,7 @@ def stop_server(containerId):
 def run_command(command):
     """Inicia o script de que simula portas servidoras nos containers -."""
     # TODO - se tiver utilizando DHCP as portas 68 e 69 UDP podem estar em uso, ai não dá para executar essas portas! ver como resolver...
-    print(f"Executa comando {command}")
+    #print(f"Executa comando {command}")
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         return result
@@ -58,7 +58,7 @@ def run_command(command):
 def run_command_shell(command):
     """Inicia o script de que simula portas servidoras nos containers -."""
     # TODO - se tiver utilizando DHCP as portas 68 e 69 UDP podem estar em uso, ai não dá para executar essas portas! ver como resolver...
-    print(f"Executa comando {command}")
+    #print(f"Executa comando {command}")
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         return result.stdout

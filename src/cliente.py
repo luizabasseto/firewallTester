@@ -161,6 +161,8 @@ try:
     else:  # TCP
         client_sock.connect(server_address)
         client_sock.send(json_message.encode())
+        # pega o IP do cliente que realmente foi utilizado na transmissão
+        client_ip = client_sock.getsockname()[0]
 
     try:
         response, _ = client_sock.recvfrom(1024) if args.protocol == "udp" else (client_sock.recv(1024), None)
@@ -171,6 +173,7 @@ try:
         if verbose > 2: print(f"+ Server response: {response_data}")
         message["timestamp_recv"] = timestamp_response
         message["server_response"] = True
+        message["client_ip"] = client_ip
 
     # TODO - enviar essas mensagens para a interface gráfica utilizando o objeto json - colocar um campo observação ou algo do gênero - caso contrário a interface gráfica pode quebrar, já que ela espera o json.
     except socket.timeout:

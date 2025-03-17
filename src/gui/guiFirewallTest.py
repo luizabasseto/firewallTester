@@ -162,9 +162,6 @@ class FirewallGUI:
     def abrir_ajuda(self):
         webbrowser.open_new_tab("https://github.com/luizsantos/firewallTester")  # Substitua pelo URL da sua página de ajuda
 
-
-
-
     def create_hosts_tab(self):
         """Cria a interface da aba de Hosts"""
 
@@ -350,12 +347,12 @@ class FirewallGUI:
             self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
 
     def aplicar_regras_firewall(self):
-        print(f"Aplicar regras no firewall do host {self.container_id_host_regras_firewall[1]}")
+        print(f"Apply rules on the firewall of host {self.container_id_host_regras_firewall[1]}")
         regras = self.text_regras.get("1.0", tk.END)
         file_rules="tmp/regras.sh"
         with open(file_rules, "w", encoding="utf-8") as arquivo:
             arquivo.write(regras)
-        print(f"Regras salvas no aquivo {file_rules}")
+        print(f"Rules saved in the file {file_rules}")
         if self.reset_firewall.get() == 1: # se checkbox estiver marcado primeiro zera o firewall, depois aplica as regras.
             self.enviar_executar_arquivos_regras_firewall("tmp/reset_firewall.sh", 1)
         
@@ -366,7 +363,7 @@ class FirewallGUI:
             self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
 
     def zerar_regras_firewall(self):
-        print(f"Zerar regras de firewall no host {self.container_id_host_regras_firewall[1]}")
+        print(f"Reset firewall rules on host {self.container_id_host_regras_firewall[1]}")
         resposta = messagebox.askyesno("Warning","This action of resetting firewall rules does not exist by default, meaning this should be handled in your firewall rules. Are you sure you want to continue?")
         if resposta:
             self.enviar_executar_arquivos_regras_firewall("tmp/reset_firewall.sh", 1)
@@ -434,7 +431,7 @@ class FirewallGUI:
             # Valida a porta
             try:
                 porta = int(porta)
-                if porta < 0 or porta > 65535:
+                if porta < 1 or porta > 65535:
                     raise ValueError
             except ValueError:
                 messagebox.showerror("Error", "Invalid port! Must be a number between 0 and 65535.")
@@ -859,9 +856,8 @@ class FirewallGUI:
             messagebox.showwarning("Mandatory fields", "The port must be a number between 1-65535.")
             return -1
         try:
-            # TODO - esta aceitando porta maiores que 65535! - não sei se é aqui... o validar porta está funcionando quando está sendo cadastrada uma porta para rodar no servidor, verificar como foi feito lá e aplicar o mesmo onde não está correto.
-            porta = 1<= int(self.dst_port.get())
-            if not 1 <= porta <=65536:
+            porta = int(self.dst_port.get())
+            if porta < 1 or porta > 65535:
                 messagebox.showwarning("Mandatory fields", "The port must be a number between 1-65535.")
                 return -1
         except ValueError:
@@ -893,8 +889,8 @@ class FirewallGUI:
             messagebox.showwarning("Mandatory fields", "The port must be a number between 1-65535.")
             return
         try:
-            porta = 1<= int(self.dst_port.get())
-            if not 1 <= porta <=65536:
+            porta = int(self.dst_port.get())
+            if porta < 1 or porta > 65535:
                 messagebox.showwarning("Mandatory fields", "The port must be a number between 1-65535.")
                 return
         except ValueError:
@@ -959,7 +955,7 @@ class FirewallGUI:
         selected_item = self.tree.selection()
         if selected_item:
             values = self.tree.item(selected_item, "values")
-            print(f"itens para testes: {values}")
+            print(f"Items to testing:: {values}")
             teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result = values
             
             # se não consegiu extrair o IP de destino digitado pelo usuário para
@@ -972,9 +968,9 @@ class FirewallGUI:
 
             try:
                 result = json.loads(result_str)
-                print(f"O retorno do comando no host é {result_str}")
+                print(f"The return of the command on the host is {result_str}")
             except (json.JSONDecodeError, TypeError) as e:
-                print("Erro ao processar o JSON recebido do host:", e)
+                print("Error processing JSON received from host:", e)
                 messagebox.showerror("Error", "Could not get a response from the hosts! \n Is GNS3 or the hosts turned on?")
                 result = None
                 return

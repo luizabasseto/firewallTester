@@ -13,13 +13,13 @@ def get_ip_info_from_docker(containerId):
         )
         return json.loads(result.stdout)
     except subprocess.CalledProcessError as e:
-        print("Erro ao executar o comando Docker:", e)
+        print("Error executing Docker command:", e)
         return []
 
 def start_server(containerId):
     """Inicia o script de que simula portas servidoras nos containers -."""
     # TODO - se tiver utilizando DHCP as portas 68 e 69 UDP podem estar em uso, ai não dá para executar essas portas! ver como resolver...
-    print(f"Inicia servidor no container {containerId}")
+    print(f"Start server in container {containerId}")
     try:
         result = subprocess.run(
             # docker exec -d 9a0a52c42ea8 ./server.py
@@ -29,16 +29,16 @@ def start_server(containerId):
         try:
             return json.loads(result.stdout)
         except json.JSONDecodeError: # na verdade a saída para sucesso do comando não retorna nada, então ele dá o erro do json
-            print("Servidores ligados...")
-            print("Saída recebida:", result.stdout)
+            print("Servers turned on...")
+            print("Output received:", result.stdout)
             return None  # Ou algum valor padrão
 
     except subprocess.CalledProcessError as e:
-        print("Erro ao executar o comando Docker:", e)
+        print("Error executing Docker command:", e)
         return []
 
 def stop_server(containerId):
-    print(f"Para servidor no container {containerId}")
+    print(f"Stop server in container {containerId}")
     command = 'docker exec '+ containerId +' pkill server.py'
     run_command_shell(command)
     
@@ -51,7 +51,7 @@ def run_command(command):
         return result
 
     except subprocess.CalledProcessError as e:
-        print("Erro ao executar o comando Docker:", e)
+        print("Error executing Docker command:", e)
         return e
 
 # para executar sem precisar separar em lista
@@ -64,13 +64,13 @@ def run_command_shell(command):
         return result.stdout
 
     except subprocess.CalledProcessError as e:
-        print("Erro ao executar o comando Docker:", e)
+        print("Error executing Docker command:", e)
         return None
 
 
 
 def get_port_from_container(containerId):
-    print(f"Obtem portas do container - {containerId}")
+    print(f"Get ports from container - {containerId}")
 
     comandoNet = ' netstat -atuln | awk \'$1 ~ /^(tcp|udp)$/ {split($4, a, ":"); print $1 "/" a[2]}\' | sort -t \'/\' -k 2n'
     comando = "docker exec "+containerId+comandoNet
@@ -88,23 +88,23 @@ def get_port_from_container(containerId):
                 portas.append((protocolo.upper(), int(porta)))  # Adiciona à lista como tupla
         return portas
     else:
-        print(f"Erro: {resultado.stderr}")
+        print(f"Error: {resultado.stderr}")
         return []  # Retorna uma lista vazia em caso de erro
     
 def copy_host2container(containerId, fileSrc, fileDest):
-    print(f"Copiar arquivo ({fileSrc}) para o container {containerId}")
+    print(f"Copy file ({fileSrc}) to container {containerId}")
     comando = "docker cp "+fileSrc+" "+ containerId+":"+fileDest
     try:
         result = subprocess.run(comando, shell=True, capture_output=True, text=True)
         print(result.stdout)
-        print("Cópia realizada com sucesso!")
+        print("Copy successfully completed!")
         return 0
     except subprocess.CalledProcessError as e:
-        print("Erro ao executar o cópia Docker:", e)
+        print("Error executing Docker copy: ", e)
         return 1
 
 def copy_ports2server(containerId, fileSrc):
-    print(f"Copiar arquivo de portas para o server no container {containerId}")
+    print(f"Copy port file to server in container {containerId}")
     return copy_host2container(containerId, fileSrc, "/firewallTester/src/conf/portas.conf")
 
 #teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port
@@ -116,11 +116,11 @@ def run_client_test(containerId, dst_ip, protocol, dst_port, teste_id, timestamp
             capture_output=True, text=True, check=True
         )
         #return json.loads(result.stdout)
-        print(f"Retornou código {result.returncode}")
+        print(f"Returned code {result.returncode}")
         print(result.stdout)
         return result.stdout
     except subprocess.CalledProcessError as e:
-        print("Erro ao executar o comando Docker:", e)
+        print("Error executing Docker command:", e)
         return []
 
 def process_ip_info(interfaces, host):
@@ -211,7 +211,7 @@ def extract_hostname_interface_ips(lista_json):
     :return: Lista de listas no formato [hostname, [interface1, interface2, ...]],
              onde cada interface é um dicionário {"nome": "eth0", "ips": ["ip1", "ip2"]}.
     """
-    print(f"\nObtendo lista: hostname e iterfaces:ip.")
+    print(f"\nGetting list: hostname and interfaces:ip.")
     resultado = []
 
     # Percorre cada objeto JSON na lista
@@ -229,12 +229,12 @@ def extract_hostname_interface_ips(lista_json):
 
         # Adiciona o hostname e a lista de interfaces ao resultado
         resultado.append([hostname, interfaces])
-    print(f"resultado: {resultado}")
+    print(f"result: {resultado}")
     return resultado
 
 def get_container_info_by_hostname(filter_string):
     """Obtém informações detalhadas dos contêineres Docker cujo hostname contém a string fornecida."""
-    print(f"\nObtendo informações do container: \n\tTodos os containers devem ter o contendo a palavra {filter_string}.")
+    print(f"\nGetting container information: \n\tAll containers must have names containing the word {filter_string}.")
     try:
         # Obtém todos os contêineres em execução
         result = subprocess.run(
@@ -278,7 +278,7 @@ def get_container_info_by_hostname(filter_string):
         return matched_containers
 
     except subprocess.CalledProcessError as e:
-        print("Erro ao executar o comando Docker:", e)
+        print("Error executing Docker command:", e)
         return []
 
 # TODO - fazer método para retornar hostname, interface, IP
@@ -291,7 +291,7 @@ def getContainersHostNames():
     matching_containers = get_container_info_by_hostname(filter_string)
     printContainerList(matching_containers, filter_string)
 
-    print(f"\nObtendo informações de rede do container: \n\tGerando Json dessas informações!.")
+    print(f"\nGetting container network information: \n\tGenerating JSON of this information!")
     for container in matching_containers:
 
         host = DockerHost(
@@ -319,7 +319,7 @@ def printContainerList(matching_containers, filter_string):
     if matching_containers:
         print(json.dumps(matching_containers, indent=4))
     else:
-        print("Nenhum contêiner encontrado com hostname contendo:", filter_string)
+        print("No container found with hostname containing:", filter_string)
 
 # Exemplo de uso
 #hosts = getContainersHostNames()

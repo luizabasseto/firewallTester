@@ -34,10 +34,10 @@ def ping(host, count):
 
         if reply:
             elapsed_time = (time.time() - start_time) * 1000
-            if verbose > 0: print(f"\033[32m\t+ Resposta do {host}: Tempo = {elapsed_time:.2f} ms - {seq}/{count}\033[0m")
+            if verbose > 0: print(f"\033[32m\t+ Response from {host}: Time = {elapsed_time:.2f} ms - {seq}/{count}\033[0m")
             received += 1
         else:
-            if verbose > 0: print(f"\033[31m\t- Sem resposta do {host} - {seq}/{count}\033[0m")
+            if verbose > 0: print(f"\033[31m\t- No response from {host} - {seq}/{count}\033[0m")
 
         time.sleep(1)
     return received
@@ -66,14 +66,14 @@ client_sock = None
 client_port = -1
 
 if args.protocol.lower() == "udp" or args.protocol.lower() == "UDP":
-    if verbose > 0: print("Protocolo: UDP")
+    if verbose > 0: print("Protocol: UDP")
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_sock.bind(("", 0))
     client_sock.settimeout(2)
     client_port = client_sock.getsockname()[1]
 
 elif args.protocol.lower() == "tcp" or args.protocol.lower() == "TCP":
-    if verbose > 0: print("Protocolo: TCP")
+    if verbose > 0: print("Protocol: TCP")
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_sock.bind(("", 0))
     client_sock.settimeout(2)
@@ -81,11 +81,11 @@ elif args.protocol.lower() == "tcp" or args.protocol.lower() == "TCP":
 
 
 elif args.protocol.lower() == "icmp" or args.protocol.lower() == "ICMP":
-    if verbose > 0: print("Protocolo: ICMP")
+    if verbose > 0: print("Protocol: ICMP")
     icmp_status = ping(args.server_host, args.server_port)
     client_port = 0  # ICMP não usa portas convencionais
 else:
-    if verbose > 0: print("Escolha um protocolo válido (TCP, UDP ou ICMP).")
+    if verbose > 0: print("Choose a valid protocol (TCP, UDP ou ICMP).")
     quit()
 
 # Obtendo informações do cliente
@@ -143,7 +143,7 @@ if args.protocol == "icmp":
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)
-    if verbose > 0: print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
+    if verbose > 0: print(f"Writing to file: {json.dumps(message, indent=4)}")
     # envia icmp para a gui
     print(json.dumps(message, indent=4))
     quit()
@@ -153,8 +153,8 @@ json_message = json.dumps(message, indent=4)
 server_address = (args.server_host, args.server_port)
 
 try:
-    if verbose > 0: print(f"-> Enviando mensagem para: {args.server_host}:{args.server_port}/{args.protocol.upper()}.")
-    if verbose > 0: print(f"Enviando: {json_message}")
+    if verbose > 0: print(f"-> Sending message to: {args.server_host}:{args.server_port}/{args.protocol.upper()}.")
+    if verbose > 0: print(f"Sending: {json_message}")
 
     if args.protocol == "udp":
         client_sock.sendto(json_message.encode(), server_address)
@@ -165,26 +165,26 @@ try:
     try:
         response, _ = client_sock.recvfrom(1024) if args.protocol == "udp" else (client_sock.recv(1024), None)
         timestamp_response = datetime.now().isoformat()
-        if verbose > 0 : print(f"\033[32m\t+ Resposta recebida do servidor {args.server_host}:{args.server_port}/{args.protocol.upper()}->{client_ip}:{client_port}.\033[0m")
-        if verbose > 0: print(f"Tempo de ida e volta da mensagem: {calcular_diferenca_timestamp(message["timestamp_send"], timestamp_response)} ms")
+        if verbose > 0 : print(f"\033[32m\t+ Response received from the server {args.server_host}:{args.server_port}/{args.protocol.upper()}->{client_ip}:{client_port}.\033[0m")
+        if verbose > 0: print(f"Round-trip time of the message: {calcular_diferenca_timestamp(message["timestamp_send"], timestamp_response)} ms")
         response_data = response.decode()
-        if verbose > 2: print(f"+ Resposta do servidor: {response_data}")
+        if verbose > 2: print(f"+ Server response: {response_data}")
         message["timestamp_recv"] = timestamp_response
         message["server_response"] = True
 
     # TODO - enviar essas mensagens para a interface gráfica utilizando o objeto json - colocar um campo observação ou algo do gênero - caso contrário a interface gráfica pode quebrar, já que ela espera o json.
     except socket.timeout:
-        if verbose > 0 : print(f"\033[31m\t- Nenhuma resposta recebida do servidor {args.server_host}:{args.server_port}/{args.protocol.upper()}.\033[0m")
+        if verbose > 0 : print(f"\033[31m\t- No response from {args.server_host}:{args.server_port}/{args.protocol.upper()}.\033[0m")
 
 
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)
 
-    if verbose > 0: print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
+    if verbose > 0: print(f"Writing to file: {json.dumps(message, indent=4)}")
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
-    if verbose > 0: print(f"Erro na comunicação: {e}")
+    if verbose > 0: print(f"Communication error: {e}")
     # TODO - se o firewall barrar, está dando que é erro! mas foi o firewall, tinha que ver se há como identificar quando é erro e quando é o firewall, por agora vai ficar o status em 0
     #message["status"] = '1'
     #message["status_msg"] = "Network Error"
@@ -193,7 +193,7 @@ except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OS
     dados["tests"].append(message)
     with open(filename, "w") as file:
         json.dump(dados, file, indent=4)
-    if verbose > 0: print(f"Gravando no arquivo: {json.dumps(message, indent=4)}")
+    if verbose > 0: print(f"Writing to file: {json.dumps(message, indent=4)}")
 
 finally:
     if client_sock:

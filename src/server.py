@@ -37,20 +37,20 @@ def read_ports_from_file(nome_arquivo):
                         protocolo = porta_proto[1].lower() # Converte para maiúsculo para consistência
                         tuplas.append((porta, protocolo))
                     else:
-                        print(f"Erro: Linha inválida: '{linha}'. Formato deve ser porta/protocolo.")
+                        print(f"Error: Invalid line: '{linha}'. Format must be port/protocol.")
 
                 except ValueError:
-                    print(f"Erro: Porta inválida na linha: '{linha}'. Deve ser um número inteiro.")
+                    print(f"Error: Invalid port in line: '{linha}'. Must be an integer.")
 
         return tuplas
 
     except FileNotFoundError:
-        print(f"Erro: Arquivo '{nome_arquivo}' não encontrado.")
+        print(f"Error: File  '{nome_arquivo}' not found.")
         return None
 
 def get_pid_by_port(protocol, port):
     """Retorna o PID do processo que está usando a porta especificada."""
-    print(f"Obter pid do processo na porta {port}.")
+    print(f"Get process pid on port {port}.")
     for conn in psutil.net_connections(kind=protocol):
         if conn.laddr.port == port:
             return conn.pid
@@ -58,19 +58,19 @@ def get_pid_by_port(protocol, port):
 
 def kill_pid_by_port(protocol, port):
     """Mata um processo que está rodando em uma porta via pid"""
-    print(f"Matar processo na porta {port}.")
+    print(f"Kill process on port {port}.")
     pid = get_pid_by_port(protocol, port)
     if  pid != None:
         try:
             os.kill(pid, signal.SIGTERM)
-            print(f"Processo {pid} finalizado com sucesso.")
+            print(f"Process {pid} successfully terminated.")
 
         except Exception as e:
-            print(f"Erro ao finalizar o processo {pid}: {e}")
+            print(f"Error terminating process {pid}: {e}")
 
 def show_total_msgs():
     global total_tcp_msgs, total_udp_msgs
-    print(f"Quantidade de mensagens:\n\t * TCP: {total_tcp_msgs};\n\t * UDP: {total_udp_msgs};\n\t * Total: {total_tcp_msgs+total_udp_msgs};")
+    print(f"Number of messages:\n\t * TCP: {total_tcp_msgs};\n\t * UDP: {total_udp_msgs};\n\t * Total: {total_tcp_msgs+total_udp_msgs};")
 
 def lidar_com_cliente_TCP(client_socket):
     """Lida com a comunicação com um cliente."""
@@ -79,16 +79,16 @@ def lidar_com_cliente_TCP(client_socket):
         data = client_socket.recv(1024).decode('utf-8')
         total_tcp_msgs += 1
         json_data = json.loads(data)
-        print(f"Objeto JSON recebido:\n", json.dumps(json_data, indent=4))
+        print(f"Received JSON object:\n", json.dumps(json_data, indent=4))
         client_socket.send(json.dumps(json_data).encode('utf-8'))
 
     except (json.JSONDecodeError, UnicodeDecodeError):
-        print("Erro ao decodificar objeto JSON recebido ou dados inválidos.")
-        client_socket.send("Erro: Objeto JSON inválido ou dados inválidos.".encode('utf-8'))
+        print("Error decoding received JSON object or invalid data.")
+        client_socket.send("Error: Invalid JSON object or invalid data.".encode('utf-8'))
 
     finally:
         client_socket.close()
-        print("Conexão com o cliente encerrada.")
+        print("Connection with client closed.")
         show_total_msgs()
 
 def servidor_UDP(port):
@@ -102,10 +102,10 @@ def servidor_UDP(port):
     while True:
         data, addr = sock.recvfrom(1024)  # Recebe até 1024 bytes de dados
         total_udp_msgs += 1
-        print(f"Mensagem recebida de {addr}: {data.decode()}")
+        print(f"Message received from {addr}: {data.decode()}")
 
         # Enviar uma resposta opcional
-        response = f"Recebido: {data.decode()}"
+        response = f"Received: {data.decode()}"
         sock.sendto(response.encode(), addr)
         show_total_msgs()
 
@@ -116,26 +116,26 @@ def iniciar_servidor(host, protocol, port):
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_socket.bind((host, port))
             server_socket.listen(1)
-            print(f"\t++ Escutando na porta {protocol.upper()}/{port}")
+            print(f"\t++ Listening on port  {protocol.upper()}/{port}")
 
         except OSError as e:
-            print(f"Erro ao executar servidor {host}-{protocol}:{port} - verifique se a porta não está em uso por outro serviço!!!")
+            print(f"Error executing server {host}-{protocol}:{port} - check if the port is not in use by another service!!!")
             print(f"\t{e}")
             quit()
 
         while True:
             client_socket, addr = server_socket.accept()
-            print(f"Cliente conectado em {port}: {addr}")
+            print(f"Client connected on {port}: {addr}")
             client_thread = threading.Thread(target=lidar_com_cliente_TCP, args=(client_socket,))
             client_thread.start()
 
     elif protocol == "udp":
-            print(f"\t++ Escutando na porta {protocol.upper()}/{port}")
+            print(f"\t++ Listening on port {protocol.upper()}/{port}")
             client_thread = threading.Thread(target=servidor_UDP, args=(port,))
             client_thread.start()
 
     else:
-        print(f">>> ATENÇÃO!!! Não foi possível iniciar essa porta: {protocol}/{port}")
+        print(f">>> WARNING!!! Could not start this port: {protocol}/{port}")
 
 
 def main():
@@ -144,9 +144,9 @@ def main():
     threads = []
     nome_arquivo = "conf/portas.conf"  # Substitua pelo nome do seu arquivo
     tuplas = read_ports_from_file(nome_arquivo)
-    print(f"Iniciando servidores com portas presentes no arquivo: {nome_arquivo} - Esse arquivo deve conter linhas com porta/protocolo, exemplo 80/tcp")
+    print(f"Starting servers with ports present in file: {nome_arquivo} - This file must contain lines with port/protocol, example 80/tcp.")
     if tuplas:
-        print("Tuplas lidas do arquivo:")
+        print("Tuples read from file:")
         #for porta, protocolo in tuplas:
         #    print(f"Porta: {porta}, Protocolo: {protocolo}")
 
@@ -154,7 +154,7 @@ def main():
         for port, protocol in tuplas:
             # Faça algo com a porta e o protocolo...
             if protocol == "tcp" or protocol == "udp":
-                print(f"Iniciando {port}/{protocol}")
+                print(f"Starting {port}/{protocol}")
                 kill_pid_by_port(protocol, port)
                 thread = threading.Thread(target=iniciar_servidor, args=(host, protocol, port), daemon=True)
                 threads.append(thread)
@@ -162,11 +162,11 @@ def main():
             #elif protocolo == "udp":
             #    print(f"Porta UDP: {porta}")
             else:
-                print(f"Protocolo não suportado {protocol}")
+                print(f"Protocol not supported: {protocol}")
 
 
     else:
-        print(f"Não foi possível ler as portas e protocolos do arquivo {nome_arquivo}.")
+        print(f"Could not read ports and protocols from file {nome_arquivo}.")
 
     #threads = []
     #for port in ports:
@@ -177,12 +177,12 @@ def main():
     #    thread.start()
 
     time.sleep(3)
-    print("\nSe precisar, pressione Ctrl+C para encerrar o progrma.")
+    print("\nIf needed, press Ctrl+C to terminate the program.")
     try:
         while True:
             time.sleep(1)  # Mantém o programa principal rodando
     except KeyboardInterrupt:
-        print("\nPrograma encerrado com Ctrl+C.")
+        print("\nProgram terminated with Ctrl+C.")
 
 if __name__ == "__main__":
     main()

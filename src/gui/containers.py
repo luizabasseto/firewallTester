@@ -234,7 +234,7 @@ def extract_hostname_interface_ips(lista_json):
 
 def get_container_info_by_hostname(filter_string):
     """Obtém informações detalhadas dos contêineres Docker cujo hostname contém a string fornecida."""
-    print(f"\nGetting container information: \n\tAll containers must have names containing the word {filter_string}.")
+    print(f"\nGetting container information: \n\tAll containers must have names containing the word: {filter_string}.")
     try:
         # Obtém todos os contêineres em execução
         result = subprocess.run(
@@ -259,6 +259,7 @@ def get_container_info_by_hostname(filter_string):
                 hostname = container_data["Config"]["Hostname"]
                 name = container_data["Name"].strip("/")
                 networks = container_data["NetworkSettings"]["Networks"]
+                image = container_data["Config"]["Image"]
 
                 interfaces = {}
                 for net_name, net_data in networks.items():
@@ -267,7 +268,9 @@ def get_container_info_by_hostname(filter_string):
                         "MacAddress": net_data["MacAddress"]
                     }
 
-                if filter_string in hostname:
+                # TODO - aqui mudei para que a busca seja pelo nome da imagem no DockerHub, que é firewall_tester - ou seja a busca é pela imagem e não pelo nome do host - mas isso tem um problema caso não for utilizado docker, mas aqui só seria possível utilizar docker mesmo!
+                #if filter_string in hostname:
+                if filter_string in image:
                     matched_containers.append({
                         "id": container_id,
                         "hostname": hostname,
@@ -287,7 +290,7 @@ def getContainersHostNames():
 
     hosts = []
 
-    filter_string = ".test" # parte do nome do container - neste caso todos os containers do teste devem ter em seu nome .test
+    filter_string = "firewall_tester" # parte do nome do container - neste caso todos os containers do teste devem ter em seu nome .test
     matching_containers = get_container_info_by_hostname(filter_string)
     printContainerList(matching_containers, filter_string)
 

@@ -72,6 +72,7 @@ def show_total_msgs():
     global total_tcp_msgs, total_udp_msgs
     print(f"Number of messages:\n\t * TCP: {total_tcp_msgs};\n\t * UDP: {total_udp_msgs};\n\t * Total: {total_tcp_msgs+total_udp_msgs};")
 
+# TODO - alterar o objeto json enviado pelo cliente, caso a mensagem esteja com um IP diferente do host de destino, isso significa que a mensagem passou por um nat, então seria legal colocar o IP/porta do host que recebeu e tratou a informação para informar que o DNAT foi bem sucessido ou não - isso tem que ser feito para tcp e udp.
 def lidar_com_cliente_TCP(client_socket):
     """Lida com a comunicação com um cliente."""
     global total_tcp_msgs
@@ -167,14 +168,6 @@ def main():
 
     else:
         print(f"Could not read ports and protocols from file {nome_arquivo}.")
-
-    #threads = []
-    #for port in ports:
-    #    print("Inicia servidor em {host}:{port}")
-    #    kill_pid_by_port('tcp', port)
-    #    thread = threading.Thread(target=iniciar_servidor, args=(host, port), daemon=True)
-    #    threads.append(thread)
-    #    thread.start()
 
     time.sleep(3)
     print("\nIf needed, press Ctrl+C to terminate the program.")

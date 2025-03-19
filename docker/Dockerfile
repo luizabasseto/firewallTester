@@ -1,4 +1,4 @@
-# docker build --no-cache -t "firewall:py" .
+# docker build --no-cache -t "firewall_tester" .
 FROM python
 MAINTAINER Luiz Arthur "luizsantos@utfpr.edu.br"
 RUN apt update -y
@@ -6,5 +6,5 @@ RUN apt update && apt install -y iptables tcpdump lynx iproute2 net-tools dhcpcd
 RUN pip install scapy psutil
 RUN git clone https://github.com/luizsantos/firewallTester.git
 WORKDIR /firewallTester/src
-CMD git pull
+#CMD git pull
 CMD ["/bin/bash"]

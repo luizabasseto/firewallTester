@@ -11,6 +11,17 @@ import time
 
 total_udp_msgs = 0
 total_tcp_msgs = 0
+server_ips = []
+server_name = "noName"
+
+def get_ips():
+    server_ips = []
+    for addrs in psutil.net_if_addrs().values():
+        for addr in addrs:
+            if addr.family in (2, 10):  # 2 = IPv4, 10 = IPv6
+                if not addr.address.startswith("127."):  # Exclui localhost
+                    server_ips.append(addr.address)
+    return server_ips
 
 def read_ports_from_file(nome_arquivo):
     """
@@ -81,6 +92,11 @@ def lidar_com_cliente_TCP(client_socket):
         total_tcp_msgs += 1
         json_data = json.loads(data)
         print(f"Received JSON object:\n", json.dumps(json_data, indent=4))
+
+        dest_ip = json_data["server_ip"]
+        if dest_ip not in server_ips:
+            json_data["message"] = f"DNAT to {server_name}"
+
         client_socket.send(json.dumps(json_data).encode('utf-8'))
 
     except (json.JSONDecodeError, UnicodeDecodeError):
@@ -140,6 +156,7 @@ def iniciar_servidor(host, protocol, port):
 
 
 def main():
+    server_name = psutil.users()[0].host
     host = '0.0.0.0'  # Endereço IP do servidor (localhost)
     #ports = [5000, 5001]  # Portas para o servidor
     threads = []

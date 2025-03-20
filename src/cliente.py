@@ -163,14 +163,16 @@ try:
         client_sock.send(json_message.encode())
         # pega o IP do cliente que realmente foi utilizado na transmissão
         client_ip = client_sock.getsockname()[0]
-
+    # TODO - o cliente não está mostrando o json que o server está enviando alterado! para mostrar o DNAT
+    # TODO - ver se compensa colocar o campo NAT para indicar um possível nat - atualmente está no campo message
     try:
         response, _ = client_sock.recvfrom(1024) if args.protocol == "udp" else (client_sock.recv(1024), None)
         timestamp_response = datetime.now().isoformat()
-        if verbose > 0 : print(f"\033[32m\t+ Response received from the server {args.server_host}:{args.server_port}/{args.protocol.upper()}->{client_ip}:{client_port}.\033[0m")
+        if verbose > 0: print(f"\033[32m\t+ Response received from the server {args.server_host}:{args.server_port}/{args.protocol.upper()}->{client_ip}:{client_port}.\033[0m")
         if verbose > 0: print(f"Round-trip time of the message: {calcular_diferenca_timestamp(message["timestamp_send"], timestamp_response)} ms")
         response_data = response.decode()
         if verbose > 2: print(f"+ Server response: {response_data}")
+        message = json.loads(response_data)
         message["timestamp_recv"] = timestamp_response
         message["server_response"] = True
         message["client_ip"] = client_ip

@@ -5,6 +5,7 @@ import json
 import threading
 import sys
 import psutil
+import ipaddress
 import os
 import signal
 import time
@@ -15,13 +16,25 @@ server_ips = []
 server_name = "noName"
 
 def get_ips():
-    server_ips = []
     for addrs in psutil.net_if_addrs().values():
         for addr in addrs:
             if addr.family in (2, 10):  # 2 = IPv4, 10 = IPv6
-                if not addr.address.startswith("127."):  # Exclui localhost
+                ip_obj = ipaddress.ip_address(addr.address)  # Converte para objeto IP
+                if not ip_obj.is_loopback:  # Exclui localhost IPv4 (127.0.0.0/8) e IPv6 (::1)
                     server_ips.append(addr.address)
+    
     return server_ips
+
+def adicionar_campo_dnat(json_objeto, host_name, ip, porta):
+    """Adiciona o campo 'dnat' ao objeto JSON."""
+
+    json_objeto["dnat"] = {
+        "host_name": host_name,
+        "ip": ip,
+        "port": porta,
+    }
+    return json_objeto
+
 
 def read_ports_from_file(nome_arquivo):
     """
@@ -94,8 +107,16 @@ def lidar_com_cliente_TCP(client_socket):
         print(f"Received JSON object:\n", json.dumps(json_data, indent=4))
 
         dest_ip = json_data["server_ip"]
+
+        server_address = client_socket.getsockname()
+        server_ip, server_port = server_address
+
         if dest_ip not in server_ips:
-            json_data["message"] = f"DNAT to {server_name}"
+            #print("ips diferentes")
+            host_name = socket.getfqdn()
+            json_data["message"] = f"DNAT to {host_name} ({server_ip}:{server_port})"
+            json_data = adicionar_campo_dnat(json_data, host_name, server_ip, server_port)
+            print(json.dumps(json_data, indent=4))
 
         client_socket.send(json.dumps(json_data).encode('utf-8'))
 
@@ -123,7 +144,21 @@ def servidor_UDP(port):
 
         # Enviar uma resposta opcional
         response = f"Received: {data.decode()}"
-        sock.sendto(response.encode(), addr)
+        mensagem_json = data.decode('utf-8')
+        json_data = json.loads(mensagem_json)
+        
+        dest_ip = json_data["server_ip"]
+        if dest_ip not in server_ips:
+            #print("ips diferentes")
+            host_name = socket.getfqdn()
+            server_ip = server_ips[0]
+            # TODO - o IP do servidor pode ser apresentado estranhamente aqui, pois estamos pegando o primeiro IP do host servidor, e na regra pode ter sido redirecionado para outro IP do mesmo servidor.
+            json_data["message"] = f"DNAT to {host_name} ({server_ip}:port)"
+            json_data = adicionar_campo_dnat(json_data, host_name, server_ip, port)
+            print(json.dumps(json_data, indent=4))
+        
+        response = json.dumps(json_data).encode('utf-8')
+        sock.sendto(response, addr)
         show_total_msgs()
 
 def iniciar_servidor(host, protocol, port):
@@ -156,7 +191,9 @@ def iniciar_servidor(host, protocol, port):
 
 
 def main():
-    server_name = psutil.users()[0].host
+    server_name = socket.getfqdn() 
+    print(socket.getfqdn())
+    server_ips = get_ips()
     host = '0.0.0.0'  # Endereço IP do servidor (localhost)
     #ports = [5000, 5001]  # Portas para o servidor
     threads = []

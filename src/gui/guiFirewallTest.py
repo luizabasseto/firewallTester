@@ -32,6 +32,7 @@ import textwrap
 # TODO - sugerir testes que podem ser comuns em ambientes de empresas.
 # TODO - sugerir testes baseados nos serviços em execução no ambiente.
 # TODO - sugerir testes fundamentados nos testes propostos pelo usuário, tal como: se pediu para host1 acessar HTTP no host3, fazer o contrário também.
+# TODO - se for adicionado um host no cenário do GNS3 sem nenhuma conexão de rede, dá erro! está dando erro com o host sem nenhum IP!
 
 class FirewallGUI:
     def __init__(self, root):
@@ -604,7 +605,7 @@ class FirewallGUI:
 
         self.hidden_data = {}  # Dicionário para armazenar Container ID associado ao Teste ID
         self.entries = []
-        visible_fields = ["#", "Container ID", "Source", "Destination", "Protocol", "Source Port", "Destination Port", "Expected", "Result", "DNAT", "Observation"]
+        visible_fields = ["#", "Container ID", "Source", "Destination", "Protocol", "Source Port", "Destination Port", "Expected", "Result", "flow", "data"]
         self.tree = ttk.Treeview(self.tests_frame_Tree, columns=visible_fields, show="headings")
 
         font = ("TkDefaultFont", 10)
@@ -638,11 +639,11 @@ class FirewallGUI:
         self.tree.heading("Result", text="Result")
         self.tree.column("Result", width=80, anchor="w", stretch=False)
 
-        self.tree.heading("DNAT", text="DNAT")
-        self.tree.column("DNAT", width=200, anchor="w", stretch=False)
+        self.tree.heading("flow", text="Network Flow")
+        self.tree.column("flow", width=200, anchor="w", stretch=False)
 
-        self.tree.heading("Observation", text="Observation")
-        self.tree.column("Observation", width=1, anchor="w", stretch=True)
+        self.tree.heading("data", text="Network Data")
+        self.tree.column("data", width=1, anchor="w", stretch=True)
 
         self.tree.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -997,8 +998,12 @@ class FirewallGUI:
             print(f"\033[33mThere was an error with the host when sending the packet, such as a misconfigured network - IP, GW, etc.\033[0m")
             update_values = list(values)
             update_values[8] = "ERROR"
+            update_values[9] = "Not Sent"
+            network_data = result['client_ip']+':'+str(result['client_port'])+'->'+result['server_ip']+':'+str(result['server_port'])+'('+result['protocol']+')'+' - Server response? '+ str(result['server_response'])+ ' - Status: '+result['status_msg']
+            update_values[-1] = network_data
             self.tree.item(selected_item, values=update_values, tags=("error",))
         elif (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"):
+            # TODO - para preencher corretamente Network flow e Network data, agora é necessário ver se o expected é yes/no, pois está dando que o pacote foi enviado e recebido, mesmo quando não foi pq o exected é no!
             print(f"\033[32mThe test occurred as expected.\033[0m")
             # trocar cor da label
             update_values = list(values)
@@ -1006,11 +1011,14 @@ class FirewallGUI:
             update_values[-1] = result["message"]
             if "dnat" in result:
                 dnat_data = result["dnat"]
-                string_dnat = dnat_data['host_name']+' ('+dnat_data['ip']+':'+str(dnat_data['port'])+')'
-                update_values[9] = string_dnat
+                network_data = result['client_ip']+':'+str(result['client_port'])+'->'+dnat_data['ip']+':'+str(dnat_data['port'])+'('+result['protocol']+')'+' - Server response? '+ str(result['server_response'])+ ' - Status: '+result['status_msg']
+                update_values[-1] = network_data
+                update_values[9] = "Sent/Receved (DNAT)"
                 self.tree.item(selected_item, values=update_values, tags=("nat",))
             else:
-                update_values[9] = "Not detected"
+                network_data = result['client_ip']+':'+str(result['client_port'])+'->'+result['server_ip']+':'+str(result['server_port'])+'('+result['protocol']+')'+' - Server response? '+ str(result['server_response'])+ ' - Status: '+result['status_msg']
+                update_values[-1] = network_data
+                update_values[9] = "Sent/Receved"
                 self.tree.item(selected_item, values=update_values, tags=("yes",))
         else:
             if result["status"] == '0': # esperavase sucesse e isso não foi obtido

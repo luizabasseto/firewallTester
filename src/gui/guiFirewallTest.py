@@ -673,8 +673,11 @@ class FirewallGUI:
         self.frame_legenda_testes.pack_propagate(False)
         self.frame_legenda_testes.config(width=700, height=50)
 
-        tk.Label(self.frame_legenda_testes, bg="green", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        tk.Label(self.frame_legenda_testes, bg="lightgreen", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
         tk.Label(self.frame_legenda_testes, text="Test successfully completed.", font=("Arial", 10)).pack(side="left")
+
+        tk.Label(self.frame_legenda_testes, bg="lightblue", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        tk.Label(self.frame_legenda_testes, text="Test successfully completed, DNAT might be present.", font=("Arial", 10)).pack(side="left")
 
         tk.Label(self.frame_legenda_testes, bg="red", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
         tk.Label(self.frame_legenda_testes, text="Test did not succeed.", font=("Arial", 10)).pack(side="left")
@@ -1007,6 +1010,7 @@ class FirewallGUI:
                 update_values[9] = string_dnat
                 self.tree.item(selected_item, values=update_values, tags=("nat",))
             else:
+                update_values[9] = "Not detected"
                 self.tree.item(selected_item, values=update_values, tags=("yes",))
         else:
             if result["status"] == '0': # esperavase sucesse e isso não foi obtido

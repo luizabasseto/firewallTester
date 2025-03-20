@@ -124,7 +124,7 @@ message = {
     "server_response": False,
     "status" : '0',
     "status_msg": 'ok',
-    "message" : 'hello world'
+    "message" : 'Test successfully completed'
 }
 # se o status for zero, ocorreu tudo bem, caso contrário deu algum erro ,tal como:
 #  1 - erro de rede

@@ -114,7 +114,7 @@ def lidar_com_cliente_TCP(client_socket):
         if dest_ip not in server_ips:
             #print("ips diferentes")
             host_name = socket.getfqdn()
-            json_data["message"] = f"DNAT to {host_name} ({server_ip}:{server_port})"
+            json_data["message"] = f"Looks like DNAT was made {json_data["server_ip"]}->{host_name}"
             json_data = adicionar_campo_dnat(json_data, host_name, server_ip, server_port)
             print(json.dumps(json_data, indent=4))
 
@@ -153,7 +153,7 @@ def servidor_UDP(port):
             host_name = socket.getfqdn()
             server_ip = server_ips[0]
             # TODO - o IP do servidor pode ser apresentado estranhamente aqui, pois estamos pegando o primeiro IP do host servidor, e na regra pode ter sido redirecionado para outro IP do mesmo servidor.
-            json_data["message"] = f"DNAT to {host_name} ({server_ip}:port)"
+            json_data["message"] = f"Looks like DNAT was made {json_data["server_ip"]}->{host_name}"
             json_data = adicionar_campo_dnat(json_data, host_name, server_ip, port)
             print(json.dumps(json_data, indent=4))
         

@@ -1006,7 +1006,7 @@ class FirewallGUI:
             update_values[-1] = result["message"]
             if "dnat" in result:
                 dnat_data = result["dnat"]
-                string_dnat = dnat_data['host_name']+'-'+dnat_data['ip']+':'+str(dnat_data['port'])
+                string_dnat = dnat_data['host_name']+' ('+dnat_data['ip']+':'+str(dnat_data['port'])+')'
                 update_values[9] = string_dnat
                 self.tree.item(selected_item, values=update_values, tags=("nat",))
             else:

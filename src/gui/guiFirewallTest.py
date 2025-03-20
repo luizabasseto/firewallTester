@@ -221,7 +221,7 @@ class FirewallGUI:
         # Criando LabelFrame para as regras ativas no firewall (inicialmente oculto)
         frame_ativas = ttk.LabelFrame(self.regras_firewall, text="Output ")
         frame_ativas.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        frame_ativas.pack_forget()  # Escondendo inicialmente
+        #frame_ativas.pack_forget()  # Escondendo inicialmente
 
         def toggle_frame_ativas():
             if frame_ativas.winfo_ismapped():
@@ -273,7 +273,7 @@ class FirewallGUI:
         #self.btn_zerar.pack(side=tk.LEFT, padx=10)
         #self.btn_zerar.config(state="disable")
 
-        btn_ver_ativas = tk.Button(frame_botoes, text="Show output", command=toggle_frame_ativas)
+        btn_ver_ativas = tk.Button(frame_botoes, text="Hide output", command=toggle_frame_ativas)
         btn_ver_ativas.pack(side=tk.RIGHT, padx=10)
 
     def on_combobox_host_regras_firewall_select(self, src_ip):
@@ -604,7 +604,7 @@ class FirewallGUI:
 
         self.hidden_data = {}  # Dicionário para armazenar Container ID associado ao Teste ID
         self.entries = []
-        visible_fields = ["#", "Container ID", "Source", "Destination", "Protocol", "Source Port", "Destination Port", "Expected", "Result"]
+        visible_fields = ["#", "Container ID", "Source", "Destination", "Protocol", "Source Port", "Destination Port", "Expected", "Result", "DNAT", "Observation"]
         self.tree = ttk.Treeview(self.tests_frame_Tree, columns=visible_fields, show="headings")
 
         font = ("TkDefaultFont", 10)
@@ -638,6 +638,12 @@ class FirewallGUI:
         self.tree.heading("Result", text="Result")
         self.tree.column("Result", width=80, anchor="w", stretch=False)
 
+        self.tree.heading("DNAT", text="DNAT")
+        self.tree.column("DNAT", width=200, anchor="w", stretch=False)
+
+        self.tree.heading("Observation", text="Observation")
+        self.tree.column("Observation", width=1, anchor="w", stretch=True)
+
         self.tree.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Definição das cores
@@ -647,6 +653,7 @@ class FirewallGUI:
         self.tree.tag_configure("yes", background="lightgreen")
         self.tree.tag_configure("no", background="salmon")
         self.tree.tag_configure("error", background="yellow")
+        self.tree.tag_configure("nat", background="lightblue")
 
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
         self.tree.bind("<Double-1>", self.on_tree_select_double)
@@ -744,7 +751,7 @@ class FirewallGUI:
         
         row_index = len(self.tree.get_children()) + 1 # indice da linha da tree
 
-        values = [src_ip, dst_ip, protocol, src_port, dst_port, expected, "-"]
+        values = [src_ip, dst_ip, protocol, src_port, dst_port, expected, "-", " ", " "]
 
         for item in self.tree.get_children(): # evita teste duplicados
             existing_values = self.tree.item(item, "values")
@@ -755,7 +762,7 @@ class FirewallGUI:
                 return
 
         values=[]
-        self.tree.insert("", "end", values=[row_index, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, "-"])
+        self.tree.insert("", "end", values=[row_index, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, "-", " ", " "])
         self.tree.column("Container ID", width=self.colunaContainerID, stretch=False)
         
         self.buttons_normal_state()
@@ -778,7 +785,7 @@ class FirewallGUI:
 
         if self.so_validar_e_adicionar_teste() != 0: return # testa os valores
 
-        values = [src_ip, dst_ip, protocol, src_port, dst_port, expected, "-"]
+        values = [src_ip, dst_ip, protocol, src_port, dst_port, expected, "-", " ", " "]
 
         for item in self.tree.get_children(): # evita teste duplicados TODO - colocar isso em um método, pois está duplicado!
             existing_values = self.tree.item(item, "values")
@@ -793,7 +800,7 @@ class FirewallGUI:
         else:
             container_id = "N/A"  # Caso nenhum container seja selecionado
         
-        values=[self.tree.item(selected_item, "values")[0], container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, "-"]
+        values=[self.tree.item(selected_item, "values")[0], container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, "-", " ", " "]
 
         self.tree.item(selected_item, values=values)
         self.tree.item(selected_item, tags="")  # volta a cor para o padrão
@@ -956,7 +963,7 @@ class FirewallGUI:
         if selected_item:
             values = self.tree.item(selected_item, "values")
             print(f"Items to testing:: {values}")
-            teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result = values
+            teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result, dnat, observation = values
             
             # se não consegiu extrair o IP de destino digitado pelo usuário para
             dst_ip = self.extrair_destino(dst_ip)
@@ -981,24 +988,32 @@ class FirewallGUI:
         
 
     def colorir_labels_resultado_tree(self, expected, result, values, selected_item):
+        print(values)
         if (result["status"] != '0'):
             # ocorreu um erro , tal como a rede do host não estava configurada.
             print(f"\033[33mThere was an error with the host when sending the packet, such as a misconfigured network - IP, GW, etc.\033[0m")
             update_values = list(values)
-            update_values[-1] = "ERROR"
+            update_values[8] = "ERROR"
             self.tree.item(selected_item, values=update_values, tags=("error",))
         elif (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"):
             print(f"\033[32mThe test occurred as expected.\033[0m")
             # trocar cor da label
             update_values = list(values)
-            update_values[-1] = "Pass"
-            self.tree.item(selected_item, values=update_values, tags=("yes",))
+            update_values[8] = "Pass"
+            update_values[-1] = result["message"]
+            if "dnat" in result:
+                dnat_data = result["dnat"]
+                string_dnat = dnat_data['host_name']+'-'+dnat_data['ip']+':'+str(dnat_data['port'])
+                update_values[9] = string_dnat
+                self.tree.item(selected_item, values=update_values, tags=("nat",))
+            else:
+                self.tree.item(selected_item, values=update_values, tags=("yes",))
         else:
             if result["status"] == '0': # esperavase sucesse e isso não foi obtido
                 print(f"\033[31mThe test did NOT occur as expected.\033[0m")
                 # trocar cor da label
                 update_values = list(values)
-                update_values[-1] = "Fail"
+                update_values[8] = "Fail"
                 self.tree.item(selected_item, values=update_values, tags=("no",))
     
     def executar_todos_testes_thead_tree(self):
@@ -1029,7 +1044,7 @@ class FirewallGUI:
         total_lista = len(itens)
         for teste in itens:
             values = self.tree.item(teste, "values")
-            teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result = values
+            teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result, dnat, observation = values
             print(f"Executing test - Container ID:  {container_id}, Data: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
             
             # se não consegiu extrair o IP de destino digitado pelo usuário para
@@ -1246,7 +1261,7 @@ class FirewallGUI:
                     # Recupera o Container ID oculto
                     #teste_id = values[0]
                     #container_id = self.hidden_data.get(teste_id, "")  
-                    teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result = values
+                    teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result, dnat, observation = values
 
                     # Monta o dicionário e adiciona à lista
                     tests_data.append({

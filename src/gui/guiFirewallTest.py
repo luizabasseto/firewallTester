@@ -13,35 +13,45 @@ import threading
 import webbrowser
 import textwrap
 
-# TODO - Padronizar os nomes de variáveis e funções - utilizar nomes em inglês.
-# TODO - Deixar todas as mensagens print e gráficas em inglês - botões, labels, etc...
-# TODO - Refatorar o código - remover códigos duplicados, ver o que pode ser melhorado talvez com o conceito de orientação à objetos
-# TODO - Remover variáveis e códigos que não estão sendo utilizados - pode ter código inútil principalmente pq mudou-se de label para treeview.
-# TODO - Aba configuração - ver se é necessária e o que colocar lá.
-# TODO - Criar um help para o usuário.
-# TODO - Criar um about - informações de crétido, etc...
-# TODO - Ver a licença que será utilizada.
-# TODO - Pensar se haverá um lugar para editar as regras de firewall, ligar/desligar firewall na interface ou se será tudo no host mesmo.
-# TODO - Ao realizar testes verificar se há erros como testar uma porta fechada no servidor, a interface poderia avisar quanto a isso (deixar, mas avisar).
-# TODO - Verificar o fluxo da mensagem, tal como, chegou no servidor mas não voltou, indicar isso na interface.
-# TODO - Pensar em como mostrar os logs de execução, que vão para o console texto, para a interface, isso ajuda muito a mostrar problemas e o fluxo dos testes.
-# TODO - Pensar em como mostrar detalhes do "pacotes" - objetos JSON retornados por cliente/servidor nos testes.
-# TODO - No arquivo container.py - ao ligar um servidor em uma porta já em uso por outro programa que não o server.py, verificar se pode realmente matar tal processo.
-# TODO - Pensar em como acessar alguns serviços reais, tais como HTTP, SSH, MYSQL, etc. e como mostrar isso na interface, atualmente fora do cliente.py/servidor.py só dá para acessar externo o ICMP.
-# TODO - Pensar em testes de pacotes mal formados tal como do nmap ou scapy.
-# TODO - sugerir testes que podem ser comuns em ambientes de empresas.
-# TODO - sugerir testes baseados nos serviços em execução no ambiente.
-# TODO - sugerir testes fundamentados nos testes propostos pelo usuário, tal como: se pediu para host1 acessar HTTP no host3, fazer o contrário também.
-# TODO - Esta dando erro quando um servidor não está ligado, mas isso não deveria acontecer -  a mensagem é: Unable to get a response from the hosts! Is GNS3 or the hosts running? dá erra erro no este  - procurar e corrigir! Parece que o problema é que a porta, por exemplo tcp/80, está em uso quando liga o servidor, ai ele desliga o próprio servidor, então a porta 80 não aparece na lista, ai vc adiciona, ai ficam duas portas 80 na lista, ai ele mata ele mesmo, pq o programa está configurado para matar programas que estão ocupando a porta - então tem que: TODO - não aceitar portas duplicadas no arquivo, ele está vendo isso via netstat - # TODO - ver essa história de matar e como matar, pq ele não pode matar ele mesmo!
-# TODO - quando está salvando e abrindo os testes salvos, está dando erros de colunar na tree, pq as colunas foram alteradas! rever...
+# TODO - Standardize variable and function names - use English names.
+# TODO - Leave all print and graphical messages in English - buttons, labels, etc...
+# TODO - Refactor the code - remove duplicate code, see what can be improved, perhaps with the concept of object-oriented programming.
+# TODO - Remove variables and code that are not being used - there may be useless code, especially since the change from label to treeview.
+# TODO - Configuration tab - see if it is necessary and what to put there (e.g., location where rules should be loaded in the container; whether or not to display the container ID column, whether or not to start the servers, list iptables mangle rules, maybe list or not iptables nat or filter rules - now interface list filter and nat rules by default).
+# TODO - Create a help for the user.
+# TODO - When performing tests, check for errors such as testing a closed port on the server, the interface could warn about this (leave it, but warn).
+# TODO - Verify the message flow, such as, it arrived at the server but did not return, indicate this in the interface.
+# TODO - Think about how to show the execution logs, which go to the text console, to the interface, this helps a lot in showing problems and the test flow.
+# TODO - Think about how to show "packet" details - JSON objects returned by client/server in tests.
+# TODO - In the container.py file - when starting a server on a port already in use by another program other than server.py, verify if it can really kill that process.
+# TODO - Think about how to access some real services, such as HTTP, SSH, MYSQL, etc., and how to show this in the interface, currently outside of client.py/server.py only ICMP can be accessed externally.
+# TODO - Think about tests of malformed packets such as those from nmap or scapy.
+# TODO - Suggest tests that may be common in corporate environments.
+# TODO - Suggest tests based on the services running in the environment.
+# TODO - Suggest tests based on the tests proposed by the user, such as: if they asked host1 to access HTTP on host3, do the opposite as well.
+# TODO - Perhaps it would be nice to have options to wait for test success considering DNAT, that is, to have an option that when enabled waits for the flow to go through a DNAT, otherwise the test would be considered failed!
+# TODO - The scroll of the firewall tests is not working properly and is cutting off the last column of the tree.
+# TODO - Check if scroll is needed in other areas of the program (vertical and horizontal).
+# TODO - Is it interesting to have a button to save firewall rules on the host? the user can do ctrl+c and ctrl+v - remembering that the rules are already saved in the container.
+# TODO - if only the host or all hosts in the scenario are turned off, there is no problem for the interface, but if GNS3 is turned off and the same scenario is turned on again, the interface becomes inconsistent, even the host update button does not work properly! Also, the rules deployed in the firewall are lost.
+# TODO - when saving and opening tests - do not reference the container ID, only the names and perhaps IPs (I think IPs are unavoidable for now), and when the rules are opened, the interface must relate or re-relate the hostname with the container_id, and perhaps the IPs (it would be nice not to relate with the IPs, because in the scenario the user could create or change the hostname to another IP and the test would continue to work).
+# TODO - the combobox of "Edit firewall rules on host" should not show multiple lines for the same host (it shows one per host IP), but rather only one name.
+
 
 class FirewallGUI:
+    """
+        Class to work with firewall tester interface.
+    """
+
     def __init__(self, root):
+        """
+            Start firewall tester interface with some variables, methods and create default frames.
+        """
         self.root = root
         self.root.title("Firewall Tester")
         self.root.geometry("800x600")
 
-        # Criando o Notebook (abas)
+        # Creating Notebook tab
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(expand=True, fill="both")
 
@@ -58,11 +68,11 @@ class FirewallGUI:
         self.notebook.add(self.config_frame, text="Settings")
         self.notebook.add(self.about_frame, text="About")
 
-        # Frame em baixo as abas
+        # Frame under tabs
         frame_botton = ttk.Frame(self.root)
         frame_botton.pack(side=tk.BOTTOM, pady=6)
         
-        # TODO - ao atualizar os dados dos hosts, pode ser necessário mudar dados dos testes, principalmente os IDs dos constainers e talvez IPs dos hosts - tal como tem que ser feito ao carregar os testes de um arquivo - pensar em uma solução única para os dois problemas - talvez precise de intervenção do usuário.
+        # TODO - when updating host data, it may be necessary to change test data, especially container IDs and perhaps host IPs - just as it has to be done when loading tests from a file - think of a single solution for both problems - perhaps user intervention is needed.
         self.button_uptate_host = ttk.Button(frame_botton, text="Update Hosts", command=self.update_hosts)
         self.button_uptate_host.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
@@ -73,27 +83,30 @@ class FirewallGUI:
         frame_botton.grid_columnconfigure(1, weight=1)
         frame_botton.grid_columnconfigure(2, weight=1)
 
-        # caminho do nome do arquivo
+        # file name path
         self.save_file_path = None
 
-        # Lista para armazenar os testes
+        # List to store tests
         self.tests = []
 
-        # lista de botoes dos hosts
+        # buttons list from hosts
         self.lista_btn_onOff = []
 
-        # Obtém dados de container e hosts
-        self.containers_data = containers.extract_containerid_hostname_ips( )  # obtém as informações do hosts (hostname, interfaces, ips))
+        # get data from containers and hosts
+        self.containers_data = containers.extract_containerid_hostname_ips( )  # get hosts informations
 
-        # Criando a interface das abas
+        # creating tabs
         self.create_hosts_tab()
         self.create_firewall_tab()
         self.create_regras_firewall_tab()
-        # Reinicia os servidores
+        # restart servers on containers/hosts
         self.start_servers()
         self.create_about_tab()
 
     def create_about_tab(self):
+        """
+            Create tab about to present some informations about the software interface like: author, description, licence, etc.
+        """
         top_frame = tk.Frame(self.about_frame)
         top_frame.pack(pady=10)
 
@@ -106,21 +119,20 @@ class FirewallGUI:
 
         # Create a frame for the description
         description_frame = ttk.Frame(top_frame)
-        description_frame.pack(pady=10, padx=20, fill="x") #fill x para ocupar toda a largura
+        description_frame.pack(pady=10, padx=20, fill="x") #fill x to ocuupy the entire width.
 
         # Simulate full justification using textwrap
-        wrapped_text = textwrap.fill(description, width=70) #aumentei o width para o texto se espalhar mais
+        wrapped_text = textwrap.fill(description, width=70) #Was increased the width to spread out more
 
         # Get background color from parent frame
         bg_color = top_frame.cget("background")
 
         # Use tk.Text for display
-        text_widget = tk.Text(description_frame, wrap="word", width=70, height=8, borderwidth=0, highlightthickness=0, background=bg_color) #aumentei o height e o width
+        text_widget = tk.Text(description_frame, wrap="word", width=70, height=8, borderwidth=0, highlightthickness=0, background=bg_color) #was increased the height and width
         text_widget.insert("1.0", wrapped_text)
         text_widget.config(state="disabled")  # Make it read-only
         text_widget.pack(pady=10, padx=10, fill="x")
 
-        
         # Developer
         lbl_developer_name_head = ttk.Label(top_frame, text="Developer:")
         lbl_developer_name_head.pack()
@@ -162,7 +174,10 @@ class FirewallGUI:
 
     
     def abrir_ajuda(self):
-        webbrowser.open_new_tab("https://github.com/luizsantos/firewallTester")  # Substitua pelo URL da sua página de ajuda
+        """
+            Open a link in the web browser, to show help content.
+        """
+        webbrowser.open_new_tab("https://github.com/luizsantos/firewallTester")
 
     def create_hosts_tab(self):
         """Cria a interface da aba de Hosts"""

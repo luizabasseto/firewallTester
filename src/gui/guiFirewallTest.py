@@ -36,6 +36,7 @@ import textwrap
 
 class FirewallGUI:
     def __init__(self, root):
+        print("root")
         self.root = root
         self.root.title("Firewall Tester")
         self.root.geometry("800x600")

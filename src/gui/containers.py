@@ -289,7 +289,8 @@ def get_container_info_by_hostname(filter_string):
 def getContainersHostNames():
 
     hosts = []
-
+    # teste
+    print("teste")
     filter_string = "firewall_tester" # parte do nome do container - neste caso todos os containers do teste devem ter em seu nome .test
     matching_containers = get_container_info_by_hostname(filter_string)
     printContainerList(matching_containers, filter_string)

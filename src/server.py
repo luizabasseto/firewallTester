@@ -25,6 +25,9 @@ def get_ips():
     
     return server_ips
 
+def is_not_loopback(ip):
+    return not ipaddress.ip_address(ip).is_loopback
+
 def adicionar_campo_dnat(json_objeto, host_name, ip, porta):
     """Adiciona o campo 'dnat' ao objeto JSON."""
 
@@ -111,7 +114,7 @@ def lidar_com_cliente_TCP(client_socket):
         server_address = client_socket.getsockname()
         server_ip, server_port = server_address
 
-        if dest_ip not in server_ips:
+        if (dest_ip not in server_ips) and is_not_loopback(dest_ip):
             #print("ips diferentes")
             host_name = socket.getfqdn()
             json_data["message"] = f"Looks like DNAT was made {json_data["server_ip"]}->{host_name}"
@@ -148,7 +151,8 @@ def servidor_UDP(port):
         json_data = json.loads(mensagem_json)
         
         dest_ip = json_data["server_ip"]
-        if dest_ip not in server_ips:
+        if (dest_ip not in server_ips) and is_not_loopback(dest_ip):
+            print(f"O IP não está na lista de servidores e não é loopback. - {dest_ip}")
             #print("ips diferentes")
             host_name = socket.getfqdn()
             server_ip = server_ips[0]

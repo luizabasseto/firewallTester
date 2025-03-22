@@ -32,7 +32,7 @@ import textwrap
 # TODO - sugerir testes que podem ser comuns em ambientes de empresas.
 # TODO - sugerir testes baseados nos serviços em execução no ambiente.
 # TODO - sugerir testes fundamentados nos testes propostos pelo usuário, tal como: se pediu para host1 acessar HTTP no host3, fazer o contrário também.
-# TODO - se for adicionado um host no cenário do GNS3 sem nenhuma conexão de rede, dá erro! está dando erro com o host sem nenhum IP!
+# TODO - Esta dando erro quando um servidor não está ligado, mas isso não deveria acontecer -  a mensagem é: Unable to get a response from the hosts! Is GNS3 or the hosts running? dá erra erro no este  - procurar e corrigir! Parece que o problema é que a porta, por exemplo tcp/80, está em uso quando liga o servidor, ai ele desliga o próprio servidor, então a porta 80 não aparece na lista, ai vc adiciona, ai ficam duas portas 80 na lista, ai ele mata ele mesmo, pq o programa está configurado para matar programas que estão ocupando a porta - então tem que: TODO - não aceitar portas duplicadas no arquivo, ele está vendo isso via netstat - # TODO - ver essa história de matar e como matar, pq ele não pode matar ele mesmo!
 
 class FirewallGUI:
     def __init__(self, root):
@@ -314,7 +314,7 @@ class FirewallGUI:
         print(f"Load firewall rules from hos {self.container_id_host_regras_firewall[1]}")
 
         resposta = messagebox.askyesno("Confirmation","This will overwrite the existing rules in the interface. Are you sure you want to continue?")
-
+        # TODO - na UTPFR deu problema na hora de copiar o arquivo do firewall para o container, ele dizia que copiava e não copiava nada, só copiou quando foi dado um touch no arquivo - ver isso.
         if resposta:
             command = ["docker", "exec", self.container_id_host_regras_firewall[0], "cat", "/etc/firewall.sh"]
             result = containers.run_command(command)
@@ -643,15 +643,21 @@ class FirewallGUI:
         self.tree.column("flow", width=200, anchor="w", stretch=False)
 
         self.tree.heading("data", text="Network Data")
-        self.tree.column("data", width=1, anchor="w", stretch=True)
+        self.tree.column("data", minwidth=100, width=200, anchor="w", stretch=True)
 
         self.tree.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # TODO - o scroll não esta se ajustando quando os dados superam o tamanho da janela!
+        scroll_tree = tk.Scrollbar(self.tests_frame_Tree, orient=tk.HORIZONTAL, command=self.tree.xview)
+        self.tree.configure(xscrollcommand=scroll_tree.set)
+        scroll_tree.pack(side="bottom", fill="x")
 
         # Definição das cores
         style = ttk.Style()
         style.configure("Treeview", rowheight=25)
         style.map("Treeview", background=[("selected", "#4a90e2")])
         self.tree.tag_configure("yes", background="lightgreen")
+        self.tree.tag_configure("yesFail", background="green")
         self.tree.tag_configure("no", background="salmon")
         self.tree.tag_configure("error", background="yellow")
         self.tree.tag_configure("nat", background="lightblue")
@@ -677,8 +683,8 @@ class FirewallGUI:
         tk.Label(self.frame_legenda_testes, bg="lightgreen", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
         tk.Label(self.frame_legenda_testes, text="Test successfully completed.", font=("Arial", 10)).pack(side="left")
 
-        tk.Label(self.frame_legenda_testes, bg="lightblue", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Test successfully completed, DNAT might be present.", font=("Arial", 10)).pack(side="left")
+        #tk.Label(self.frame_legenda_testes, bg="lightblue", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        #tk.Label(self.frame_legenda_testes, text="Test successfully completed, DNAT might be present.", font=("Arial", 10)).pack(side="left")
 
         tk.Label(self.frame_legenda_testes, bg="red", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
         tk.Label(self.frame_legenda_testes, text="Test did not succeed.", font=("Arial", 10)).pack(side="left")
@@ -992,41 +998,53 @@ class FirewallGUI:
         
 
     def colorir_labels_resultado_tree(self, expected, result, values, selected_item):
+        # TODO - verificar se todos os casos foram contemplados
+        # TODO - melhorar a lógica para verificar erros do usuário - tal como testar uma porta que não está ligada!
         print(values)
+        update_values = list(values)
+        tag = None
+
+        if result["server_response"] == True: # se o servidor respondeu então colocar sent/receved, caso contrário só Sent - TODO - pode haver caso que ele nem enviou, que seria o caso do erro!
+                    update_values[9] = "Sent/Receved" # O pacote só foi enviado mas não houve resposta!
+                    update_values[8] = "Pass"
+        else:
+                    update_values[9] = "Sent" # O pacote só foi enviado mas não houve resposta!
+                    update_values[8] = "Fail"
+
+        network_data = result['client_ip']+':'+str(result['client_port'])+'->'+result['server_ip']+':'+str(result['server_port'])+'('+result['protocol']+')'+' - Server response? '+ str(result['server_response'])+ ' - Status: '+result['status_msg']
+        update_values[-1] = network_data
+
         if (result["status"] != '0'):
             # ocorreu um erro , tal como a rede do host não estava configurada.
             print(f"\033[33mThere was an error with the host when sending the packet, such as a misconfigured network - IP, GW, etc.\033[0m")
-            update_values = list(values)
             update_values[8] = "ERROR"
             update_values[9] = "Not Sent"
-            network_data = result['client_ip']+':'+str(result['client_port'])+'->'+result['server_ip']+':'+str(result['server_port'])+'('+result['protocol']+')'+' - Server response? '+ str(result['server_response'])+ ' - Status: '+result['status_msg']
-            update_values[-1] = network_data
-            self.tree.item(selected_item, values=update_values, tags=("error",))
-        elif (result["server_response"] == True and expected == "yes") or (result["server_response"] == False and expected == "no"):
-            # TODO - para preencher corretamente Network flow e Network data, agora é necessário ver se o expected é yes/no, pois está dando que o pacote foi enviado e recebido, mesmo quando não foi pq o exected é no!
-            print(f"\033[32mThe test occurred as expected.\033[0m")
-            # trocar cor da label
-            update_values = list(values)
-            update_values[8] = "Pass"
-            update_values[-1] = result["message"]
-            if "dnat" in result:
+            tag = "error"
+        elif (result["server_response"] == True and expected == "yes"):
+            # teste realizado com sucesso e houve resposta do servidor.
+            print(f"\033[32mThe SUCCESS test occurred as expected.\033[0m")
+            tag = "yes"
+        elif (result["server_response"] == False and expected == "no"):
+            # O teste de envio de pacotes falou, mas isso era esperado no teste, então isso é um sucesso!
+            print(f"\033[32mThe FAIL test occurred as expected.\033[0m")
+            tag = "yesFail"
+        else: # TODO - acho que a lógica está errada aqui (verificar os casos possíveis) - é que em cliente.py teve que remover o status=1 pq ele dizia que houve erro em um pacote barrado pelo firewall ou bloqueado!
+            print(f"\033[31mThe test did NOT occur as expected.\033[0m")
+            tag = "no"
+
+
+        if "dnat" in result: # o dnat só acontece se tiver resposta do servidor então não precisa do result["server_response"] == True - isso vem do server.py
+                print("dnat")
+                # houve DNAT
                 dnat_data = result["dnat"]
                 network_data = result['client_ip']+':'+str(result['client_port'])+'->'+dnat_data['ip']+':'+str(dnat_data['port'])+'('+result['protocol']+')'+' - Server response? '+ str(result['server_response'])+ ' - Status: '+result['status_msg']
                 update_values[-1] = network_data
                 update_values[9] = "Sent/Receved (DNAT)"
-                self.tree.item(selected_item, values=update_values, tags=("nat",))
-            else:
-                network_data = result['client_ip']+':'+str(result['client_port'])+'->'+result['server_ip']+':'+str(result['server_port'])+'('+result['protocol']+')'+' - Server response? '+ str(result['server_response'])+ ' - Status: '+result['status_msg']
-                update_values[-1] = network_data
-                update_values[9] = "Sent/Receved"
-                self.tree.item(selected_item, values=update_values, tags=("yes",))
-        else:
-            if result["status"] == '0': # esperavase sucesse e isso não foi obtido
-                print(f"\033[31mThe test did NOT occur as expected.\033[0m")
-                # trocar cor da label
-                update_values = list(values)
-                update_values[8] = "Fail"
-                self.tree.item(selected_item, values=update_values, tags=("no",))
+        
+        # atualiza a linha do teste
+        self.tree.item(selected_item, values=update_values, tags=(tag,))
+        
+        
     
     def executar_todos_testes_thead_tree(self):
         print("Thread to execute all tests.")
@@ -1173,26 +1191,35 @@ class FirewallGUI:
 
             row_index += 1  # Move para a próxima linha
 
-            for interface in host['interfaces']:
-                print(f"  - Interface: {interface['nome']}")
-                if_name = interface['nome']
-
+            if not host['interfaces']:
                 # Criando um sub-frame para alinhar interfaces e IPs juntos
                 interface_frame = ttk.Frame(frame)
                 interface_frame.grid(row=row_index, column=1, columnspan=2, sticky="w", padx=20)
-
-                # TODO - percebi que o comando ip mostra os IPs da interface mesmo que esta interface esteja desligada DOWN.
-                # Label com o nome da interface
-                lbl_interface = ttk.Label(interface_frame, text=f"Interface: {if_name}", font=("Arial", 10, "bold"))
+                ip_index = 1
+                lbl_interface = ttk.Label(interface_frame, text=f"Interface: None or Down", font=("Arial", 10, "bold"))
                 lbl_interface.grid(row=0, column=0, sticky="w")
 
-                ip_index = 1
-                for ip in interface['ips']:
-                    lbl_ip = ttk.Label(interface_frame, text=f"IP: {ip}", font=("Arial", 10))
-                    lbl_ip.grid(row=ip_index, column=0, padx=20, sticky="w")
-                    ip_index += 1
+            else:
+                for interface in host['interfaces']:
+                    print(f"  - Interface: {interface['nome']}")
+                    if_name = interface['nome']
 
-                row_index += 2  # Move para a próxima linha no layout
+                    # Criando um sub-frame para alinhar interfaces e IPs juntos
+                    interface_frame = ttk.Frame(frame)
+                    interface_frame.grid(row=row_index, column=1, columnspan=2, sticky="w", padx=20)
+
+                    # TODO - percebi que o comando ip mostra os IPs da interface mesmo que esta interface esteja desligada DOWN.
+                    # Label com o nome da interface
+                    lbl_interface = ttk.Label(interface_frame, text=f"Interface: {if_name}", font=("Arial", 10, "bold"))
+                    lbl_interface.grid(row=0, column=0, sticky="w")
+
+                    ip_index = 1
+                    for ip in interface['ips']:
+                        lbl_ip = ttk.Label(interface_frame, text=f"IP: {ip}", font=("Arial", 10))
+                        lbl_ip.grid(row=ip_index, column=0, padx=20, sticky="w")
+                        ip_index += 1
+
+                    row_index += 2  # Move para a próxima linha no layout
 
             # Status do servidor
             lbl_status = ttk.Label(interface_frame, text=f"Status from server: {status}", font=("Arial", 10))
@@ -1207,7 +1234,7 @@ class FirewallGUI:
 
     # TODO - fazer o botão atualizar o status do servidor do container de ligado para desligado (passar a variável do botão)
     def verificar_servidor_onoff(self, container_id):
-        print("Check if server is on or off ")
+        print(f"Check if server is on or off at container {container_id}")
         cmd = 'docker exec '+ container_id+' ps ax | grep "/usr/local/bin/python ./server.py" | grep -v grep'
         result = containers.run_command_shell(cmd)
         if result !="":

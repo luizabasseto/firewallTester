@@ -59,11 +59,11 @@ class FirewallGUI:
         self.firewall_frame = ttk.Frame(self.notebook)
         self.hosts_frame = ttk.Frame(self.notebook)
         self.config_frame = ttk.Frame(self.notebook)
-        self.regras_firewall = ttk.Frame(self.notebook)
+        self.firewall_rules = ttk.Frame(self.notebook)
         self.about_frame = ttk.Frame(self.notebook)
 
         self.notebook.add(self.firewall_frame, text="Firewall Test")
-        self.notebook.add(self.regras_firewall, text="Firewall Rules")
+        self.notebook.add(self.firewall_rules, text="Firewall Rules")
         self.notebook.add(self.hosts_frame, text="Hosts")
         self.notebook.add(self.config_frame, text="Settings")
         self.notebook.add(self.about_frame, text="About")
@@ -90,7 +90,7 @@ class FirewallGUI:
         self.tests = []
 
         # buttons list from hosts
-        self.lista_btn_onOff = []
+        self.list_button_servers_onOff = []
 
         # get data from containers and hosts
         self.containers_data = containers.extract_containerid_hostname_ips( )  # get hosts informations
@@ -98,7 +98,7 @@ class FirewallGUI:
         # creating tabs
         self.create_hosts_tab()
         self.create_firewall_tab()
-        self.create_regras_firewall_tab()
+        self.create_firewall_rules_tab()
         # restart servers on containers/hosts
         self.hosts_start_servers()
         self.create_about_tab()
@@ -198,62 +198,62 @@ class FirewallGUI:
 
         self.hosts_show_host_informations_in_host_tab()
 
-    def create_regras_firewall_tab(self):
+    def create_firewall_rules_tab(self):
         """
             Create firewal rules tab, this permit create, list and edit firewall rules on the hosts.
         """
         # Top frame for title. 
-        frame_titulo = tk.Frame(self.regras_firewall)
-        frame_titulo.pack(fill=tk.X)
+        frame_tittle = tk.Frame(self.firewall_rules)
+        frame_tittle.pack(fill=tk.X)
 
-        ttk.Label(frame_titulo, text="Edit firewall rules on host:", font=("Arial", 12, "bold")).pack(padx=10)
-        self.combobox_host_regra_firewall = ttk.Combobox(frame_titulo, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
-        self.combobox_host_regra_firewall.pack(pady=10)
+        ttk.Label(frame_tittle, text="Edit firewall rules on host:", font=("Arial", 12, "bold")).pack(padx=10)
+        self.combobox_firewall_rules_host = ttk.Combobox(frame_tittle, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
+        self.combobox_firewall_rules_host.pack(pady=10)
         #self.combobox_host_regra_firewall.current(0)
-        self.combobox_host_regra_firewall.set("")
+        self.combobox_firewall_rules_host.set("")
 
-        self.combobox_host_regra_firewall.bind("<<ComboboxSelected>>", self.selected_host_on_combobox_tab_firewall_rules)
+        self.combobox_firewall_rules_host.bind("<<ComboboxSelected>>", self.selected_host_on_combobox_tab_firewall_rules)
 
         #label_titulo = tk.Label(frame_titulo, text="Editar regras de firewall", font=("Arial", 12, "bold"))
         #label_titulo.pack(pady=5)
 
         # Creating frame for the labels
-        frame_regras = ttk.LabelFrame(self.regras_firewall, text="Rules to be applied to the firewall")
-        frame_regras.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        frame_firewall_rules = ttk.LabelFrame(self.firewall_rules, text="Rules to be applied to the firewall")
+        frame_firewall_rules.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
-        self.text_regras = tk.Text(frame_regras, wrap=tk.NONE, height=10, undo=True)
-        self.text_regras.grid(row=0, column=0, sticky="nsew")
+        self.text_firewall_rules = tk.Text(frame_firewall_rules, wrap=tk.NONE, height=10, undo=True)
+        self.text_firewall_rules.grid(row=0, column=0, sticky="nsew")
 
-        scroll_y_regras = tk.Scrollbar(frame_regras, orient=tk.VERTICAL, command=self.text_regras.yview)
-        scroll_y_regras.grid(row=0, column=1, sticky="ns")
-        self.text_regras.config(yscrollcommand=scroll_y_regras.set)
+        scroll_y_firewall_rules = tk.Scrollbar(frame_firewall_rules, orient=tk.VERTICAL, command=self.text_firewall_rules.yview)
+        scroll_y_firewall_rules.grid(row=0, column=1, sticky="ns")
+        self.text_firewall_rules.config(yscrollcommand=scroll_y_firewall_rules.set)
 
-        scroll_x_regras = tk.Scrollbar(frame_regras, orient=tk.HORIZONTAL, command=self.text_regras.xview)
-        scroll_x_regras.grid(row=1, column=0, sticky="ew")
-        self.text_regras.config(xscrollcommand=scroll_x_regras.set)
+        scroll_x_firewall_rules = tk.Scrollbar(frame_firewall_rules, orient=tk.HORIZONTAL, command=self.text_firewall_rules.xview)
+        scroll_x_firewall_rules.grid(row=1, column=0, sticky="ew")
+        self.text_firewall_rules.config(xscrollcommand=scroll_x_firewall_rules.set)
 
         self.reset_firewall = tk.IntVar()
-        checkbtn_zerar_regras = tk.Checkbutton(frame_regras, text="Automatically reset firewall rules – this should be in your script, but you can do it here.", variable=self.reset_firewall)
-        checkbtn_zerar_regras.grid(row=2, column=0, sticky="w")
+        checkbtn_reset_firewall_rules = tk.Checkbutton(frame_firewall_rules, text="Automatically reset firewall rules – this should be in your script, but you can do it here.", variable=self.reset_firewall)
+        checkbtn_reset_firewall_rules.grid(row=2, column=0, sticky="w")
 
-        frame_regras.grid_columnconfigure(0, weight=1)
-        frame_regras.grid_rowconfigure(0, weight=1)
+        frame_firewall_rules.grid_columnconfigure(0, weight=1)
+        frame_firewall_rules.grid_rowconfigure(0, weight=1)
 
         # Creating frame for the active rules
-        frame_ativas = ttk.LabelFrame(self.regras_firewall, text="Output ")
-        frame_ativas.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        frame_output_firewall_rules = ttk.LabelFrame(self.firewall_rules, text="Output ")
+        frame_output_firewall_rules.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         #frame_ativas.pack_forget()  # Hide on the start
 
         def toggle_frame_output_on_rule_tab():
             """
                 Change frame output to hide or show output text in firewall rule tab.
             """
-            if frame_ativas.winfo_ismapped():
-                frame_ativas.pack_forget()
-                btn_ver_ativas.config(text="Show output")
+            if frame_output_firewall_rules.winfo_ismapped():
+                frame_output_firewall_rules.pack_forget()
+                button_show_active_firewall_rules.config(text="Show output")
             else:
-                frame_ativas.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-                btn_ver_ativas.config(text="Hide output")
+                frame_output_firewall_rules.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+                button_show_active_firewall_rules.config(text="Hide output")
 
         def select_all_text_on_rules_text(event):
             """
@@ -262,62 +262,62 @@ class FirewallGUI:
             event.widget.tag_add("sel", "1.0", "end")
             return "break"
 
-        self.text_ativas = tk.Text(frame_ativas, wrap=tk.NONE, height=10)
-        self.text_ativas.grid(row=0, column=0, sticky="nsew")
-        self.text_ativas.bind("<Control-a>", select_all_text_on_rules_text)
+        self.text_active_firewall_rules = tk.Text(frame_output_firewall_rules, wrap=tk.NONE, height=10)
+        self.text_active_firewall_rules.grid(row=0, column=0, sticky="nsew")
+        self.text_active_firewall_rules.bind("<Control-a>", select_all_text_on_rules_text)
 
-        self.text_regras.bind("<Control-a>", select_all_text_on_rules_text)
+        self.text_firewall_rules.bind("<Control-a>", select_all_text_on_rules_text)
 
-        scroll_y_ativas = tk.Scrollbar(frame_ativas, orient=tk.VERTICAL, command=self.text_ativas.yview)
-        scroll_y_ativas.grid(row=0, column=1, sticky="ns")
-        self.text_ativas.config(yscrollcommand=scroll_y_ativas.set)
-        self.text_ativas.config(state=tk.NORMAL) # I don't know why, but if you don't activate and deactivate text_actives, select all doesn't work in text_rules
+        scroll_y_active_firewall_rules = tk.Scrollbar(frame_output_firewall_rules, orient=tk.VERTICAL, command=self.text_active_firewall_rules.yview)
+        scroll_y_active_firewall_rules.grid(row=0, column=1, sticky="ns")
+        self.text_active_firewall_rules.config(yscrollcommand=scroll_y_active_firewall_rules.set)
+        self.text_active_firewall_rules.config(state=tk.NORMAL) # I don't know why, but if you don't activate and deactivate text_actives, select all doesn't work in text_rules
         #self.text_ativas.config(state=tk.DISABLED)
 
-        scroll_x_ativas = tk.Scrollbar(frame_ativas, orient=tk.HORIZONTAL, command=self.text_ativas.xview)
-        scroll_x_ativas.grid(row=1, column=0, sticky="ew")
-        self.text_ativas.config(xscrollcommand=scroll_x_ativas.set)
+        scroll_x_active_firewall_rules = tk.Scrollbar(frame_output_firewall_rules, orient=tk.HORIZONTAL, command=self.text_active_firewall_rules.xview)
+        scroll_x_active_firewall_rules.grid(row=1, column=0, sticky="ew")
+        self.text_active_firewall_rules.config(xscrollcommand=scroll_x_active_firewall_rules.set)
 
-        frame_ativas.grid_columnconfigure(0, weight=1)
-        frame_ativas.grid_rowconfigure(0, weight=1)
-        self.btn_listar_regras_firewall = tk.Button(frame_ativas, text="List firewall rules", command=self.list_firewall_rules_on_output)
-        self.btn_listar_regras_firewall.grid(row=2, column=0)
-        self.btn_listar_regras_firewall.config(state="disabled")
+        frame_output_firewall_rules.grid_columnconfigure(0, weight=1)
+        frame_output_firewall_rules.grid_rowconfigure(0, weight=1)
+        self.button_list_firewall_rules = tk.Button(frame_output_firewall_rules, text="List firewall rules", command=self.list_firewall_rules_on_output)
+        self.button_list_firewall_rules.grid(row=2, column=0)
+        self.button_list_firewall_rules.config(state="disabled")
 
         # Creating buttons
-        frame_botoes = tk.Frame(self.regras_firewall)
-        frame_botoes.pack(pady=10)
+        frame_buttons = tk.Frame(self.firewall_rules)
+        frame_buttons.pack(pady=10)
 
-        self.btn_carregar = tk.Button(frame_botoes, text="Retrieve firewall rules", command=self.load_firewall_rules)
-        self.btn_carregar.pack(side=tk.LEFT, padx=10)
-        self.btn_carregar.config(state="disabled")
+        self.button_retrieve_firewall_rules = tk.Button(frame_buttons, text="Retrieve firewall rules", command=self.load_firewall_rules)
+        self.button_retrieve_firewall_rules.pack(side=tk.LEFT, padx=10)
+        self.button_retrieve_firewall_rules.config(state="disabled")
 
-        self.btn_aplicar = tk.Button(frame_botoes, text="Deploy firewall rules", command=self.apply_firewall_rules)
-        self.btn_aplicar.pack(side=tk.LEFT, padx=10)
-        self.btn_aplicar.config(state="disable")
+        self.button_deploy_firewall_rules = tk.Button(frame_buttons, text="Deploy firewall rules", command=self.apply_firewall_rules)
+        self.button_deploy_firewall_rules.pack(side=tk.LEFT, padx=10)
+        self.button_deploy_firewall_rules.config(state="disable")
 
         #self.btn_zerar = tk.Button(frame_botoes, text="Zerar Regras no firewall", command=self.zerar_regras_firewall)
         #self.btn_zerar.pack(side=tk.LEFT, padx=10)
         #self.btn_zerar.config(state="disable")
 
-        btn_ver_ativas = tk.Button(frame_botoes, text="Hide output", command=toggle_frame_output_on_rule_tab)
-        btn_ver_ativas.pack(side=tk.RIGHT, padx=10)
+        button_show_active_firewall_rules = tk.Button(frame_buttons, text="Hide output", command=toggle_frame_output_on_rule_tab)
+        button_show_active_firewall_rules.pack(side=tk.RIGHT, padx=10)
 
     def selected_host_on_combobox_tab_firewall_rules(self, src_ip):
         """
             Treats the selected host in the combobox
         """
         #print("selected_host_on_combobox_tab_firewall_rules")
-        selected_index = self.combobox_host_regra_firewall.current()
+        selected_index = self.combobox_firewall_rules_host.current()
         if selected_index >= 0 and selected_index < len(self.containers_data):
             container_id = [self.containers_data[selected_index]["id"], self.containers_data[selected_index]["hostname"]]
             #print(f"container_data selected_index{selected_index} -  {self.containers_data[selected_index]}")
         else:
             container_id = "N/A"  # Caso nenhum container seja selecionado
         print(container_id)
-        self.btn_carregar.config(state="normal")
-        self.btn_aplicar.config(state="normal")
-        self.btn_listar_regras_firewall.config(state="normal")
+        self.button_retrieve_firewall_rules.config(state="normal")
+        self.button_deploy_firewall_rules.config(state="normal")
+        self.button_list_firewall_rules.config(state="normal")
         #self.btn_zerar.config(state="normal")
         self.container_id_host_regras_firewall=container_id
 
@@ -327,19 +327,19 @@ class FirewallGUI:
         """
         print(f"List firewall rules for host {self.container_id_host_regras_firewall[1]}")
         
-        self.text_ativas.delete(1.0, tk.END)
+        self.text_active_firewall_rules.delete(1.0, tk.END)
 
         command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n", "-t", "nat"]
         result = containers.run_command(command)
-        self.text_ativas.insert(tk.END, f"\n* Result of the command iptables -t nat -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
-        self.text_ativas.insert(tk.END, result.stdout)
+        self.text_active_firewall_rules.insert(tk.END, f"\n* Result of the command iptables -t nat -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
+        self.text_active_firewall_rules.insert(tk.END, result.stdout)
         
         command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n"]
         result = containers.run_command(command)
-        self.text_ativas.insert(tk.END, f"\n* Result of the command iptables -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
-        self.text_ativas.insert(tk.END, result.stdout)
+        self.text_active_firewall_rules.insert(tk.END, f"\n* Result of the command iptables -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
+        self.text_active_firewall_rules.insert(tk.END, result.stdout)
 
-        self.text_ativas.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
+        self.text_active_firewall_rules.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
         
 
     def load_firewall_rules(self):
@@ -353,8 +353,8 @@ class FirewallGUI:
         if resposta:
             command = ["docker", "exec", self.container_id_host_regras_firewall[0], "cat", "/etc/firewall.sh"]
             result = containers.run_command(command)
-            self.text_regras.delete(1.0, tk.END)
-            self.text_regras.insert(tk.END, result.stdout)
+            self.text_firewall_rules.delete(1.0, tk.END)
+            self.text_firewall_rules.insert(tk.END, result.stdout)
 
     # TODO - would it be good to have a button to reset the firewall rules?
 
@@ -378,17 +378,17 @@ class FirewallGUI:
 
         result = containers.run_command(command)
 
-        self.text_ativas.delete(1.0, tk.END)
+        self.text_active_firewall_rules.delete(1.0, tk.END)
         if result.stderr:
-            self.text_ativas.delete(1.0, tk.END)
-            self.text_ativas.insert(tk.END, f"\n* Error applying firewall rules - check if there is something wrong with the rules on host {self.container_id_host_regras_firewall[1]}:\n\n")
-            self.text_ativas.insert(tk.END, result.stderr)
-            self.text_ativas.see(tk.END) # scroll to the end to see the most recent text!
+            self.text_active_firewall_rules.delete(1.0, tk.END)
+            self.text_active_firewall_rules.insert(tk.END, f"\n* Error applying firewall rules - check if there is something wrong with the rules on host {self.container_id_host_regras_firewall[1]}:\n\n")
+            self.text_active_firewall_rules.insert(tk.END, result.stderr)
+            self.text_active_firewall_rules.see(tk.END) # scroll to the end to see the most recent text!
             messagebox.showinfo("Warning", "Something went wrong while executing the rules, check the output!")
         else:
             self.list_firewall_rules_on_output()
-            self.text_ativas.insert(tk.END, f"\n* Firewall status on host {self.container_id_host_regras_firewall[1]} after rules have been applied\n\n")
-            self.text_ativas.see(tk.END) # scroll to the end to see the most recent text!
+            self.text_active_firewall_rules.insert(tk.END, f"\n* Firewall status on host {self.container_id_host_regras_firewall[1]} after rules have been applied\n\n")
+            self.text_active_firewall_rules.see(tk.END) # scroll to the end to see the most recent text!
 
 
     def apply_firewall_rules(self):
@@ -396,10 +396,10 @@ class FirewallGUI:
             Apply/execute rules firewall rules on host/container selected in the combobox on the firewall rules tab.
         """
         print(f"Apply rules on the firewall of host {self.container_id_host_regras_firewall[1]}")
-        regras = self.text_regras.get("1.0", tk.END)
+        rules = self.text_firewall_rules.get("1.0", tk.END)
         file_rules="tmp/regras.sh"
-        with open(file_rules, "w", encoding="utf-8") as arquivo:
-            arquivo.write(regras)
+        with open(file_rules, "w", encoding="utf-8") as file_name:
+            file_name.write(rules)
         print(f"Rules saved in the file {file_rules}")
         if self.reset_firewall.get() == 1: # If the checkbox is checked, first reset the firewall, then apply the rules.
             self.sento_to_host_file_to_execute_firewall_rules("tmp/reset_firewall.sh", 1)
@@ -407,16 +407,16 @@ class FirewallGUI:
         self.sento_to_host_file_to_execute_firewall_rules(file_rules, None)
         
         if self.reset_firewall.get() == 1:
-            self.text_ativas.insert(tk.END, f"\n>>Warning!<< The firewall rules of host {self.container_id_host_regras_firewall[1]} were reset via the interface, but this SHOULD be in your firewall commands because firewalls do not reset automatically in real life!\n\n")
-            self.text_ativas.see(tk.END) # scroll to the end to see the most recent text!
+            self.text_active_firewall_rules.insert(tk.END, f"\n>>Warning!<< The firewall rules of host {self.container_id_host_regras_firewall[1]} were reset via the interface, but this SHOULD be in your firewall commands because firewalls do not reset automatically in real life!\n\n")
+            self.text_active_firewall_rules.see(tk.END) # scroll to the end to see the most recent text!
 
     def reset_firewall_rules(self):
         """
             Resets the firewall rules for the host/container selected in the combobox on the firewall rules tab.
         """
         print(f"Reset firewall rules on host {self.container_id_host_regras_firewall[1]}")
-        resposta = messagebox.askyesno("Warning","This action of resetting firewall rules does not exist by default, meaning this should be handled in your firewall rules. Are you sure you want to continue?")
-        if resposta:
+        response = messagebox.askyesno("Warning","This action of resetting firewall rules does not exist by default, meaning this should be handled in your firewall rules. Are you sure you want to continue?")
+        if response:
             self.sento_to_host_file_to_execute_firewall_rules("tmp/reset_firewall.sh", 1)
 
     # def selecionar_tudo(self, event=None):
@@ -436,36 +436,36 @@ class FirewallGUI:
         popup.title(f"Edit Ports for Container {container_id} - {hostname}:")
         popup.geometry("400x300")  
 
-        portas = containers.get_port_from_container(container_id)
+        ports = containers.get_port_from_container(container_id)
     
         ttk.Label(popup, text=f"Opened Ports from {hostname}", font=("Arial", 10)).pack(pady=5)
 
         # Create a Treeview to show network ports.
         colunas = ("Protocolo", "Porta")
-        tabela_portas = ttk.Treeview(popup, columns=colunas, show="headings", selectmode="browse")
-        tabela_portas.heading("Protocolo", text="Protocol")
-        tabela_portas.heading("Porta", text="Port")
-        tabela_portas.column("Protocolo", width=150, anchor=tk.CENTER)
-        tabela_portas.column("Porta", width=100, anchor=tk.CENTER)
-        tabela_portas.pack(pady=10)
+        list_host_ports = ttk.Treeview(popup, columns=colunas, show="headings", selectmode="browse")
+        list_host_ports.heading("Protocolo", text="Protocol")
+        list_host_ports.heading("Porta", text="Port")
+        list_host_ports.column("Protocolo", width=150, anchor=tk.CENTER)
+        list_host_ports.column("Porta", width=100, anchor=tk.CENTER)
+        list_host_ports.pack(pady=10)
 
         # Populate the Treeview with existing ports
-        for protocolo, porta in portas:
-            tabela_portas.insert("", tk.END, values=(protocolo, porta))
+        for protocol, port in ports:
+            list_host_ports.insert("", tk.END, values=(protocol, port))
 
         # Create a frame to buttons
-        frame_botoes = ttk.Frame(popup)
-        frame_botoes.pack(pady=10)
+        frame_buttons = ttk.Frame(popup)
+        frame_buttons.pack(pady=10)
 
         # Button to add line/port
-        botao_adicionar = ttk.Button(frame_botoes, text="Add Port", command=lambda: self.add_line_treeview_host(tabela_portas))
-        botao_adicionar.pack(side=tk.LEFT, padx=5)
+        button_add = ttk.Button(frame_buttons, text="Add Port", command=lambda: self.add_line_treeview_host(list_host_ports))
+        button_add.pack(side=tk.LEFT, padx=5)
 
         # Button to remove a line/port
-        botao_remover = ttk.Button(frame_botoes, text="Delete Port ", command=lambda: self.delete_line_treeview_host(tabela_portas))
-        botao_remover.pack(side=tk.LEFT, padx=5)
+        button_delete = ttk.Button(frame_buttons, text="Delete Port ", command=lambda: self.delete_line_treeview_host(list_host_ports))
+        button_delete.pack(side=tk.LEFT, padx=5)
 
-        ttk.Button(popup, text="Reload Ports", command=lambda: self.salvar_portas_em_arquivo(container_id, tabela_portas)).pack(pady=10)
+        ttk.Button(popup, text="Reload Ports", command=lambda: self.hosts_save_ports_in_file(container_id, list_host_ports)).pack(pady=10)
 
         
     def add_line_treeview_host(self, ports_list):
@@ -485,44 +485,44 @@ class FirewallGUI:
             """
                 Validate and add the port.
             """
-            protocolo = combo_protocolo.get().strip().upper()
-            porta = entry_porta.get().strip()
+            protocol = combobox_protocol.get().strip().upper()
+            port = entry_port.get().strip()
 
             # Validate protocol
-            if protocolo not in ["TCP", "UDP"]:
+            if protocol not in ["TCP", "UDP"]:
                 messagebox.showerror("Error", "Invalid protocol! Choose TCP or UDP.")
                 return
 
             # Validate port
             try:
-                porta = int(porta)
-                if porta < 1 or porta > 65535:
+                port = int(port)
+                if port < 1 or port > 65535:
                     raise ValueError
             except ValueError:
                 messagebox.showerror("Error", "Invalid port! Must be a number between 0 and 65535.")
                 return
 
             # Checks if the protocol/port combination already exists in the table
-            for linha in ports_list.get_children():
-                valores = ports_list.item(linha, "values")
-                if valores[0].upper() == protocolo and valores[1] == str(porta):
-                    messagebox.showerror("Error", f"Port {porta}/{protocolo} already exists in the table!")
+            for line in ports_list.get_children():
+                values = ports_list.item(line, "values")
+                if values[0].upper() == protocol and values[1] == str(port):
+                    messagebox.showerror("Error", f"Port {port}/{protocol} already exists in the table!")
                     return
 
             # Add new port in the Treeview
-            ports_list.insert("", tk.END, values=(protocolo, porta))
+            ports_list.insert("", tk.END, values=(protocol, port))
             popup.destroy()  # Close popup
 
         # Fields to select the protocol
         ttk.Label(popup, text="Protocol:").pack(pady=5)
-        combo_protocolo = ttk.Combobox(popup, values=["TCP", "UDP"], state="readonly")
-        combo_protocolo.set("TCP")  # Default value
-        combo_protocolo.pack(pady=5)
+        combobox_protocol = ttk.Combobox(popup, values=["TCP", "UDP"], state="readonly")
+        combobox_protocol.set("TCP")  # Default value
+        combobox_protocol.pack(pady=5)
 
         # Field to add port
         ttk.Label(popup, text="Port:").pack(pady=5)
-        entry_porta = ttk.Entry(popup)
-        entry_porta.pack(pady=5)
+        entry_port = ttk.Entry(popup)
+        entry_port.pack(pady=5)
 
         # Button to add port
         ttk.Button(popup, text="Add", command=add_port_on_host).pack(pady=10)
@@ -536,11 +536,11 @@ class FirewallGUI:
                 ports_list: List of network ports.
         """
         print("Delete")
-        selecionado = ports_list.selection()
-        if selecionado:  # Verifica se há algo selecionado
-            ports_list.delete(selecionado)
+        selected = ports_list.selection()
+        if selected:  # Verifica se há algo selecionado
+            ports_list.delete(selected)
 
-    def salvar_portas_em_arquivo(self, containerId, ports_list, file_name="tmp_conf/portas.conf"):
+    def hosts_save_ports_in_file(self, container_id, ports_list, file_name="tmp_conf/portas.conf"):
         """
             Saves the ports and protocols of the Treeview in a file, in the format "port/protocol".
 
@@ -549,23 +549,23 @@ class FirewallGUI:
                 file_name: Name of the file where the data will be saved.
         """
         try:
-            with open(file_name, "w") as arquivo:
+            with open(file_name, "w") as file:
                 # Iterate through all rows of the Treeview
-                for linha in ports_list.get_children():
+                for line in ports_list.get_children():
                     # Get the line values (protocol and port)
-                    valores = ports_list.item(linha, "values")
+                    valores = ports_list.item(line, "values")
                     if len(valores) == 2:  # Check if there are two values ​​(protocol and port)
                         protocolo, porta = valores
                         # write in the file in the format "prot/protocol"
-                        arquivo.write(f"{porta}/{protocolo}\n")
+                        file.write(f"{porta}/{protocolo}\n")
             print(f"Ports successfully saved in file {file_name}!")
         except Exception as e:
             print(f"Error saving ports: {e}")
         
         # reload the ports in the container, starting all services on each port.
-        self.reload_ports(containerId, file_name)
+        self.reload_ports(container_id, file_name)
         # restart server
-        containers.start_server(containerId)
+        containers.start_server(container_id)
 
     def reload_ports(self, container_id, file_name):
         """
@@ -586,9 +586,9 @@ class FirewallGUI:
         ttk.Label(self.firewall_frame, text="Firewall Test", font=("Arial", 12)).pack(pady=10)
 
         # Frame for input fields
-        frame_entrada = ttk.Frame(self.firewall_frame)
+        frame_botton = ttk.Frame(self.firewall_frame)
         #frame_entrada.pack(fill="x", padx=10, pady=5)
-        frame_entrada.pack(pady=10)
+        frame_botton.pack(pady=10)
 
         # List values in the Combobox (hostname + IP)
         if self.containers_data:
@@ -607,14 +607,14 @@ class FirewallGUI:
 
 
         # Inputs components
-        ttk.Label(frame_entrada, text="Source IP:").grid(row=0, column=0)
-        self.src_ip = ttk.Combobox(frame_entrada, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
+        ttk.Label(frame_botton, text="Source IP:").grid(row=0, column=0)
+        self.src_ip = ttk.Combobox(frame_botton, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
         self.src_ip.current(0)
         self.src_ip.grid(row=1, column=0)
 
 
-        ttk.Label(frame_entrada, text="Destination IP:").grid(row=0, column=1)
-        self.dst_ip = ttk.Combobox(frame_entrada, values=self.hosts_display, width=25)
+        ttk.Label(frame_botton, text="Destination IP:").grid(row=0, column=1)
+        self.dst_ip = ttk.Combobox(frame_botton, values=self.hosts_display, width=25)
         if len(self.containers_data) > 1: # checks if there is more than one element in the host list, if there isn't, you can't set the second one as default.
             self.dst_ip.current(1)
         else:
@@ -624,26 +624,26 @@ class FirewallGUI:
         # Binds the selection event
         self.dst_ip["state"] = "normal"
 
-        ttk.Label(frame_entrada, text="Protocol:").grid(row=0, column=2)
-        self.protocol = ttk.Combobox(frame_entrada, values=protocols, width=6, state="readonly", style="TCombobox")
+        ttk.Label(frame_botton, text="Protocol:").grid(row=0, column=2)
+        self.protocol = ttk.Combobox(frame_botton, values=protocols, width=6, state="readonly", style="TCombobox")
         self.protocol.current(0)
         self.protocol.grid(row=1, column=2)
 
-        ttk.Label(frame_entrada, text="Src Port:").grid(row=0, column=3)
-        self.src_port = ttk.Entry(frame_entrada, width=11)
+        ttk.Label(frame_botton, text="Src Port:").grid(row=0, column=3)
+        self.src_port = ttk.Entry(frame_botton, width=11)
         self.src_port.insert(0, "*")
         self.src_port.config(state="disabled")
         self.src_port.grid(row=1, column=3)
 
-        ttk.Label(frame_entrada, text="Dst Port:").grid(row=0, column=4)
-        self.dst_port = ttk.Entry(frame_entrada, width=11)
+        ttk.Label(frame_botton, text="Dst Port:").grid(row=0, column=4)
+        self.dst_port = ttk.Entry(frame_botton, width=11)
         self.dst_port.insert(0, "80")
         self.dst_port.grid(row=1, column=4)
 
-        ttk.Label(frame_entrada, text="Expected success?").grid(row=0, column=5)
+        ttk.Label(frame_botton, text="Expected success?").grid(row=0, column=5)
         self.expected = tk.StringVar(value="yes")
-        ttk.Radiobutton(frame_entrada, text="Yes", variable=self.expected, value="yes").grid(row=1, column=5)
-        ttk.Radiobutton(frame_entrada, text="No", variable=self.expected, value="no").grid(row=1, column=6)
+        ttk.Radiobutton(frame_botton, text="Yes", variable=self.expected, value="yes").grid(row=1, column=5)
+        ttk.Radiobutton(frame_botton, text="No", variable=self.expected, value="no").grid(row=1, column=6)
 
         # Frame to display added tests
         self.tests_frame = ttk.Frame(self.firewall_frame)
@@ -754,33 +754,33 @@ class FirewallGUI:
             self.button_tree_test_all.config(state="disabled")
 
         # Frame Legend
-        self.frame_legenda_testes = ttk.LabelFrame(self.firewall_frame, text="Legenda")
-        self.frame_legenda_testes.pack(side="bottom", fill="x", padx=20, pady=15)
-        self.frame_legenda_testes.pack_propagate(False)
-        self.frame_legenda_testes.config(width=700, height=50)
+        self.frame_test_legend = ttk.LabelFrame(self.firewall_frame, text="Legenda")
+        self.frame_test_legend.pack(side="bottom", fill="x", padx=20, pady=15)
+        self.frame_test_legend.pack_propagate(False)
+        self.frame_test_legend.config(width=700, height=50)
 
-        tk.Label(self.frame_legenda_testes, bg="lightgreen", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Test successfully completed - net flow allowed.", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_test_legend, bg="lightgreen", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        tk.Label(self.frame_test_legend, text="Test successfully completed - net flow allowed.", font=("Arial", 10)).pack(side="left")
 
-        tk.Label(self.frame_legenda_testes, bg="lightblue", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Test successfully completed - net flow blocked.", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_test_legend, bg="lightblue", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        tk.Label(self.frame_test_legend, text="Test successfully completed - net flow blocked.", font=("Arial", 10)).pack(side="left")
 
-        tk.Label(self.frame_legenda_testes, bg="red", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Test failed.", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_test_legend, bg="red", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        tk.Label(self.frame_test_legend, text="Test failed.", font=("Arial", 10)).pack(side="left")
 
-        tk.Label(self.frame_legenda_testes, bg="yellow", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Error (e.g., error in IP, GW, DNS, Server)", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_test_legend, bg="yellow", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        tk.Label(self.frame_test_legend, text="Error (e.g., error in IP, GW, DNS, Server)", font=("Arial", 10)).pack(side="left")
 
-        self.frame_botoes_salvar_testes = ttk.Frame(self.firewall_frame)
-        self.frame_botoes_salvar_testes.pack(pady=10)
+        self.frame_button_save_tests = ttk.Frame(self.firewall_frame)
+        self.frame_button_save_tests.pack(pady=10)
 
-        self.button_save_tests = ttk.Button(self.frame_botoes_salvar_testes, text="Save Tests", command=self.firewall_tests_save_tests)
+        self.button_save_tests = ttk.Button(self.frame_button_save_tests, text="Save Tests", command=self.firewall_tests_save_tests)
         self.button_save_tests.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
         
-        self.button_save_tests_as = ttk.Button(self.frame_botoes_salvar_testes, text="Save Tests As", command=self.firewall_tests_save_tests_as)
+        self.button_save_tests_as = ttk.Button(self.frame_button_save_tests, text="Save Tests As", command=self.firewall_tests_save_tests_as)
         self.button_save_tests_as.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
 
-        self.button_load_tests = ttk.Button(self.frame_botoes_salvar_testes, text="Open Tests", command=self.firewall_tests_open_test_file)
+        self.button_load_tests = ttk.Button(self.frame_button_save_tests, text="Open Tests", command=self.firewall_tests_open_test_file)
         self.button_load_tests.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")
 
     def firewall_test_tree_select_line_test(self, event):
@@ -960,11 +960,11 @@ class FirewallGUI:
         regex_ip = r'^\d+\.\d+\.\d+\.\d+$'
         
         # Regex do domain (ex: google.com, www.example.com)
-        regex_dominio = r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        regex_domain = r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         
         if re.match(regex_ip, ip_or_domain):
             return True
-        elif re.match(regex_dominio, ip_or_domain):
+        elif re.match(regex_domain, ip_or_domain):
             return True
         else:
             return False
@@ -1196,22 +1196,22 @@ class FirewallGUI:
             Starts a window with a progress bar that executes all the tests in the firewall test tree. Threads are used for the progress bar to work.
         """
         print("Thread to execute all tests.")
-        janela_popup = tk.Toplevel(self.root)
-        janela_popup.title("Processing...")
-        janela_popup.geometry("300x120")
-        janela_popup.resizable(False, False)
+        popup_window = tk.Toplevel(self.root)
+        popup_window.title("Processing...")
+        popup_window.geometry("300x120")
+        popup_window.resizable(False, False)
         
-        status_label = tk.Label(janela_popup, text="Starting...", font=("Arial", 10))
+        status_label = tk.Label(popup_window, text="Starting...", font=("Arial", 10))
         status_label.pack(pady=10)
 
-        progresso_var = tk.IntVar()
-        barra_progresso = ttk.Progressbar(janela_popup, length=250, mode="determinate", variable=progresso_var)
+        progress_bar = tk.IntVar()
+        barra_progresso = ttk.Progressbar(popup_window, length=250, mode="determinate", variable=progress_bar)
         barra_progresso.pack(pady=5)
 
         self.tree.selection_set(())
         self.firewall_tests_update_tree()
 
-        threading.Thread(target=self.firewall_tests_run_all_tests, args=(janela_popup, progresso_var, status_label), daemon=True).start()
+        threading.Thread(target=self.firewall_tests_run_all_tests, args=(popup_window, progress_bar, status_label), daemon=True).start()
     
     def firewall_tests_run_all_tests(self, popup_window, progress_bar, status_label):
         """
@@ -1222,13 +1222,13 @@ class FirewallGUI:
                 progress_bar: Progress bar used in the popup to show tests progresses.
                 status_label: Label used in the popup to show the tests progress.
         """
-        indice=0
+        index=0
         
         itens = self.tree.get_children()
 
-        total_lista = len(itens)
-        for teste in itens:
-            values = self.tree.item(teste, "values")
+        total_list = len(itens)
+        for test in itens:
+            values = self.tree.item(test, "values")
             teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, result, dnat, observation = values
             print(f"Executing test - Container ID:  {container_id}, Data: {src_ip} -> {dst_ip} [{protocol}] {src_port}:{dst_port} (Expected: {expected})")
             
@@ -1248,12 +1248,12 @@ class FirewallGUI:
                 result = None
                 return
 
-            self.firewall_tests_analyse_results_update_tree(expected,result, values, teste)
+            self.firewall_tests_analyse_results_update_tree(expected,result, values, test)
 
-            indice+=1
-            porcentagem_concluida = (indice / total_lista) * 100
-            progress_bar.set(porcentagem_concluida)  # Update progress bar
-            status_label.config(text=f"Processing... {indice}/{total_lista}")
+            index+=1
+            percentage_compete = (index / total_list) * 100
+            progress_bar.set(percentage_compete)  # Update progress bar
+            status_label.config(text=f"Processing... {index}/{total_list}")
             
 
         status_label.config(text="Task completed!")
@@ -1271,7 +1271,7 @@ class FirewallGUI:
             container_id = container["id"]
             containers.start_server(container_id)
 
-        for cid, btn, label_status in self.lista_btn_onOff:
+        for cid, btn, label_status in self.list_button_servers_onOff:
             #print(f"cid/btn {cid} - {btn}")
                 btn.config(image=self.power_icon, text="liga")
                 status = self.host_check_server_on_off(container_id)
@@ -1311,7 +1311,7 @@ class FirewallGUI:
         print(f"self.containers_data: {self.containers_data}")
         cont = containers.getContainersHostNames()
         print(f"cont :  {json.dumps(cont, indent=4)}")
-        self.lista_btn_onOff = []
+        self.list_button_servers_onOff = []
         row_index = 0  # Starting line on the grid
 
         # Load the icons
@@ -1384,7 +1384,7 @@ class FirewallGUI:
             btn_toggle = ttk.Button(interface_frame, image=self.power_icon, command=lambda cid=container_id: self.host_toggle_server_and_button_between_onOff(cid, btn_toggle))
             btn_toggle.image = self.power_icon  # Keep the reference to avoid garbage collection
             btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
-            self.lista_btn_onOff.append((container_id, btn_toggle, lbl_status))
+            self.list_button_servers_onOff.append((container_id, btn_toggle, lbl_status))
             row_index += 1  # Extra line to separate hosts
 
     def host_check_server_on_off(self, container_id):
@@ -1413,11 +1413,11 @@ class FirewallGUI:
         """
         print(f"Toggling server for container ID: {container_id}")  
         # Find the corresponding button in the list and change the image
-        for cid, button_on_off, label_status in self.lista_btn_onOff:
+        for cid, button_on_off, label_status in self.list_button_servers_onOff:
             print(f"container_id/button {cid} - {button_on_off}")
             if cid == container_id:
-                imagem_atual = button_on_off["image"][0]
-                if imagem_atual == str(self.power_icon):
+                current_image = button_on_off["image"][0]
+                if current_image == str(self.power_icon):
                     print("off")
                     label_status.config()
                     containers.stop_server(container_id)

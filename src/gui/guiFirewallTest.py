@@ -1309,7 +1309,7 @@ class FirewallGUI:
             Displays host information in the hosts tab.
         """
         print(f"self.containers_data: {self.containers_data}")
-        cont = containers.getContainersHostNames()
+        cont = containers.getContainersByImageName()
         print(f"cont :  {json.dumps(cont, indent=4)}")
         self.list_button_servers_onOff = []
         row_index = 0  # Starting line on the grid

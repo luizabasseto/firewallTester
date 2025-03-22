@@ -28,6 +28,17 @@ def get_ips():
 def is_not_loopback(ip):
     return not ipaddress.ip_address(ip).is_loopback
 
+def ip_valido_nao_loopback_nem_zero(endereco_ip):
+    """
+    Verifica se um endereço IP não é 0.0.0.0 nem pertence à rede 127.0.0.0/8 (loopback).
+    """
+    try:
+        ip_obj = ipaddress.ip_address(endereco_ip)
+        loopback_rede = ipaddress.ip_network("127.0.0.0/8")
+        return ip_obj != ipaddress.ip_address("0.0.0.0") and ip_obj not in loopback_rede
+    except ValueError:
+        return False  # Retorna False se o endereço IP for inválido
+
 def adicionar_campo_dnat(json_objeto, host_name, ip, porta):
     """Adiciona o campo 'dnat' ao objeto JSON."""
 
@@ -113,9 +124,10 @@ def lidar_com_cliente_TCP(client_socket):
 
         server_address = client_socket.getsockname()
         server_ip, server_port = server_address
-
-        if (dest_ip not in server_ips) and is_not_loopback(dest_ip):
-            #print("ips diferentes")
+        #server_ips.append("0.0.0.0")
+        #if (dest_ip not in server_ips) and is_not_loopback(dest_ip): ip_valido_nao_loopback_nem_zero
+        if (dest_ip not in server_ips) and ip_valido_nao_loopback_nem_zero(dest_ip):
+            #print(f"ips diferentes {dest_ip}")
             host_name = socket.getfqdn()
             json_data["message"] = f"Looks like DNAT was made {json_data["server_ip"]}->{host_name}"
             json_data = adicionar_campo_dnat(json_data, host_name, server_ip, server_port)

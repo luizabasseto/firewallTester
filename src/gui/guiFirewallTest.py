@@ -33,10 +33,10 @@ import textwrap
 # TODO - sugerir testes baseados nos serviços em execução no ambiente.
 # TODO - sugerir testes fundamentados nos testes propostos pelo usuário, tal como: se pediu para host1 acessar HTTP no host3, fazer o contrário também.
 # TODO - Esta dando erro quando um servidor não está ligado, mas isso não deveria acontecer -  a mensagem é: Unable to get a response from the hosts! Is GNS3 or the hosts running? dá erra erro no este  - procurar e corrigir! Parece que o problema é que a porta, por exemplo tcp/80, está em uso quando liga o servidor, ai ele desliga o próprio servidor, então a porta 80 não aparece na lista, ai vc adiciona, ai ficam duas portas 80 na lista, ai ele mata ele mesmo, pq o programa está configurado para matar programas que estão ocupando a porta - então tem que: TODO - não aceitar portas duplicadas no arquivo, ele está vendo isso via netstat - # TODO - ver essa história de matar e como matar, pq ele não pode matar ele mesmo!
+# TODO - quando está salvando e abrindo os testes salvos, está dando erros de colunar na tree, pq as colunas foram alteradas! rever...
 
 class FirewallGUI:
     def __init__(self, root):
-        print("root")
         self.root = root
         self.root.title("Firewall Tester")
         self.root.geometry("800x600")

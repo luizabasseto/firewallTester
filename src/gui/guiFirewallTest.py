@@ -658,13 +658,14 @@ class FirewallGUI:
         style.configure("Treeview", rowheight=25)
         style.map("Treeview", background=[("selected", "#4a90e2")])
         self.tree.tag_configure("yes", background="lightgreen")
-        self.tree.tag_configure("yesFail", background="green")
+        self.tree.tag_configure("yesFail", background="lightblue")
         self.tree.tag_configure("no", background="salmon")
         self.tree.tag_configure("error", background="yellow")
-        self.tree.tag_configure("nat", background="lightblue")
+        #self.tree.tag_configure("nat", background="lightblue")
 
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
         self.tree.bind("<Double-1>", self.on_tree_select_double)
+        self.tree.bind('<Escape>', self.on_tree_select)
 
         btn_frame = tk.Frame(root)
         btn_frame.pack(side="bottom", fill="x", padx=10, pady=10)
@@ -682,16 +683,16 @@ class FirewallGUI:
         self.frame_legenda_testes.config(width=700, height=50)
 
         tk.Label(self.frame_legenda_testes, bg="lightgreen", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Test successfully completed.", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_legenda_testes, text="Test successfully completed - net flow allowed.", font=("Arial", 10)).pack(side="left")
 
-        #tk.Label(self.frame_legenda_testes, bg="lightblue", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        #tk.Label(self.frame_legenda_testes, text="Test successfully completed, DNAT might be present.", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_legenda_testes, bg="lightblue", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
+        tk.Label(self.frame_legenda_testes, text="Test successfully completed - net flow blocked.", font=("Arial", 10)).pack(side="left")
 
         tk.Label(self.frame_legenda_testes, bg="red", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Test did not succeed.", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_legenda_testes, text="Test failed.", font=("Arial", 10)).pack(side="left")
 
         tk.Label(self.frame_legenda_testes, bg="yellow", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_legenda_testes, text="Test failure (e.g., error in IP, GW, DNS, Server)", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_legenda_testes, text="Error (e.g., error in IP, GW, DNS, Server)", font=("Arial", 10)).pack(side="left")
 
         self.frame_botoes_salvar_testes = ttk.Frame(self.firewall_frame)
         self.frame_botoes_salvar_testes.pack(pady=10)
@@ -732,6 +733,8 @@ class FirewallGUI:
             self.button_tree_test.config(state="disabled")
         else:
             self.button_tree_test.config(state="normal")
+            self.button_tree_test_all.config(state="normal")
+
         self.button_tree_add.config(state="normal")
         self.button_tree_edit.config(state="disable")
         self.button_tree_del.config(state="disable")
@@ -1313,7 +1316,9 @@ class FirewallGUI:
                         "src_port": src_port,
                         "dst_port": dst_port,
                         "expected": expected,
-                        "result": result
+                        "result": result,
+                        "flow": dnat,
+                        "data": observation
                     })
 
             # Escreve no arquivo JSON
@@ -1340,7 +1345,7 @@ class FirewallGUI:
             for test in tests_data:
                 item_id = self.tree.insert("", "end", values=[
                     test["teste_id"], test["container_id"], test["src_ip"], test["dst_ip"], test["protocol"],
-                    test["src_port"], test["dst_port"], test["expected"], test["result"]
+                    test["src_port"], test["dst_port"], test["expected"], test["result"], test["flow"], test["data"]
                 ])
 
                 # Restaura o Container ID oculto

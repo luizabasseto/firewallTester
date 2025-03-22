@@ -1,36 +1,42 @@
 [
     {
         "teste_id": "1",
-        "container_id": "35b85f39d9ac",
-        "src_ip": "Host-5 (192.168.122.5)",
-        "dst_ip": "Firewall (192.168.122.254)",
+        "container_id": "f0cb4aa2082f",
+        "src_ip": "Host-1 (10.1.0.1)",
+        "dst_ip": "Firewall (10.1.0.254)",
         "protocol": "TCP",
         "src_port": "*",
         "dst_port": "80",
         "expected": "yes",
-        "result": "Pass"
+        "result": "Pass",
+        "flow": "Sent/Receved",
+        "data": "10.1.0.1:59899->10.1.0.254:80(tcp) - Server response? True - Status: ok"
     },
     {
         "teste_id": "2",
-        "container_id": "35b85f39d9ac",
-        "src_ip": "Host-5 (192.168.122.5)",
-        "dst_ip": "Firewall (192.168.122.254)",
-        "protocol": "TCP",
-        "src_port": "*",
-        "dst_port": "80",
-        "expected": "no",
-        "result": "Pass"
-    },
-    {
-        "teste_id": "3",
-        "container_id": "e904506721b9",
-        "src_ip": "fHost.test-1 (0.0.0.0)",
+        "container_id": "f0cb4aa2082f",
+        "src_ip": "Host-1 (10.1.0.1)",
         "dst_ip": "Firewall (10.1.0.254)",
         "protocol": "TCP",
         "src_port": "*",
         "dst_port": "80",
         "expected": "no",
-        "result": "Fail"
+        "result": "Pass",
+        "flow": "Sent/Receved",
+        "data": "10.1.0.1:51611->10.1.0.254:80(tcp) - Server response? True - Status: ok"
+    },
+    {
+        "teste_id": "3",
+        "container_id": "f0cb4aa2082f",
+        "src_ip": "Host-1 (10.1.0.1)",
+        "dst_ip": "Firewall (10.1.0.254)",
+        "protocol": "TCP",
+        "src_port": "*",
+        "dst_port": "803",
+        "expected": "no",
+        "result": "Fail",
+        "flow": "Sent",
+        "data": "127.0.1.1:50901->10.1.0.254:803(tcp) - Server response? False - Status: Firewall Drop or Network Error"
     },
     {
         "teste_id": "4",
@@ -39,8 +45,23 @@
         "dst_ip": "fHost.test-1 (0.0.0.0)",
         "protocol": "TCP",
         "src_port": "*",
-        "dst_port": "80",
+        "dst_port": "803",
+        "expected": "yes",
+        "result": "Fail",
+        "flow": "Sent",
+        "data": "127.0.1.1:53389->0.0.0.0:803(tcp) - Server response? False - Status: Error by using destination IP 0.0.0.0"
+    },
+    {
+        "teste_id": "5",
+        "container_id": "e904506721b9",
+        "src_ip": "fHost.test-1 (0.0.0.0)",
+        "dst_ip": "Firewall (10.1.0.254)",
+        "protocol": "TCP",
+        "src_port": "*",
+        "dst_port": "803",
         "expected": "no",
-        "result": "Pass"
+        "result": "Fail",
+        "flow": "Sent",
+        "data": "127.0.1.1:45985->10.1.0.254:803(tcp) - Server response? False - Status: Firewall Drop or Network Error"
     }
 ]

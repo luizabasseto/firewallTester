@@ -6,10 +6,13 @@ from docker_host import DockerHost
 
 def get_ip_info_from_docker(container_id):
     """
-        Runs the command 'ip -4 -json a' inside a Docker container and returns the resulting JSON.
-
-        Args:
-            containerId: container ID.
+    Runs the command 'ip -4 -json a' inside a Docker container and returns the resulting JSON.
+    
+    Args:
+        containerId: container ID.
+    
+    :return: 
+        A list of containers informations.
     """
     try:
         result = subprocess.run(
@@ -61,6 +64,7 @@ def stop_server(container_id):
 def run_command(command):
     """
         Execute a command.
+        
         Args:
             command: command that will be executed, but the commands, their options and parameters must be in a python list.
     """
@@ -77,6 +81,7 @@ def run_command(command):
 def run_command_shell(command):
     """
         Execute a command but the commando is like the console command, not a list.
+        
         Args:
             command: command that will be executed.
     """
@@ -208,8 +213,11 @@ def process_ip_info(interfaces, host):
 def extract_hostname_ips(json_list):
     """
         Extrai o hostname e os IPs de uma lista de objetos JSON.
-            :param: json_list: List of JSON objects in DockerHost format.
-            :return: List of strings in the format "hostname: ip".
+
+        Args:
+            param: json_list: List of JSON objects in DockerHost format.
+            
+        :return: List of strings in the format "hostname: ip".
     """
     result = []
 
@@ -228,7 +236,8 @@ def extract_hostname_ips(json_list):
 def extract_containerid_hostname_ips( ):
     """
     Extracts the container ID, hostname and IPs from a list of JSON objects.
-        :return: Sorted list of dictionaries in the format {"id": "container_id", "hostname": "hostname", "ip": "ip"}.
+    
+    :return: Sorted list of dictionaries in the format {"id": "container_id", "hostname": "hostname", "ip": "ip"}.
     """
 
     json_list = getContainersByImageName()  # get container information (id, hostname, etc)
@@ -265,7 +274,9 @@ def extract_hostname_interface_ips(json_list):
     """
     Extracts the hostname and network interfaces with their IPs from a list of JSON objects.
 
-    :param json_list: List of JSON objects in DockerHost format.
+    Args:
+        json_list: List of JSON objects in DockerHost format.
+    
     :return: List of lists in the format [hostname, [interface1, interface2, ...]],
         where each interface is a dictionary {"name": "eth0", "ips": ["ip1", "ip2"]}.
     """
@@ -293,7 +304,10 @@ def extract_hostname_interface_ips(json_list):
 def get_container_info_by_filter(filter_string):
     """
         Gets detailed information about Docker containers whose hostname contains the given string.
-        :param filter_string: String filter that will be used in the container search.
+        
+        Args:
+            filter_string: String filter that will be used in the container search.
+        
         :return: List of containers that match with the filter.
     """
     print(f"\nGetting container information: \n\tAll containers must have names containing the word: {filter_string}.")
@@ -351,6 +365,7 @@ def get_container_info_by_filter(filter_string):
 def getContainersByImageName():
     """
         Get containers using Docker image name. Previously this was returned by the host name, but this was changed to the image name.
+        
         :return: A list of containers/hosts.
     """
 

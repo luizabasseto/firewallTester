@@ -36,6 +36,7 @@ import textwrap
 # TODO - if only the host or all hosts in the scenario are turned off, there is no problem for the interface, but if GNS3 is turned off and the same scenario is turned on again, the interface becomes inconsistent, even the host update button does not work properly! Also, the rules deployed in the firewall are lost.
 # TODO - when saving and opening tests - do not reference the container ID, only the names and perhaps IPs (I think IPs are unavoidable for now), and when the rules are opened, the interface must relate or re-relate the hostname with the container_id, and perhaps the IPs (it would be nice not to relate with the IPs, because in the scenario the user could create or change the hostname to another IP and the test would continue to work).
 # TODO - the combobox of "Edit firewall rules on host" should not show multiple lines for the same host (it shows one per host IP), but rather only one name.
+# TODO - You need a scroll on the tabs and it also limits their size, because when you put too many hosts (about 7) the buttons to update hosts and exit the program disappeared, because the tabs pushed them off the screen.
 
 
 class FirewallGUI:
@@ -94,6 +95,10 @@ class FirewallGUI:
 
         # get data from containers and hosts
         self.containers_data = containers.extract_containerid_hostname_ips( )  # get hosts informations
+        
+        # get container_id and hostname - used for example to combobox in firewall rules.
+        self.container_hostname = containers.get_containerid_hostname() # container_id and hostname for operations
+        self.hosts = list(map(lambda x: x[1], self.container_hostname)) # hostnames to display
 
         # creating tabs
         self.create_hosts_tab()
@@ -207,7 +212,8 @@ class FirewallGUI:
         frame_tittle.pack(fill=tk.X)
 
         ttk.Label(frame_tittle, text="Edit firewall rules on host:", font=("Arial", 12, "bold")).pack(padx=10)
-        self.combobox_firewall_rules_host = ttk.Combobox(frame_tittle, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
+        #self.combobox_firewall_rules_host = ttk.Combobox(frame_tittle, values=self.hosts_display, width=25, state="readonly", style="TCombobox")
+        self.combobox_firewall_rules_host = ttk.Combobox(frame_tittle, values=self.hosts, width=25, state="readonly", style="TCombobox")
         self.combobox_firewall_rules_host.pack(pady=10)
         #self.combobox_host_regra_firewall.current(0)
         self.combobox_firewall_rules_host.set("")
@@ -309,8 +315,8 @@ class FirewallGUI:
         """
         #print("selected_host_on_combobox_tab_firewall_rules")
         selected_index = self.combobox_firewall_rules_host.current()
-        if selected_index >= 0 and selected_index < len(self.containers_data):
-            container_id = [self.containers_data[selected_index]["id"], self.containers_data[selected_index]["hostname"]]
+        if selected_index >= 0 and selected_index < len(self.container_hostname):
+            container_id = [self.container_hostname[selected_index][0], self.container_hostname[selected_index][1]]
             #print(f"container_data selected_index{selected_index} -  {self.containers_data[selected_index]}")
         else:
             container_id = "N/A"  # Caso nenhum container seja selecionado
@@ -760,10 +766,10 @@ class FirewallGUI:
         self.frame_test_legend.config(width=700, height=50)
 
         tk.Label(self.frame_test_legend, bg="lightgreen", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_test_legend, text="Test successfully completed - net flow allowed.", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_test_legend, text="Test successfully completed - net flow allowed/accepted).", font=("Arial", 10)).pack(side="left")
 
         tk.Label(self.frame_test_legend, bg="lightblue", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
-        tk.Label(self.frame_test_legend, text="Test successfully completed - net flow blocked.", font=("Arial", 10)).pack(side="left")
+        tk.Label(self.frame_test_legend, text="Test successfully completed - net flow blocked/dropped).", font=("Arial", 10)).pack(side="left")
 
         tk.Label(self.frame_test_legend, bg="red", width=2, height=1, font=("Arial", 6)).pack(side="left", padx=5)
         tk.Label(self.frame_test_legend, text="Test failed.", font=("Arial", 10)).pack(side="left")
@@ -1288,6 +1294,13 @@ class FirewallGUI:
 
         self.containers_data = containers.extract_containerid_hostname_ips( )  # get hosts information (hostname, interfaces, ips)
 
+        # get container_id and hostname - used for example to combobox in firewall rules.
+        self.container_hostname = containers.get_containerid_hostname() # container_id and hostname for operations
+        self.hosts = list(map(lambda x: x[1], self.container_hostname)) # hostnames to display
+        self.combobox_firewall_rules_host['values']=self.hosts # update combobox values
+
+        print(self.hosts)
+
         self.hosts_show_host_informations_in_host_tab( )
 
         # List of values ​​displayed in Combobox (hostname + IP)
@@ -1303,6 +1316,8 @@ class FirewallGUI:
             self.dst_ip.current(1)
         else:
             self.dst_ip.current(0)
+
+        self.root.update_idletasks()
 
     def hosts_show_host_informations_in_host_tab(self):
         """

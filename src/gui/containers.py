@@ -270,6 +270,25 @@ def extract_containerid_hostname_ips( ):
 
     return sorted(result, key=lambda x: x["hostname"])
 
+def get_containerid_hostname( ):
+    """
+    Get the container ID and hostname.
+    
+    :return: Sorted list of dictionaries in the format [container_id, hostname}.
+    """
+
+    json_list = getContainersByImageName()  # get container information (id, hostname, etc)
+
+    result = []
+
+    # Iterates through each JSON object in the list
+    for host in json_list:
+        hostname = host["hostname"]
+        container_id = host["id"]
+        result.append([container_id, hostname])
+    return sorted(result, key=lambda x: x[1])
+
+
 def extract_hostname_interface_ips(json_list):
     """
     Extracts the hostname and network interfaces with their IPs from a list of JSON objects.

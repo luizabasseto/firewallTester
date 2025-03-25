@@ -206,15 +206,16 @@ class FirewallGUI:
             self.canva_hosts = tk.Canvas(self.central_frame, width=500, height=800)
             self.canva_hosts.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-            barra_vertical = ttk.Scrollbar(self.frame_all_hosts, orient="vertical", command=self.canva_hosts.yview)
-            barra_vertical.pack(side=tk.RIGHT, fill=tk.Y)
+            self.barra_vertical = ttk.Scrollbar(self.frame_all_hosts, orient="vertical", command=self.canva_hosts.yview)
+            self.barra_vertical.pack(side=tk.RIGHT, fill=tk.Y)
 
-            self.canva_hosts.configure(yscrollcommand=barra_vertical.set)
+            self.canva_hosts.configure(yscrollcommand=self.barra_vertical.set)
 
-            self.frame_conteudo_hosts = tk.Frame(self.canva_hosts) # Frame para o conteúdo dentro do canvas
-            self.canva_hosts.create_window((0, 0), window=self.frame_conteudo_hosts, anchor="n")
+            self.frame_hosts_informations = tk.Frame(self.canva_hosts) # Frame para o conteúdo dentro do canvas
+            self.canva_hosts.create_window((0, 0), window=self.frame_hosts_informations, anchor="n")
 
-            self.frame_conteudo_hosts.bind("<Configure>", lambda event: self.canva_hosts.configure(scrollregion=self.canva_hosts.bbox("all")))
+            #self.frame_hosts_informations.bind("<Configure>", lambda event: self.canva_hosts.configure(scrollregion=self.canva_hosts.bbox("all")))
+            self.frame_hosts_informations.bind("<Configure>", self.scroll_ajust)
 
             self.hosts_show_host_informations_in_host_tab()
 
@@ -246,8 +247,16 @@ class FirewallGUI:
             container_name = host["nome"]
             hostname = host["hostname"]
 
+            #
+            if not self.frame_hosts_informations.winfo_exists() or not self.canva_hosts.winfo_exists():
+                print("Error: frame_content_hosts or canvas does not exist anymore!")
+                #recriate 
+                self.frame_hosts_informations = ttk.Frame(self.canva_hosts)
+                self.canva_hosts.create_window((0, 0), window=self.frame_hosts_informations, anchor="n")
+
+            
             # Creating a frame for each host
-            frame_item = ttk.Frame(self.frame_conteudo_hosts)
+            frame_item = ttk.Frame(self.frame_hosts_informations)
             frame_item.grid(row=row_index, column=1, columnspan=1, sticky="ew", padx=10, pady=5)
 
             # Button to edit host ports
@@ -290,8 +299,8 @@ class FirewallGUI:
 
                     row_index += 2  # Move to the next line in the layout
 
-            self.frame_conteudo_hosts.columnconfigure(0, weight=1)
-            self.frame_conteudo_hosts.columnconfigure(2, weight=1)
+            self.frame_hosts_informations.columnconfigure(0, weight=1)
+            self.frame_hosts_informations.columnconfigure(2, weight=1)
 
             # Server status
             lbl_status = ttk.Label(interface_frame, text=f"Status from server: {status}", font=("Arial", 10))
@@ -303,6 +312,20 @@ class FirewallGUI:
             btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
             self.list_button_servers_onOff.append((container_id, btn_toggle, lbl_status))
             row_index += 1  # Extra line to separate hosts
+
+    def scroll_ajust(self, event=None):
+        """
+            Updates the Canvas scroll area, adding a little extra space at the end.
+        """
+        self.canva_hosts.update_idletasks()  # Ensures the layout has been updated
+
+        # Gets the actual region of content within the Canvas
+        bbox = self.canva_hosts.bbox("all")
+
+        if bbox:
+            x0, y0, x1, y1 = bbox
+            self.canva_hosts.configure(scrollregion=(x0, y0, x1, y1 + 50))  # Add extra 50px
+
 
     def create_firewall_rules_tab(self):
         """
@@ -1428,7 +1451,7 @@ class FirewallGUI:
         else:
             self.dst_ip.current(0)
 
-        self.root.update_idletasks()
+        #self.root.update_idletasks() # was commented, as there was a problem with the hosts tab.
 
     def host_check_server_on_off(self, container_id):
         """

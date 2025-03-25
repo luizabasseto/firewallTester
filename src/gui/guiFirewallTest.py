@@ -177,7 +177,6 @@ class FirewallGUI:
         btn_help = ttk.Button(top_frame, text="Help", command=self.open_help)
         btn_help.pack(pady=20)
 
-    
     def open_help(self):
         """
             Open a link in the web browser, to show help content.
@@ -185,23 +184,125 @@ class FirewallGUI:
         webbrowser.open_new_tab("https://github.com/luizsantos/firewallTester")
 
     def create_hosts_tab(self):
+            """
+                Create Hosts tab, show informations about hosts and permit change some configurations like port and start/stop servers.
+            """
+
+            self.top_frame = tk.Frame(self.hosts_frame)
+            self.top_frame.pack(pady=10)
+
+            ttk.Label(self.top_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(padx=10)
+
+            # Button to turn on all containers/servers
+            ttk.Button(self.top_frame, text="Turn on servers", command=self.hosts_start_servers).pack(side=tk.LEFT, padx=10)
+
+            self.frame_all_hosts = tk.Frame(self.hosts_frame)
+            self.frame_all_hosts.pack(fill=tk.BOTH, expand=True) # Adicionado para expandir o frame
+
+            # Criando um frame intermediário para centralizar tudo
+            self.central_frame = tk.Frame(self.frame_all_hosts) 
+            self.central_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+            self.canva_hosts = tk.Canvas(self.central_frame, width=500, height=800)
+            self.canva_hosts.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+            barra_vertical = ttk.Scrollbar(self.frame_all_hosts, orient="vertical", command=self.canva_hosts.yview)
+            barra_vertical.pack(side=tk.RIGHT, fill=tk.Y)
+
+            self.canva_hosts.configure(yscrollcommand=barra_vertical.set)
+
+            self.frame_conteudo_hosts = tk.Frame(self.canva_hosts) # Frame para o conteúdo dentro do canvas
+            self.canva_hosts.create_window((0, 0), window=self.frame_conteudo_hosts, anchor="n")
+
+            self.frame_conteudo_hosts.bind("<Configure>", lambda event: self.canva_hosts.configure(scrollregion=self.canva_hosts.bbox("all")))
+
+            self.hosts_show_host_informations_in_host_tab()
+
+    def hosts_show_host_informations_in_host_tab(self):
         """
-            Create Hosts tab, show informations about hosts and permit change some configurations like port and start/stop servers.
+            Displays host information in the hosts tab.
         """
+        print(f"self.containers_data: {self.containers_data}")
+        cont = containers.getContainersByImageName()
+        print(f"cont :  {json.dumps(cont, indent=4)}")
+        self.list_button_servers_onOff = []
+        row_index = 0  # Starting line on the grid
 
-        self.top_frame = tk.Frame(self.hosts_frame)
-        self.top_frame.pack(pady=10)
+        # Load the icons
+        self.power_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  
+        self.power_icon_off = tk.PhotoImage(file="img/system-shutdown-symbolic-off.png") 
+        status_on_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  
+        status_off_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png") 
 
-        ttk.Label(self.top_frame, text="Network Containers Hosts:", font=("Arial", 12)).pack(padx=10)
+        for host in cont:
+            print(f"ID: {host['id']}")
+            print(f"Nome: {host['nome']}")
+            print(f"Hostname: {host['hostname']}")
+            print("Interfaces:")
 
-        # Button to turn on all containers/servers
-        ttk.Button(self.top_frame, text="Turn on servers", command=self.hosts_start_servers).pack(side=tk.LEFT, padx=10)
+            status = self.host_check_server_on_off(host['id'])
 
-        # Frame for bottom buttons
-        self.bottom_frame = tk.Frame(self.hosts_frame)
-        self.bottom_frame.pack(pady=10)
+            container_id = host["id"]
+            container_name = host["nome"]
+            hostname = host["hostname"]
 
-        self.hosts_show_host_informations_in_host_tab()
+            # Creating a frame for each host
+            frame_item = ttk.Frame(self.frame_conteudo_hosts)
+            frame_item.grid(row=row_index, column=1, columnspan=1, sticky="ew", padx=10, pady=5)
+
+            # Button to edit host ports
+            btn = ttk.Button(frame_item, text=f"{hostname}", command=lambda cid=container_id: self.edit_host_ports(cid, hostname))
+            btn.grid(row=0, column=0, padx=5, pady=2, sticky="w")
+
+            # Label with container information
+            lbl_container = ttk.Label(frame_item, text=f"Container: {container_id} - {container_name}", font=("Arial", 10))
+            lbl_container.grid(row=0, column=1, padx=5, pady=2, sticky="w")
+
+            row_index += 1  # Move to the next line
+
+            if not host['interfaces']:
+                # Creating a subframe to align interfaces and IPs together
+                interface_frame = ttk.Frame(frame_item)
+                interface_frame.grid(row=row_index, column=1, columnspan=2, sticky="w", padx=20)
+                ip_index = 1
+                lbl_interface = ttk.Label(interface_frame, text=f"Interface: None or Down", font=("Arial", 10, "bold"))
+                lbl_interface.grid(row=0, column=0, sticky="w")
+
+            else:
+                for interface in host['interfaces']:
+                    print(f"  - Interface: {interface['nome']}")
+                    if_name = interface['nome']
+
+                    # Creating a subframe to align interfaces and IPs together
+                    interface_frame = ttk.Frame(frame_item)
+                    interface_frame.grid(row=row_index, column=1, columnspan=2, sticky="w", padx=20)
+
+                    # TODO - I noticed that the ip command shows the interface IPs even if this interface is turned off.
+                    # Label with the interface name
+                    lbl_interface = ttk.Label(interface_frame, text=f"Interface: {if_name}", font=("Arial", 10, "bold"))
+                    lbl_interface.grid(row=0, column=0, sticky="w")
+
+                    ip_index = 1
+                    for ip in interface['ips']:
+                        lbl_ip = ttk.Label(interface_frame, text=f"IP: {ip}", font=("Arial", 10))
+                        lbl_ip.grid(row=ip_index, column=0, padx=20, sticky="w")
+                        ip_index += 1
+
+                    row_index += 2  # Move to the next line in the layout
+
+            self.frame_conteudo_hosts.columnconfigure(0, weight=1)
+            self.frame_conteudo_hosts.columnconfigure(2, weight=1)
+
+            # Server status
+            lbl_status = ttk.Label(interface_frame, text=f"Status from server: {status}", font=("Arial", 10))
+            lbl_status.grid(row=ip_index, column=0, padx=5, sticky="w")
+
+            # Power button with icon
+            btn_toggle = ttk.Button(interface_frame, image=self.power_icon, command=lambda cid=container_id: self.host_toggle_server_and_button_between_onOff(cid, btn_toggle))
+            btn_toggle.image = self.power_icon  # Keep the reference to avoid garbage collection
+            btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
+            self.list_button_servers_onOff.append((container_id, btn_toggle, lbl_status))
+            row_index += 1  # Extra line to separate hosts
 
     def create_firewall_rules_tab(self):
         """
@@ -1299,7 +1400,7 @@ class FirewallGUI:
         """
         print("update_hosts")
 
-        for widget in self.bottom_frame.winfo_children():
+        for widget in self.canva_hosts.winfo_children():
             widget.destroy()
 
         self.containers_data = containers.extract_containerid_hostname_ips( )  # get hosts information (hostname, interfaces, ips)
@@ -1328,89 +1429,6 @@ class FirewallGUI:
             self.dst_ip.current(0)
 
         self.root.update_idletasks()
-
-    def hosts_show_host_informations_in_host_tab(self):
-        """
-            Displays host information in the hosts tab.
-        """
-        print(f"self.containers_data: {self.containers_data}")
-        cont = containers.getContainersByImageName()
-        print(f"cont :  {json.dumps(cont, indent=4)}")
-        self.list_button_servers_onOff = []
-        row_index = 0  # Starting line on the grid
-
-        # Load the icons
-        self.power_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  
-        self.power_icon_off = tk.PhotoImage(file="img/system-shutdown-symbolic-off.png") 
-        status_on_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png")  
-        status_off_icon = tk.PhotoImage(file="img/system-shutdown-symbolic.png") 
-
-        for host in cont:
-            print(f"ID: {host['id']}")
-            print(f"Nome: {host['nome']}")
-            print(f"Hostname: {host['hostname']}")
-            print("Interfaces:")
-
-            status = self.host_check_server_on_off(host['id'])
-
-            container_id = host["id"]
-            container_name = host["nome"]
-            hostname = host["hostname"]
-
-            # Creating a frame for each host
-            frame = ttk.Frame(self.bottom_frame)
-            frame.grid(row=row_index, column=0, columnspan=3, sticky="w", padx=10, pady=5)
-
-            # Button to edit host ports
-            btn = ttk.Button(frame, text=f"{hostname}", command=lambda cid=container_id: self.edit_host_ports(cid, hostname))
-            btn.grid(row=0, column=0, padx=5, pady=2, sticky="w")
-
-            # Label with container information
-            lbl_container = ttk.Label(frame, text=f"Container: {container_id} - {container_name}", font=("Arial", 10))
-            lbl_container.grid(row=0, column=1, padx=5, pady=2, sticky="w")
-
-            row_index += 1  # Move to the next line
-
-            if not host['interfaces']:
-                # Creating a subframe to align interfaces and IPs together
-                interface_frame = ttk.Frame(frame)
-                interface_frame.grid(row=row_index, column=1, columnspan=2, sticky="w", padx=20)
-                ip_index = 1
-                lbl_interface = ttk.Label(interface_frame, text=f"Interface: None or Down", font=("Arial", 10, "bold"))
-                lbl_interface.grid(row=0, column=0, sticky="w")
-
-            else:
-                for interface in host['interfaces']:
-                    print(f"  - Interface: {interface['nome']}")
-                    if_name = interface['nome']
-
-                    # Creating a subframe to align interfaces and IPs together
-                    interface_frame = ttk.Frame(frame)
-                    interface_frame.grid(row=row_index, column=1, columnspan=2, sticky="w", padx=20)
-
-                    # TODO - I noticed that the ip command shows the interface IPs even if this interface is turned off.
-                    # Label with the interface name
-                    lbl_interface = ttk.Label(interface_frame, text=f"Interface: {if_name}", font=("Arial", 10, "bold"))
-                    lbl_interface.grid(row=0, column=0, sticky="w")
-
-                    ip_index = 1
-                    for ip in interface['ips']:
-                        lbl_ip = ttk.Label(interface_frame, text=f"IP: {ip}", font=("Arial", 10))
-                        lbl_ip.grid(row=ip_index, column=0, padx=20, sticky="w")
-                        ip_index += 1
-
-                    row_index += 2  # Move to the next line in the layout
-
-            # Server status
-            lbl_status = ttk.Label(interface_frame, text=f"Status from server: {status}", font=("Arial", 10))
-            lbl_status.grid(row=ip_index, column=0, padx=5, sticky="w")
-
-            # Power button with icon
-            btn_toggle = ttk.Button(interface_frame, image=self.power_icon, command=lambda cid=container_id: self.host_toggle_server_and_button_between_onOff(cid, btn_toggle))
-            btn_toggle.image = self.power_icon  # Keep the reference to avoid garbage collection
-            btn_toggle.grid(row=ip_index, column=1, padx=10, pady=5, sticky="w")
-            self.list_button_servers_onOff.append((container_id, btn_toggle, lbl_status))
-            row_index += 1  # Extra line to separate hosts
 
     def host_check_server_on_off(self, container_id):
         """

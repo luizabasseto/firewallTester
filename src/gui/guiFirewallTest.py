@@ -729,12 +729,22 @@ class FirewallGUI:
         self.tree.heading("data", text="Network Data")
         self.tree.column("data", minwidth=100, width=200, anchor="w", stretch=True)
 
-        self.tree.pack(fill="both", expand=True, padx=10, pady=10)
+        #self.tree.pack(fill="both", expand=True, padx=10, pady=10)
+        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        scroll_vertical_tree = tk.Scrollbar(self.tests_frame_Tree, orient=tk.VERTICAL, command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scroll_vertical_tree)
+        scroll_vertical_tree.pack(side=tk.RIGHT, fill=tk.Y)
+
+        frame_horizontal = ttk.Frame(self.firewall_frame) # Frame para a barra de rolagem horizontal
+        frame_horizontal.pack(fill=tk.X)
 
         # TODO - scroll is not adjusting when data exceeds the window size!
-        scroll_tree = tk.Scrollbar(self.tests_frame_Tree, orient=tk.HORIZONTAL, command=self.tree.xview)
-        self.tree.configure(xscrollcommand=scroll_tree.set)
-        scroll_tree.pack(side="bottom", fill="x")
+        scroll_horizontal_tree = tk.Scrollbar(frame_horizontal, orient=tk.HORIZONTAL, command=self.tree.xview)
+        #self.tree.configure(xscrollcommand=scroll_horizontal_tree.set)
+        scroll_horizontal_tree.pack(side=tk.BOTTOM, fill=tk.X, expand=True)
+
+        self.tree.configure(yscrollcommand=scroll_vertical_tree.set, xscrollcommand=scroll_horizontal_tree.set)
 
         # Color definition
         style = ttk.Style()

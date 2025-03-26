@@ -44,6 +44,16 @@ class FirewallGUI:
         Class to work with firewall tester interface.
     """
 
+    SETTINGS_FILE = "conf/config.json"
+    DEFAULT_SETTINGS = {
+        "firewall_directory": "/etc/",
+        "reset_rules_file": "conf/reset_firewall.sh",
+        "firewall_rules_file": "conf/regras.sh",
+        "show_container_id": False,
+        "docker_image": "firewall_tester",
+        "include_mangle_table": False
+    }
+
     def __init__(self, root):
         """
             Start firewall tester interface with some variables, methods and create default frames.
@@ -107,6 +117,86 @@ class FirewallGUI:
         # restart servers on containers/hosts
         self.hosts_start_servers()
         self.create_about_tab()
+        self.create_settings_tab()
+
+    def load_settings(self):
+        try:
+            with open(self.SETTINGS_FILE, "r") as f:
+                #print(json.load(f))
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return self.DEFAULT_SETTINGS.copy()
+    
+    def save_settings(self):
+        settings = {
+            "firewall_directory": self.firewall_dir_var.get(),
+            "reset_rules_file": self.reset_rules_var.get(),
+            "firewall_rules_file": self.firewall_rules_var.get(),
+            "show_container_id": self.show_container_id_var.get(),
+            "docker_image": self.docker_image_var.get(),
+            "include_mangle_table": self.include_mangle_var.get()
+        }
+        with open(self.SETTINGS_FILE, "w") as f:
+            json.dump(settings, f, indent=4)
+    
+    def restore_default_settings(self):
+        self.firewall_dir_var.set(self.DEFAULT_SETTINGS["firewall_directory"])
+        self.reset_rules_var.set(self.DEFAULT_SETTINGS["reset_rules_file"])
+        self.firewall_rules_var.set(self.DEFAULT_SETTINGS["firewall_rules_file"])
+        self.show_container_id_var.set(self.DEFAULT_SETTINGS["show_container_id"])
+        self.docker_image_var.set(self.DEFAULT_SETTINGS["docker_image"])
+        self.include_mangle_var.set(self.DEFAULT_SETTINGS["include_mangle_table"])
+        self.save_settings()
+
+    def create_settings_tab(self):
+        """
+            Create and configura settings for this software.
+        """
+        tittle_frame = tk.Frame(self.config_frame)
+        tittle_frame.pack(pady=10)
+        
+        settings = self.load_settings()
+        print("settings loaded:")
+        print("firewall_directory:", settings.get("firewall_directory", ""))
+        print("reset_rules_file:", settings.get("reset_rules_file", ""))
+        print("firewall_rules_file:", settings.get("firewall_rules_file", ""))
+        print("show_container_id:", settings.get("show_container_id", False))
+        print("docker_image:", settings.get("docker_image", ""))
+        print("include_mangle_table:", settings.get("include_mangle_table", False))
+
+       # Variables as class attributes
+        self.firewall_dir_var = tk.StringVar(value=settings.get("firewall_directory", ""))
+        self.reset_rules_var = tk.StringVar(value=settings.get("reset_rules_file", ""))
+        self.firewall_rules_var = tk.StringVar(value=settings.get("firewall_rules_file", ""))
+        self.show_container_id_var = tk.BooleanVar(value=settings.get("show_container_id", False))
+        self.docker_image_var = tk.StringVar(value=settings.get("docker_image", ""))
+        self.include_mangle_var = tk.BooleanVar(value=settings.get("include_mangle_table", False))
+
+        # Developer Information
+        ttk.Label(tittle_frame, text="Software Settings", font=("Arial", 14, "bold")).pack()
+        
+        buttons_frame = tk.Frame(self.config_frame)
+        buttons_frame.pack(pady=10)
+        
+        ttk.Label(buttons_frame, text="Firewall Directory in the containers:").grid(row=0, column=0, sticky="w")
+        ttk.Entry(buttons_frame, textvariable=self.firewall_dir_var, width=40).grid(row=0, column=1)
+
+        ttk.Label(buttons_frame, text="Reset Rules File:").grid(row=1, column=0, sticky="w")
+        ttk.Entry(buttons_frame, textvariable=self.reset_rules_var, width=40).grid(row=1, column=1)
+
+        ttk.Label(buttons_frame, text="Firewall Rules File:").grid(row=2, column=0, sticky="w")
+        ttk.Entry(buttons_frame, textvariable=self.firewall_rules_var, width=40).grid(row=2, column=1)
+
+        ttk.Label(buttons_frame, text="Docker Image Name:").grid(row=3, column=0, sticky="w")
+        ttk.Entry(buttons_frame, textvariable=self.docker_image_var, width=40).grid(row=3, column=1)
+
+        ttk.Checkbutton(buttons_frame, text="Show Container ID Column", variable=self.show_container_id_var).grid(row=4, column=0, columnspan=2, sticky="w")
+
+        ttk.Checkbutton(buttons_frame, text="Include Mangle Table in Listing", variable=self.include_mangle_var).grid(row=5, column=0, columnspan=2, sticky="w")
+
+        ttk.Button(buttons_frame, text="Save Settings", command=self.save_settings).grid(row=6, column=0, columnspan=3, pady=5)
+        ttk.Button(buttons_frame, text="Restore Defaults", command=self.restore_default_settings).grid(row=7, column=0, columnspan=3, pady=5)
+
 
     def create_about_tab(self):
         """
@@ -481,7 +571,8 @@ class FirewallGUI:
         resposta = messagebox.askyesno("Confirmation","This will overwrite the existing rules in the interface. Are you sure you want to continue?")
         # TODO - in UTPFR there was a problem when copying the file from the firewall to the container, it said it copied but didn't copy anything, it only copied when the file was touched - see this.
         if resposta:
-            command = ["docker", "exec", self.container_id_host_regras_firewall[0], "cat", "/etc/firewall.sh"]
+            file = self.firewall_dir_var+"/firewall.sh"
+            command = ["docker", "exec", self.container_id_host_regras_firewall[0], "cat", file]
             result = containers.run_command(command)
             self.text_firewall_rules.delete(1.0, tk.END)
             self.text_firewall_rules.insert(tk.END, result.stdout)
@@ -499,12 +590,15 @@ class FirewallGUI:
         """
         print(f"Send and execute firewall rules on host {self.container_id_host_regras_firewall[1]}")
         
+        file_reset = self.firewall_dir_var+"firewall_reset.sh"
+        file = self.firewall_dir_var+"firewall.sh"
+
         if reset!=None:
-            containers.copy_host2container(self.container_id_host_regras_firewall[0], file_rules, "/etc/firewall_reset.sh")
-            command = ["docker", "exec", self.container_id_host_regras_firewall[0], "sh", "/etc/firewall_reset.sh"]
+            containers.copy_host2container(self.container_id_host_regras_firewall[0], file_rules, file_reset)
+            command = ["docker", "exec", self.container_id_host_regras_firewall[0], "sh", file_reset]
         else:
-            containers.copy_host2container(self.container_id_host_regras_firewall[0], file_rules, "/etc/firewall.sh")
-            command = ["docker", "exec", self.container_id_host_regras_firewall[0], "sh", "/etc/firewall.sh"]
+            containers.copy_host2container(self.container_id_host_regras_firewall[0], file_rules, file)
+            command = ["docker", "exec", self.container_id_host_regras_firewall[0], "sh", file]
 
         result = containers.run_command(command)
 
@@ -527,12 +621,12 @@ class FirewallGUI:
         """
         print(f"Apply rules on the firewall of host {self.container_id_host_regras_firewall[1]}")
         rules = self.text_firewall_rules.get("1.0", tk.END)
-        file_rules="tmp/regras.sh"
+        file_rules=self.firewall_rules_var
         with open(file_rules, "w", encoding="utf-8") as file_name:
             file_name.write(rules)
         print(f"Rules saved in the file {file_rules}")
         if self.reset_firewall.get() == 1: # If the checkbox is checked, first reset the firewall, then apply the rules.
-            self.sento_to_host_file_to_execute_firewall_rules("tmp/reset_firewall.sh", 1)
+            self.sento_to_host_file_to_execute_firewall_rules(self.reset_firewall_rules, 1)
         
         self.sento_to_host_file_to_execute_firewall_rules(file_rules, None)
         

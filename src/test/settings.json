@@ -1,0 +1,8 @@
+{
+    "firewall_directory": "",
+    "reset_rules_file": "",
+    "firewall_rules_file": "",
+    "show_container_id": false,
+    "docker_image": "",
+    "include_mangle_table": false
+}

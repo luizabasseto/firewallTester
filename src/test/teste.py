@@ -1,72 +1,97 @@
+import json
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 
-class SuaClasse:
-    def __init__(self, root):
-        self.root = root
-        self.create_hosts_tab()
+SETTINGS_FILE = "settings.json"
+DEFAULT_SETTINGS = {
+    "firewall_directory": "",
+    "reset_rules_file": "",
+    "firewall_rules_file": "",
+    "show_container_id": False,
+    "docker_image": "",
+    "include_mangle_table": False
+}
 
-    def create_hosts_tab(self):
-        """
-        Cria a aba Hosts, centralizando todas as informações no meio da tela.
-        """
+def load_settings():
+    try:
+        with open(SETTINGS_FILE, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return DEFAULT_SETTINGS.copy()
 
-        # Frame principal que ocupa toda a tela
-        self.hosts_frame = tk.Frame(self.root)
-        self.hosts_frame.pack(fill=tk.BOTH, expand=True)
+def save_settings():
+    settings = {
+        "firewall_directory": firewall_dir_var.get(),
+        "reset_rules_file": reset_rules_var.get(),
+        "firewall_rules_file": firewall_rules_var.get(),
+        "show_container_id": show_container_id_var.get(),
+        "docker_image": docker_image_var.get(),
+        "include_mangle_table": include_mangle_var.get()
+    }
+    with open(SETTINGS_FILE, "w") as f:
+        json.dump(settings, f, indent=4)
 
-        # Criando um frame intermediário para centralizar tudo
-        self.central_frame = tk.Frame(self.hosts_frame)
-        self.central_frame.place(relx=0.5, rely=0.5, anchor="center")
+def restore_default_settings():
+    firewall_dir_var.set(DEFAULT_SETTINGS["firewall_directory"])
+    reset_rules_var.set(DEFAULT_SETTINGS["reset_rules_file"])
+    firewall_rules_var.set(DEFAULT_SETTINGS["firewall_rules_file"])
+    show_container_id_var.set(DEFAULT_SETTINGS["show_container_id"])
+    docker_image_var.set(DEFAULT_SETTINGS["docker_image"])
+    include_mangle_var.set(DEFAULT_SETTINGS["include_mangle_table"])
+    save_settings()
 
-        ttk.Label(self.central_frame, text="Network Containers Hosts:", font=("Arial", 14)).pack(pady=10)
+def browse_directory():
+    directory = filedialog.askdirectory()
+    if directory:
+        firewall_dir_var.set(directory)
 
-        # Botão para ligar os servidores
-        ttk.Button(self.central_frame, text="Turn on servers", command=self.hosts_start_servers).pack(pady=5)
+def browse_file(entry_var):
+    file_path = filedialog.askopenfilename()
+    if file_path:
+        entry_var.set(file_path)
 
-        # Criando um Canvas para permitir rolagem se necessário
-        self.frame_all_hosts = tk.Frame(self.central_frame)
-        self.frame_all_hosts.pack(fill=tk.BOTH, expand=True, pady=10)
+# Load existing settings
+settings = load_settings()
 
-        self.canva_hosts = tk.Canvas(self.frame_all_hosts, width=400, height=300)
-        self.canva_hosts.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+# Create main window
+root = tk.Tk()
+root.title("Firewall Configuration")
 
-        scrollbar = ttk.Scrollbar(self.frame_all_hosts, orient="vertical", command=self.canva_hosts.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.canva_hosts.configure(yscrollcommand=scrollbar.set)
+notebook = ttk.Notebook(root)
+settings_tab = ttk.Frame(notebook)
+notebook.add(settings_tab, text="Settings")
+notebook.pack(expand=True, fill="both")
 
-        # Frame interno dentro do Canvas
-        self.frame_conteudo_hosts = ttk.Frame(self.canva_hosts)
-        self.canva_hosts.create_window((0, 0), window=self.frame_conteudo_hosts, anchor="n")
+# Variables
+firewall_dir_var = tk.StringVar(value=settings.get("firewall_directory", ""))
+reset_rules_var = tk.StringVar(value=settings.get("reset_rules_file", ""))
+firewall_rules_var = tk.StringVar(value=settings.get("firewall_rules_file", ""))
+show_container_id_var = tk.BooleanVar(value=settings.get("show_container_id", False))
+docker_image_var = tk.StringVar(value=settings.get("docker_image", ""))
+include_mangle_var = tk.BooleanVar(value=settings.get("include_mangle_table", False))
 
-        # Atualiza o tamanho da área de rolagem quando necessário
-        self.frame_conteudo_hosts.bind("<Configure>", lambda e: self.canva_hosts.configure(scrollregion=self.canva_hosts.bbox("all")))
+# UI Elements
+ttk.Label(settings_tab, text="Firewall Directory:").grid(row=0, column=0, sticky="w")
+ttk.Entry(settings_tab, textvariable=firewall_dir_var, width=40).grid(row=0, column=1)
+ttk.Button(settings_tab, text="Browse", command=browse_directory).grid(row=0, column=2)
 
-        self.hosts_show_host_informations_in_host_tab()
+ttk.Label(settings_tab, text="Reset Rules File:").grid(row=1, column=0, sticky="w")
+ttk.Entry(settings_tab, textvariable=reset_rules_var, width=40).grid(row=1, column=1)
+ttk.Button(settings_tab, text="Browse", command=lambda: browse_file(reset_rules_var)).grid(row=1, column=2)
 
-    def hosts_start_servers(self):
-        print("Iniciando servidores...")
+ttk.Label(settings_tab, text="Firewall Rules File:").grid(row=2, column=0, sticky="w")
+ttk.Entry(settings_tab, textvariable=firewall_rules_var, width=40).grid(row=2, column=1)
+ttk.Button(settings_tab, text="Browse", command=lambda: browse_file(firewall_rules_var)).grid(row=2, column=2)
 
-    def hosts_show_host_informations_in_host_tab(self):
-        """Adiciona frames dinamicamente ao centro da tela."""
+ttk.Checkbutton(settings_tab, text="Show Container ID Column", variable=show_container_id_var).grid(row=3, column=0, columnspan=2, sticky="w")
 
-        for i in range(10):  # Reduzido para 10 só para facilitar o teste
-            frame_item = ttk.Frame(self.frame_conteudo_hosts, padding=10, borderwidth=2, relief="groove")
-            frame_item.pack(fill=tk.X, padx=20, pady=5)
+ttk.Label(settings_tab, text="Docker Image Name:").grid(row=4, column=0, sticky="w")
+ttk.Entry(settings_tab, textvariable=docker_image_var, width=40).grid(row=4, column=1)
 
-            label = ttk.Label(frame_item, text=f"Host {i+1}")
-            label.pack(side=tk.LEFT, padx=10)
+ttk.Checkbutton(settings_tab, text="Include Mangle Table in Listing", variable=include_mangle_var).grid(row=5, column=0, columnspan=2, sticky="w")
 
-            botao = ttk.Button(frame_item, text=f"Config {i+1}")
-            botao.pack(side=tk.RIGHT, padx=10)
+ttk.Button(settings_tab, text="Save Settings", command=save_settings).grid(row=6, column=0, columnspan=3, pady=5)
+ttk.Button(settings_tab, text="Restore Defaults", command=restore_default_settings).grid(row=7, column=0, columnspan=3, pady=5)
 
-# Criando a janela principal
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("Interface Centralizada")
-    root.geometry("800x600")  # Define um tamanho inicial maior para melhor visualização
-
-    app = SuaClasse(root)
-
-    root.mainloop()
+root.mainloop()
 

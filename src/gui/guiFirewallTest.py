@@ -1,5 +1,27 @@
 #!/usr/bin/python
 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""
+    Program Name: Firewall Tester - Graphical Interface
+    Description: This is the graphical interface and the main part of the firewall rule testing software.
+    Author: Luiz Arthur Feitosa dos Santos - luiz.arthur.feitosa.santos@gmail.com / luizsantos@utfpr.edu.br
+    License: GNU General Public License v3.0
+    Version: 1.0
+"""
+
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -104,7 +126,7 @@ class FirewallGUI:
 
         # buttons list from hosts
         self.list_button_servers_onOff = []
-
+        
         # get data from containers and hosts
         self.containers_data = containers.extract_containerid_hostname_ips( )  # get hosts informations
         

@@ -1,5 +1,13 @@
 #!/usr/local/bin/python
 
+"""
+    Program Name: Firewall Tester - Client
+    Description: Acts as a client so that the firewall rule testing software can send packets to the server software in the test scenario.
+    Author: Luiz Arthur Feitosa dos Santos - luiz.arthur.feitosa.santos@gmail.com / luizsantos@utfpr.edu.br
+    License: GNU General Public License v3.0
+    Version: 1.0
+"""
+
 import socket
 import argparse
 import json

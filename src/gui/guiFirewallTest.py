@@ -60,6 +60,8 @@ import textwrap
 # TODO - the combobox of "Edit firewall rules on host" should not show multiple lines for the same host (it shows one per host IP), but rather only one name.
 # TODO - You need a scroll on the tabs and it also limits their size, because when you put too many hosts (about 7) the buttons to update hosts and exit the program disappeared, because the tabs pushed them off the screen.
 # TODO - The information regarding docker containers is being performed three times in a row at the beginning, see if this is really necessary or if it can be done just once.
+# TODO - relate the name of the docker image with the name used in the configuration tab.
+# TODO - 
 
 class FirewallGUI:
     """
@@ -71,6 +73,7 @@ class FirewallGUI:
         "firewall_directory": "/etc/",
         "reset_rules_file": "conf/firewall_reset.sh",
         "firewall_rules_file": "conf/firewall.sh",
+        "server_ports_file": "conf/ports.conf",
         "show_container_id": False,
         "docker_image": "firewall_tester",
         "include_mangle_table": False,
@@ -157,6 +160,7 @@ class FirewallGUI:
             "firewall_directory": self.config_firewall_dir_var.get(),
             "reset_rules_file": self.config_firewall_reset_rules_var.get(),
             "firewall_rules_file": self.config_firewall_rules_var.get(),
+            "server_ports_file": self.config_server_ports_var.get(),
             "show_container_id": self.config_show_container_id_var.get(),
             "docker_image": self.config_docker_image_var.get(),
             "include_filter_table": self.config_include_filter_var.get(),
@@ -175,6 +179,7 @@ class FirewallGUI:
         self.config_firewall_dir_var.set(self.DEFAULT_SETTINGS["firewall_directory"])
         self.config_firewall_reset_rules_var.set(self.DEFAULT_SETTINGS["reset_rules_file"])
         self.config_firewall_rules_var.set(self.DEFAULT_SETTINGS["firewall_rules_file"])
+        self.config_server_ports_var.set(self.DEFAULT_SETTINGS["server_ports_file"])
         self.config_show_container_id_var.set(self.DEFAULT_SETTINGS["show_container_id"])
         self.config_docker_image_var.set(self.DEFAULT_SETTINGS["docker_image"])
         self.config_include_filter_var.set(self.DEFAULT_SETTINGS["include_filter_table"])
@@ -194,6 +199,7 @@ class FirewallGUI:
         print("firewall_directory:", settings.get("firewall_directory", ""))
         print("reset_rules_file:", settings.get("reset_rules_file", ""))
         print("firewall_rules_file:", settings.get("firewall_rules_file", ""))
+        print("server_ports_file:", settings.get("server_ports_file", ""))
         print("show_container_id:", settings.get("show_container_id", False))
         print("docker_image:", settings.get("docker_image", ""))
         print("include_filter_table:", settings.get("include_filter_table", False))
@@ -204,6 +210,7 @@ class FirewallGUI:
         self.config_firewall_dir_var = tk.StringVar(value=settings.get("firewall_directory", ""))
         self.config_firewall_reset_rules_var = tk.StringVar(value=settings.get("reset_rules_file", ""))
         self.config_firewall_rules_var = tk.StringVar(value=settings.get("firewall_rules_file", ""))
+        self.config_server_ports_var = tk.StringVar(value=settings.get("server_ports_file", ""))
         self.config_show_container_id_var = tk.BooleanVar(value=settings.get("show_container_id", False))
         self.config_docker_image_var = tk.StringVar(value=settings.get("docker_image", ""))
         self.config_include_filter_var = tk.BooleanVar(value=settings.get("include_filter_table", False))
@@ -225,19 +232,22 @@ class FirewallGUI:
         ttk.Label(buttons_frame, text="Firewall Rules File:").grid(row=2, column=0, sticky="w")
         ttk.Entry(buttons_frame, textvariable=self.config_firewall_rules_var, width=40).grid(row=2, column=1)
 
-        ttk.Label(buttons_frame, text="Docker Image Name:").grid(row=3, column=0, sticky="w")
-        ttk.Entry(buttons_frame, textvariable=self.config_docker_image_var, width=40).grid(row=3, column=1)
+        ttk.Label(buttons_frame, text="Server Ports File:").grid(row=3, column=0, sticky="w")
+        ttk.Entry(buttons_frame, textvariable=self.config_server_ports_var, width=40).grid(row=3, column=1)
 
-        ttk.Checkbutton(buttons_frame, text="Show Container ID Column", variable=self.config_show_container_id_var).grid(row=4, column=0, columnspan=2, sticky="w")
+        ttk.Label(buttons_frame, text="Docker Image Name:").grid(row=4, column=0, sticky="w")
+        ttk.Entry(buttons_frame, textvariable=self.config_docker_image_var, width=40).grid(row=4, column=1)
 
-        ttk.Checkbutton(buttons_frame, text="Include Filter Table in Firewall Listing", variable=self.config_include_filter_var).grid(row=5, column=0, columnspan=2, sticky="w")
+        ttk.Checkbutton(buttons_frame, text="Show Container ID Column", variable=self.config_show_container_id_var).grid(row=5, column=0, columnspan=2, sticky="w")
 
-        ttk.Checkbutton(buttons_frame, text="Include Filter NAT in Firewall Listing", variable=self.config_include_nat_var).grid(row=6, column=0, columnspan=2, sticky="w")
+        ttk.Checkbutton(buttons_frame, text="Include Filter Table in Firewall Listing", variable=self.config_include_filter_var).grid(row=6, column=0, columnspan=2, sticky="w")
 
-        ttk.Checkbutton(buttons_frame, text="Include Mangle Table in Firewall Listing", variable=self.config_include_mangle_var).grid(row=7, column=0, columnspan=2, sticky="w")
+        ttk.Checkbutton(buttons_frame, text="Include Filter NAT in Firewall Listing", variable=self.config_include_nat_var).grid(row=7, column=0, columnspan=2, sticky="w")
 
-        ttk.Button(buttons_frame, text="Save Settings", command=self.save_settings).grid(row=8, column=0, columnspan=3, pady=5)
-        ttk.Button(buttons_frame, text="Restore Defaults", command=self.restore_default_settings).grid(row=9, column=0, columnspan=3, pady=5)
+        ttk.Checkbutton(buttons_frame, text="Include Mangle Table in Firewall Listing", variable=self.config_include_mangle_var).grid(row=8, column=0, columnspan=2, sticky="w")
+
+        ttk.Button(buttons_frame, text="Save Settings", command=self.save_settings).grid(row=9, column=0, columnspan=3, pady=5)
+        ttk.Button(buttons_frame, text="Restore Defaults", command=self.restore_default_settings).grid(row=10, column=0, columnspan=3, pady=5)
 
 
     def create_about_tab(self):
@@ -823,7 +833,7 @@ class FirewallGUI:
         if selected:  # Verifica se há algo selecionado
             ports_list.delete(selected)
 
-    def hosts_save_ports_in_file(self, container_id, ports_list, file_name="tmp_conf/portas.conf"):
+    def hosts_save_ports_in_file(self, container_id, ports_list):
         """
             Saves the ports and protocols of the Treeview in a file, in the format "port/protocol".
 
@@ -831,6 +841,7 @@ class FirewallGUI:
                 ports_table: The Treeview containing the columns "Protocol" and "Port".
                 file_name: Name of the file where the data will be saved.
         """
+        file_name = self.config_server_ports_var.get()
         try:
             with open(file_name, "w") as file:
                 # Iterate through all rows of the Treeview

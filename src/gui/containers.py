@@ -317,7 +317,7 @@ def extract_hostname_interface_ips(json_list):
 
         # Adds the hostname and interface list to the output
         result.append([hostname, interfaces])
-    print(f"result: {result}")
+    #print(f"result: {result}")
     return result
 
 def get_container_info_by_filter(filter_string):
@@ -391,7 +391,7 @@ def getContainersByImageName():
     hosts = []
     filter_string = "firewall_tester" # part of the image name - in this case all test containers must have firewall_tester in their iamge name
     matching_containers = get_container_info_by_filter(filter_string)
-    printContainerList(matching_containers, filter_string)
+    #printContainerList(matching_containers, filter_string)
 
     print(f"\nGetting container network information: \n\tGenerating JSON of this information!")
     for container in matching_containers:
@@ -413,7 +413,7 @@ def getContainersByImageName():
         hosts.append(host.to_dict())
 
     hosts_json = json.dumps(hosts, indent=2)
-    print(hosts_json)
+    #print(hosts_json)
     return hosts
 
 def printContainerList(matching_containers, filter_string):

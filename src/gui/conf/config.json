@@ -1,8 +1,10 @@
 {
     "firewall_directory": "/etc/",
-    "reset_rules_file": "conf/reset_firewall.sh",
-    "firewall_rules_file": "conf/regras.sh",
+    "reset_rules_file": "conf/firewall_reset.sh",
+    "firewall_rules_file": "conf/firewall.sh",
     "show_container_id": false,
     "docker_image": "firewall_tester",
+    "include_filter_table": true,
+    "include_nat_table": true,
     "include_mangle_table": false
 }

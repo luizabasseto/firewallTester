@@ -37,7 +37,7 @@ import textwrap
 # TODO - when saving and opening tests - do not reference the container ID, only the names and perhaps IPs (I think IPs are unavoidable for now), and when the rules are opened, the interface must relate or re-relate the hostname with the container_id, and perhaps the IPs (it would be nice not to relate with the IPs, because in the scenario the user could create or change the hostname to another IP and the test would continue to work).
 # TODO - the combobox of "Edit firewall rules on host" should not show multiple lines for the same host (it shows one per host IP), but rather only one name.
 # TODO - You need a scroll on the tabs and it also limits their size, because when you put too many hosts (about 7) the buttons to update hosts and exit the program disappeared, because the tabs pushed them off the screen.
-
+# TODO - The information regarding docker containers is being performed three times in a row at the beginning, see if this is really necessary or if it can be done just once.
 
 class FirewallGUI:
     """
@@ -47,11 +47,13 @@ class FirewallGUI:
     SETTINGS_FILE = "conf/config.json"
     DEFAULT_SETTINGS = {
         "firewall_directory": "/etc/",
-        "reset_rules_file": "conf/reset_firewall.sh",
-        "firewall_rules_file": "conf/regras.sh",
+        "reset_rules_file": "conf/firewall_reset.sh",
+        "firewall_rules_file": "conf/firewall.sh",
         "show_container_id": False,
         "docker_image": "firewall_tester",
-        "include_mangle_table": False
+        "include_mangle_table": False,
+        "include_nat_table": True,
+        "include_filter_table": True
     }
 
     def __init__(self, root):
@@ -112,12 +114,13 @@ class FirewallGUI:
 
         # creating tabs
         self.create_hosts_tab()
+        self.create_settings_tab()
         self.create_firewall_tab()
         self.create_firewall_rules_tab()
         # restart servers on containers/hosts
         self.hosts_start_servers()
         self.create_about_tab()
-        self.create_settings_tab()
+        
 
     def load_settings(self):
         try:
@@ -129,23 +132,32 @@ class FirewallGUI:
     
     def save_settings(self):
         settings = {
-            "firewall_directory": self.firewall_dir_var.get(),
-            "reset_rules_file": self.reset_rules_var.get(),
-            "firewall_rules_file": self.firewall_rules_var.get(),
-            "show_container_id": self.show_container_id_var.get(),
-            "docker_image": self.docker_image_var.get(),
-            "include_mangle_table": self.include_mangle_var.get()
+            "firewall_directory": self.config_firewall_dir_var.get(),
+            "reset_rules_file": self.config_firewall_reset_rules_var.get(),
+            "firewall_rules_file": self.config_firewall_rules_var.get(),
+            "show_container_id": self.config_show_container_id_var.get(),
+            "docker_image": self.config_docker_image_var.get(),
+            "include_filter_table": self.config_include_filter_var.get(),
+            "include_nat_table": self.config_include_nat_var.get(),
+            "include_mangle_table": self.config_include_mangle_var.get()
         }
         with open(self.SETTINGS_FILE, "w") as f:
             json.dump(settings, f, indent=4)
+        
+        if self.config_show_container_id_var.get():
+            self.tree.column("Container ID", width=130, minwidth=100)
+        else:
+            self.tree.column("Container ID", width=0, minwidth=0)
     
     def restore_default_settings(self):
-        self.firewall_dir_var.set(self.DEFAULT_SETTINGS["firewall_directory"])
-        self.reset_rules_var.set(self.DEFAULT_SETTINGS["reset_rules_file"])
-        self.firewall_rules_var.set(self.DEFAULT_SETTINGS["firewall_rules_file"])
-        self.show_container_id_var.set(self.DEFAULT_SETTINGS["show_container_id"])
-        self.docker_image_var.set(self.DEFAULT_SETTINGS["docker_image"])
-        self.include_mangle_var.set(self.DEFAULT_SETTINGS["include_mangle_table"])
+        self.config_firewall_dir_var.set(self.DEFAULT_SETTINGS["firewall_directory"])
+        self.config_firewall_reset_rules_var.set(self.DEFAULT_SETTINGS["reset_rules_file"])
+        self.config_firewall_rules_var.set(self.DEFAULT_SETTINGS["firewall_rules_file"])
+        self.config_show_container_id_var.set(self.DEFAULT_SETTINGS["show_container_id"])
+        self.config_docker_image_var.set(self.DEFAULT_SETTINGS["docker_image"])
+        self.config_include_filter_var.set(self.DEFAULT_SETTINGS["include_filter_table"])
+        self.config_include_nat_var.set(self.DEFAULT_SETTINGS["include_nat_table"])
+        self.config_include_mangle_var.set(self.DEFAULT_SETTINGS["include_mangle_table"])
         self.save_settings()
 
     def create_settings_tab(self):
@@ -162,15 +174,19 @@ class FirewallGUI:
         print("firewall_rules_file:", settings.get("firewall_rules_file", ""))
         print("show_container_id:", settings.get("show_container_id", False))
         print("docker_image:", settings.get("docker_image", ""))
+        print("include_filter_table:", settings.get("include_filter_table", False))
+        print("include_nat_table:", settings.get("include_nat_table", False))
         print("include_mangle_table:", settings.get("include_mangle_table", False))
 
        # Variables as class attributes
-        self.firewall_dir_var = tk.StringVar(value=settings.get("firewall_directory", ""))
-        self.reset_rules_var = tk.StringVar(value=settings.get("reset_rules_file", ""))
-        self.firewall_rules_var = tk.StringVar(value=settings.get("firewall_rules_file", ""))
-        self.show_container_id_var = tk.BooleanVar(value=settings.get("show_container_id", False))
-        self.docker_image_var = tk.StringVar(value=settings.get("docker_image", ""))
-        self.include_mangle_var = tk.BooleanVar(value=settings.get("include_mangle_table", False))
+        self.config_firewall_dir_var = tk.StringVar(value=settings.get("firewall_directory", ""))
+        self.config_firewall_reset_rules_var = tk.StringVar(value=settings.get("reset_rules_file", ""))
+        self.config_firewall_rules_var = tk.StringVar(value=settings.get("firewall_rules_file", ""))
+        self.config_show_container_id_var = tk.BooleanVar(value=settings.get("show_container_id", False))
+        self.config_docker_image_var = tk.StringVar(value=settings.get("docker_image", ""))
+        self.config_include_filter_var = tk.BooleanVar(value=settings.get("include_filter_table", False))
+        self.config_include_nat_var = tk.BooleanVar(value=settings.get("include_nat_table", False))
+        self.config_include_mangle_var = tk.BooleanVar(value=settings.get("include_mangle_table", False))
 
         # Developer Information
         ttk.Label(tittle_frame, text="Software Settings", font=("Arial", 14, "bold")).pack()
@@ -179,23 +195,27 @@ class FirewallGUI:
         buttons_frame.pack(pady=10)
         
         ttk.Label(buttons_frame, text="Firewall Directory in the containers:").grid(row=0, column=0, sticky="w")
-        ttk.Entry(buttons_frame, textvariable=self.firewall_dir_var, width=40).grid(row=0, column=1)
+        ttk.Entry(buttons_frame, textvariable=self.config_firewall_dir_var, width=40).grid(row=0, column=1)
 
         ttk.Label(buttons_frame, text="Reset Rules File:").grid(row=1, column=0, sticky="w")
-        ttk.Entry(buttons_frame, textvariable=self.reset_rules_var, width=40).grid(row=1, column=1)
+        ttk.Entry(buttons_frame, textvariable=self.config_firewall_reset_rules_var, width=40).grid(row=1, column=1)
 
         ttk.Label(buttons_frame, text="Firewall Rules File:").grid(row=2, column=0, sticky="w")
-        ttk.Entry(buttons_frame, textvariable=self.firewall_rules_var, width=40).grid(row=2, column=1)
+        ttk.Entry(buttons_frame, textvariable=self.config_firewall_rules_var, width=40).grid(row=2, column=1)
 
         ttk.Label(buttons_frame, text="Docker Image Name:").grid(row=3, column=0, sticky="w")
-        ttk.Entry(buttons_frame, textvariable=self.docker_image_var, width=40).grid(row=3, column=1)
+        ttk.Entry(buttons_frame, textvariable=self.config_docker_image_var, width=40).grid(row=3, column=1)
 
-        ttk.Checkbutton(buttons_frame, text="Show Container ID Column", variable=self.show_container_id_var).grid(row=4, column=0, columnspan=2, sticky="w")
+        ttk.Checkbutton(buttons_frame, text="Show Container ID Column", variable=self.config_show_container_id_var).grid(row=4, column=0, columnspan=2, sticky="w")
 
-        ttk.Checkbutton(buttons_frame, text="Include Mangle Table in Listing", variable=self.include_mangle_var).grid(row=5, column=0, columnspan=2, sticky="w")
+        ttk.Checkbutton(buttons_frame, text="Include Filter Table in Firewall Listing", variable=self.config_include_filter_var).grid(row=5, column=0, columnspan=2, sticky="w")
 
-        ttk.Button(buttons_frame, text="Save Settings", command=self.save_settings).grid(row=6, column=0, columnspan=3, pady=5)
-        ttk.Button(buttons_frame, text="Restore Defaults", command=self.restore_default_settings).grid(row=7, column=0, columnspan=3, pady=5)
+        ttk.Checkbutton(buttons_frame, text="Include Filter NAT in Firewall Listing", variable=self.config_include_nat_var).grid(row=6, column=0, columnspan=2, sticky="w")
+
+        ttk.Checkbutton(buttons_frame, text="Include Mangle Table in Firewall Listing", variable=self.config_include_mangle_var).grid(row=7, column=0, columnspan=2, sticky="w")
+
+        ttk.Button(buttons_frame, text="Save Settings", command=self.save_settings).grid(row=8, column=0, columnspan=3, pady=5)
+        ttk.Button(buttons_frame, text="Restore Defaults", command=self.restore_default_settings).grid(row=9, column=0, columnspan=3, pady=5)
 
 
     def create_about_tab(self):
@@ -313,9 +333,9 @@ class FirewallGUI:
         """
             Displays host information in the hosts tab.
         """
-        print(f"self.containers_data: {self.containers_data}")
+        #print(f"self.containers_data: {self.containers_data}")
         cont = containers.getContainersByImageName()
-        print(f"cont :  {json.dumps(cont, indent=4)}")
+        #print(f"cont :  {json.dumps(cont, indent=4)}")
         self.list_button_servers_onOff = []
         row_index = 0  # Starting line on the grid
 
@@ -534,7 +554,7 @@ class FirewallGUI:
             #print(f"container_data selected_index{selected_index} -  {self.containers_data[selected_index]}")
         else:
             container_id = "N/A"  # Caso nenhum container seja selecionado
-        print(container_id)
+        #print(container_id)
         self.button_retrieve_firewall_rules.config(state="normal")
         self.button_deploy_firewall_rules.config(state="normal")
         self.button_list_firewall_rules.config(state="normal")
@@ -549,15 +569,32 @@ class FirewallGUI:
         
         self.text_active_firewall_rules.delete(1.0, tk.END)
 
-        command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n", "-t", "nat"]
-        result = containers.run_command(command)
-        self.text_active_firewall_rules.insert(tk.END, f"\n* Result of the command iptables -t nat -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
-        self.text_active_firewall_rules.insert(tk.END, result.stdout)
-        
-        command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n"]
-        result = containers.run_command(command)
-        self.text_active_firewall_rules.insert(tk.END, f"\n* Result of the command iptables -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
-        self.text_active_firewall_rules.insert(tk.END, result.stdout)
+        self.text_active_firewall_rules.tag_configure("bold", font=("TkDefaultFont", "10", "bold"))
+        #self.text_active_firewall_rules.tag_configure("normal", font=("TkDefaultFont", "10"))
+
+        if self.config_include_mangle_var.get() or self.config_include_nat_var.get() or self.config_include_filter_var.get():
+            if self.config_include_mangle_var.get():
+                command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n", "-t", "mangle"]
+                result = containers.run_command(command)
+                self.text_active_firewall_rules.insert(tk.END, f"\n\u2022 Mangle Rules:", "bold")
+                self.text_active_firewall_rules.insert(tk.END, f"\n - Result of the command iptables -t mangle -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
+                self.text_active_firewall_rules.insert(tk.END, result.stdout)    
+
+            if self.config_include_nat_var.get():
+                command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n", "-t", "nat"]
+                result = containers.run_command(command)
+                self.text_active_firewall_rules.insert(tk.END, f"\n\u2022 NAT Rules:", "bold")
+                self.text_active_firewall_rules.insert(tk.END, f"\n - Result of the command iptables -t nat -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
+                self.text_active_firewall_rules.insert(tk.END, result.stdout)
+            
+            if self.config_include_filter_var.get():
+                command = ["docker", "exec", self.container_id_host_regras_firewall[0], "iptables", "-L", "-n"]
+                result = containers.run_command(command)
+                self.text_active_firewall_rules.insert(tk.END, f"\n\u2022 Filter Rules:", "bold")
+                self.text_active_firewall_rules.insert(tk.END, f"\n - Result of the command iptables -L on host {self.container_id_host_regras_firewall[1]}:\n\n")
+                self.text_active_firewall_rules.insert(tk.END, result.stdout)
+        else:
+            self.text_active_firewall_rules.insert(tk.END, f"\n* All firewall rule tables are disabled for listing in the settings tab - so if you want to list the rules enable them in the settings tab.\n\n")
 
         self.text_active_firewall_rules.see(tk.END) # rola o scroll para o final, para ver o texto mais recente!
         
@@ -571,7 +608,7 @@ class FirewallGUI:
         resposta = messagebox.askyesno("Confirmation","This will overwrite the existing rules in the interface. Are you sure you want to continue?")
         # TODO - in UTPFR there was a problem when copying the file from the firewall to the container, it said it copied but didn't copy anything, it only copied when the file was touched - see this.
         if resposta:
-            file = self.firewall_dir_var+"/firewall.sh"
+            file = self.config_firewall_dir_var.get()+"/firewall.sh"
             command = ["docker", "exec", self.container_id_host_regras_firewall[0], "cat", file]
             result = containers.run_command(command)
             self.text_firewall_rules.delete(1.0, tk.END)
@@ -590,8 +627,8 @@ class FirewallGUI:
         """
         print(f"Send and execute firewall rules on host {self.container_id_host_regras_firewall[1]}")
         
-        file_reset = self.firewall_dir_var+"firewall_reset.sh"
-        file = self.firewall_dir_var+"firewall.sh"
+        file_reset = self.config_firewall_dir_var.get()+"/firewall_reset.sh"
+        file = self.config_firewall_dir_var.get()+"/firewall.sh"
 
         if reset!=None:
             containers.copy_host2container(self.container_id_host_regras_firewall[0], file_rules, file_reset)
@@ -621,12 +658,12 @@ class FirewallGUI:
         """
         print(f"Apply rules on the firewall of host {self.container_id_host_regras_firewall[1]}")
         rules = self.text_firewall_rules.get("1.0", tk.END)
-        file_rules=self.firewall_rules_var
+        file_rules=self.config_firewall_rules_var.get()
         with open(file_rules, "w", encoding="utf-8") as file_name:
             file_name.write(rules)
         print(f"Rules saved in the file {file_rules}")
         if self.reset_firewall.get() == 1: # If the checkbox is checked, first reset the firewall, then apply the rules.
-            self.sento_to_host_file_to_execute_firewall_rules(self.reset_firewall_rules, 1)
+            self.sento_to_host_file_to_execute_firewall_rules(self.config_firewall_reset_rules_var.get(), 1)
         
         self.sento_to_host_file_to_execute_firewall_rules(file_rules, None)
         
@@ -641,7 +678,7 @@ class FirewallGUI:
         print(f"Reset firewall rules on host {self.container_id_host_regras_firewall[1]}")
         response = messagebox.askyesno("Warning","This action of resetting firewall rules does not exist by default, meaning this should be handled in your firewall rules. Are you sure you want to continue?")
         if response:
-            self.sento_to_host_file_to_execute_firewall_rules("tmp/reset_firewall.sh", 1)
+            self.sento_to_host_file_to_execute_firewall_rules(self.reset_firewall.get(), 1)
 
     # def selecionar_tudo(self, event=None):
     #     """Seleciona todo o texto."""
@@ -759,7 +796,7 @@ class FirewallGUI:
             Args:
                 ports_list: List of network ports.
         """
-        print("Delete")
+        #print("Delete")
         selected = ports_list.selection()
         if selected:  # Verifica se há algo selecionado
             ports_list.delete(selected)
@@ -916,7 +953,11 @@ class FirewallGUI:
         self.tree.heading("#", text="#")
         self.tree.column("#", width=30, anchor="e", stretch=False)
 
-        self.colunaContainerID=50 # leave it at zero for this column to disappear.
+        if  self.config_show_container_id_var.get(): # Show or hide container ID in tree table.
+            self.colunaContainerID=130 # show
+        else:
+            self.colunaContainerID=0 # hide.
+            
         self.tree.heading("Container ID", text="Container ID")
         self.tree.column("Container ID", width=self.colunaContainerID, stretch=False)
 
@@ -1021,7 +1062,7 @@ class FirewallGUI:
         """
             Method executed when a row of the firewall test table is executed (on tab firewall test ).
         """
-        print("firewall_test_tree_select_line")
+        #print("firewall_test_tree_select_line")
         selected_item = self.tree.selection()
         if selected_item:
             item_values = self.tree.item(selected_item, "values")
@@ -1065,7 +1106,7 @@ class FirewallGUI:
         """
             Add a line/test on treeview firewall tests.
         """
-        print("add_line_on_tree_test_firewall")
+        #print("add_line_on_tree_test_firewall")
         
         src_ip = self.src_ip.get()
         dst_ip = self.dst_ip.get()
@@ -1098,7 +1139,7 @@ class FirewallGUI:
 
         values=[]
         self.tree.insert("", "end", values=[row_index, container_id, src_ip, dst_ip, protocol, src_port, dst_port, expected, "-", " ", " "])
-        self.tree.column("Container ID", width=self.colunaContainerID, stretch=False)
+        #self.tree.column("Container ID", width=self.colunaContainerID, stretch=False)
         
         self.firewall_tests_buttons_set_normal_state()
 
@@ -1316,7 +1357,7 @@ class FirewallGUI:
                 dst_ip: destination, can be a IP, host (IP) or a domain.
         """
         temp_destination =  self.extract_ip_parenthesized_from_string(destination)
-        print(f"temp_dst_ip {temp_destination}")
+        #print(f"temp_dst_ip {temp_destination}")
 
         if temp_destination != None:
             destination = temp_destination
@@ -1379,7 +1420,7 @@ class FirewallGUI:
         """
         # TODO - check whether all cases have been covered
         # TODO - improve logic for checking user errors - such as testing a port that is not connected!
-        print(values)
+        #print(values)
         update_values = list(values)
         tag = None
 
@@ -1413,7 +1454,7 @@ class FirewallGUI:
 
 
         if "dnat" in result: # dnat only happens if there is a response from the server so there is no need for result["server_response"] == True - this comes from server.py
-                print("dnat")
+                #print("dnat")
                 # there was DNAT
                 dnat_data = result["dnat"]
                 network_data = result['client_ip']+':'+str(result['client_port'])+'->'+dnat_data['ip']+':'+str(dnat_data['port'])+'('+result['protocol']+')'+' - Server response? '+ str(result['server_response'])+ ' - Status: '+result['status_msg']
@@ -1499,7 +1540,7 @@ class FirewallGUI:
         """
             Start all the servers in the containers, use server.py for this.
         """
-        print("start_servers")
+        #print("start_servers")
         # TODO - check if there was an error when starting the server and in which container.
         for container in self.containers_data:
             container_id = container["id"]
@@ -1515,7 +1556,7 @@ class FirewallGUI:
         """
             Updates all host/container data - checks for example if any container was created or deleted, if any network configuration changed, etc.
         """
-        print("update_hosts")
+        #print("update_hosts")
 
         for widget in self.canva_hosts.winfo_children():
             widget.destroy()
@@ -1527,7 +1568,7 @@ class FirewallGUI:
         self.hosts = list(map(lambda x: x[1], self.container_hostname)) # hostnames to display
         self.combobox_firewall_rules_host['values']=self.hosts # update combobox values
 
-        print(self.hosts)
+        #print(self.hosts)
 
         self.hosts_show_host_informations_in_host_tab( )
 
@@ -1554,7 +1595,7 @@ class FirewallGUI:
             Args:
                 container_id: Container ID.
         """
-        print(f"Check if server is on or off at container {container_id}")
+        #print(f"Check if server is on or off at container {container_id}")
         cmd = 'docker exec '+ container_id+' ps ax | grep "/usr/local/bin/python ./server.py" | grep -v grep'
         result = containers.run_command_shell(cmd)
         if result !="":
@@ -1574,16 +1615,16 @@ class FirewallGUI:
         print(f"Toggling server for container ID: {container_id}")  
         # Find the corresponding button in the list and change the image
         for cid, button_on_off, label_status in self.list_button_servers_onOff:
-            print(f"container_id/button {cid} - {button_on_off}")
+            #print(f"container_id/button {cid} - {button_on_off}")
             if cid == container_id:
                 current_image = button_on_off["image"][0]
                 if current_image == str(self.power_icon):
-                    print("off")
+                    #print("off")
                     label_status.config()
                     containers.stop_server(container_id)
                     button_on_off.config(image=self.power_icon_off)
                 else:
-                    print("on")
+                    #print("on")
                     containers.start_server(container_id)
                     button_on_off.config(image=self.power_icon, text="liga")
                 status = self.host_check_server_on_off(container_id)

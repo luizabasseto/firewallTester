@@ -345,7 +345,7 @@ class FirewallGUI:
             self.central_frame = tk.Frame(self.frame_all_hosts) 
             self.central_frame.place(relx=0.5, rely=0.5, anchor="center")
 
-            self.canva_hosts = tk.Canvas(self.central_frame, width=500, height=800)
+            self.canva_hosts = tk.Canvas(self.central_frame, width=500, height=800, takefocus=0, highlightthickness=0)
             self.canva_hosts.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
             self.barra_vertical = ttk.Scrollbar(self.frame_all_hosts, orient="vertical", command=self.canva_hosts.yview)

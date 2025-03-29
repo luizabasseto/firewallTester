@@ -176,7 +176,7 @@ def copy_ports2server(container_id, source_file):
             source_file: Source file.
     """
     print(f"Copy port file to server in container {container_id}")
-    return copy_host2container(container_id, source_file, "/firewallTester/src/conf/portas.conf")
+    return copy_host2container(container_id, source_file, "/firewallTester/src/conf/ports.conf")
 
 #teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port
 def run_client_test(container_id, dst_ip, protocol, dst_port, teste_id, timestamp, verbose):
@@ -194,7 +194,7 @@ def run_client_test(container_id, dst_ip, protocol, dst_port, teste_id, timestam
     """
     try:
         result = subprocess.run(
-            ["docker", "exec", container_id, "/firewallTester/src/cliente.py", dst_ip, protocol, dst_port, teste_id, "2025", "0"],
+            ["docker", "exec", container_id, "/firewallTester/src/client.py", dst_ip, protocol, dst_port, teste_id, "2025", "0"],
             capture_output=True, text=True, check=True
         )
         #return json.loads(result.stdout)

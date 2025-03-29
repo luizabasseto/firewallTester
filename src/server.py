@@ -292,7 +292,7 @@ def main():
     host = '0.0.0.0'  # Server IP address (localhost)
     #ports = [5000, 5001]  # Ports for the server
     threads = []
-    ports_file = "conf/portas.conf"
+    ports_file = "conf/ports.conf"
     tuples = read_ports_from_file(ports_file)
     print(f"Starting servers with ports present in file: {ports_file} - This file must contain lines with port/protocol, example 80/tcp.")
     if tuples:

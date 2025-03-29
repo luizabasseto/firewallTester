@@ -1757,6 +1757,7 @@ class FirewallGUI:
                     ])
                 else:
                     # If the source host loaded from the file does not exist in the network scenario, prompt the user to find a new matching host, or ignore and do not include this test line.
+                    # TODO - Perhaps it would be necessary to check if the hosts' IPs are the same as the loaded test, if not the user could be asked to change the IP by choosing from a list.
                     container_id, selected_host = self.ask_user_for_source_host(test["src_ip"], self.hosts_display, test)
                     
                     if selected_host is not None:

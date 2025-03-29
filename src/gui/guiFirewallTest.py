@@ -1757,7 +1757,7 @@ class FirewallGUI:
                     ])
                 else:
                     # If the source host loaded from the file does not exist in the network scenario, prompt the user to find a new matching host, or ignore and do not include this test line.
-                    container_id, selected_host = self.ask_user_for_source_host(test["src_ip"], self.hosts, test)
+                    container_id, selected_host = self.ask_user_for_source_host(test["src_ip"], self.hosts_display, test)
                     
                     if selected_host is not None:
                         item_id = self.tree.insert("", "end", values=[
@@ -1786,7 +1786,7 @@ class FirewallGUI:
         """
         dialog = tk.Toplevel(self.root)
         dialog.title("Select Host")
-        dialog.geometry("450x350")
+        dialog.geometry("400x400")
         dialog.transient(self.root)  
         dialog.grab_set()  # block main window
 
@@ -1806,10 +1806,12 @@ class FirewallGUI:
                     f"\tExpected success for the test: {test['expected']}")
         ttk.Label(dialog, text=test_info, justify="left").pack(pady=5)
 
-        ttk.Label(dialog, text=f"Then the source host ({source}) was not found in the test scenario.\nPlease select a corresponding host or ignore.").pack(pady=5)
+        ttk.Label(dialog, text=f"Then the source host ({source})\n" 
+                                f"was not found in the test scenario.\n"
+                                f"Please select a corresponding host or ignore.").pack(pady=5)
         
         host_var = tk.StringVar()
-        combobox = ttk.Combobox(dialog, textvariable=host_var, values=available_hosts, state="readonly")
+        combobox = ttk.Combobox(dialog, textvariable=host_var, values=available_hosts, state="readonly", width=30)
         combobox.pack(pady=5)
         combobox.set(available_hosts[0] if available_hosts else "")
 
@@ -1820,9 +1822,10 @@ class FirewallGUI:
             nonlocal selected_host
             nonlocal container_id
             selected_host = host_var.get()
-            container_id = self.find_container_id(selected_host)
+            hostname = self.extract_hostname(selected_host)
+            container_id = self.find_container_id(hostname)
             print(f"container_id on select {container_id}")
-            selected_host = self.replace_hostname(source, selected_host)
+            #selected_host = self.replace_hostname(source, selected_host)
             dialog.destroy()
 
         def on_ignore():

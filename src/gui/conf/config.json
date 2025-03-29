@@ -3,7 +3,7 @@
     "reset_rules_file": "conf/firewall_reset.sh",
     "firewall_rules_file": "conf/firewall.sh",
     "server_ports_file": "conf/ports.conf",
-    "show_container_id": false,
+    "show_container_id": true,
     "docker_image": "firewall_tester",
     "include_filter_table": true,
     "include_nat_table": true,

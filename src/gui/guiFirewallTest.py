@@ -1744,22 +1744,144 @@ class FirewallGUI:
                     return
 
             # Add items to the Treeview
+
             for test in tests_data:
-                item_id = self.tree.insert("", "end", values=[
-                    test["teste_id"], test["container_id"], test["src_ip"], test["dst_ip"], test["protocol"],
-                    test["src_port"], test["dst_port"], test["expected"], test["result"], test["flow"], test["data"]
-                ])
 
-                # Restore the hidden Container ID
-                #self.hidden_data[test["teste_id"]] = test["container_id"]
-
-                # Apply color according to the result
-                #self.apply_row_color(item_id, test["result"])
+                source = self.extract_hostname(test["src_ip"])
+                print(f"test source: {source}")
+                container_id = self.find_container_id(source)
+                if container_id:
+                    item_id = self.tree.insert("", "end", values=[
+                        test["teste_id"], container_id, test["src_ip"], test["dst_ip"], test["protocol"],
+                        test["src_port"], test["dst_port"], test["expected"], test["result"], test["flow"], test["data"]
+                    ])
+                else:
+                    # If the source host loaded from the file does not exist in the network scenario, prompt the user to find a new matching host, or ignore and do not include this test line.
+                    container_id, selected_host = self.ask_user_for_source_host(test["src_ip"], self.hosts, test)
+                    
+                    if selected_host is not None:
+                        item_id = self.tree.insert("", "end", values=[
+                            test["teste_id"], container_id, selected_host, test["dst_ip"], test["protocol"],
+                            test["src_port"], test["dst_port"], test["expected"], test["result"], test["flow"], test["data"]
+                        ])
+                    else:
+                        print(f"Test {test} ignored by user.")
 
             print("Tests successfully loaded!")
             self.firewall_tests_buttons_set_normal_state()
         else:
             print("No test files found.")
+    
+    def ask_user_for_source_host(self, source, available_hosts, test):
+        """
+        Opens a dialog to ask the user to select a host if no container_id is found during load file test process,
+        displaying the test details.
+
+        Args:
+            source: the old source hostname, which was not found when the test was loaded from the file.
+            available_hosts: list of host names available in the current network scenario.
+            test: test data.
+
+        Returns: Container id and hostname of the new source host that was chosen in the interface by the user.
+        """
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Select Host")
+        dialog.geometry("450x350")
+        dialog.transient(self.root)  
+        dialog.grab_set()  # block main window
+
+        warning_text = ("Attention: When trying to load the test from the file, "
+                    "no host was found matching the source hostname. "
+                    "Please select a host from the list that corresponds "
+                    "to the source host of the test, or ignore it to discard this test entry.")
+        ttk.Label(dialog, text=warning_text, wraplength=380, justify="left", font=("Arial", 10, "bold")).pack(pady=5)
+        
+        test_info = (f"Test data:\n"
+                    f"\tTest ID: {test['teste_id']}\n"
+                    f"\tSource: {test['src_ip']}\n"
+                    f"\tDestination: {test['dst_ip']}\n"
+                    f"\tProtocol: {test['protocol']}\n"
+                    f"\tSource Port: {test['src_port']}\n"
+                    f"\tDestination Port: {test['dst_port']}\n"
+                    f"\tExpected success for the test: {test['expected']}")
+        ttk.Label(dialog, text=test_info, justify="left").pack(pady=5)
+
+        ttk.Label(dialog, text=f"Then the source host ({source}) was not found in the test scenario.\nPlease select a corresponding host or ignore.").pack(pady=5)
+        
+        host_var = tk.StringVar()
+        combobox = ttk.Combobox(dialog, textvariable=host_var, values=available_hosts, state="readonly")
+        combobox.pack(pady=5)
+        combobox.set(available_hosts[0] if available_hosts else "")
+
+        selected_host = None
+        container_id = None
+
+        def on_select():
+            nonlocal selected_host
+            nonlocal container_id
+            selected_host = host_var.get()
+            container_id = self.find_container_id(selected_host)
+            print(f"container_id on select {container_id}")
+            selected_host = self.replace_hostname(source, selected_host)
+            dialog.destroy()
+
+        def on_ignore():
+            nonlocal selected_host
+            selected_host = None
+            dialog.destroy()
+
+        ttk.Button(dialog, text="Select", command=on_select).pack(side="left", padx=10, pady=10)
+        ttk.Button(dialog, text="Ignore", command=on_ignore).pack(side="right", padx=10, pady=10)
+
+        dialog.wait_window()  # wait closing window
+        
+        return container_id,selected_host
+
+    def replace_hostname(self, old_hostname, new_hostname):
+        """
+        Changes the old source hostname to the new one, preserving the old IP.
+
+        Args:
+            old_hostname: Old hostname - hostname (IP)
+            new_hostname: New hostname - newhostname
+        
+        Returns: the old string with IP, but with the new name.
+        """
+        match = re.match(r"^(.*?) \((.*?)\)$", old_hostname)
+        if match:
+            return f"{new_hostname} ({match.group(2)})"
+        return old_hostname  
+
+    def extract_hostname(self, host_string):
+        """
+        Extracts the hostname from a string in the format "Host (address)".
+
+        Args:
+            host_string (str): The string containing the hostname and IP address.
+
+        Returns:
+            str: The hostname, or None if the string is not in the expected format.
+        """
+        try:
+            hostname = host_string.split(" (")[0]
+            return hostname
+        except IndexError:
+            return None  # Return None if the string is not in the expected format
+
+    def find_container_id(self, search_hostname):
+        """
+        Finds the container_id associated with a hostname in the self.container_hostname list.
+
+        Args:
+            search_hostname (str): The hostname to search for.
+
+        Returns:
+            str or None: The container_id if the hostname is found, or None if not found.
+        """
+        for container_id, hostname in self.container_hostname:
+            if hostname == search_hostname:
+                return container_id
+        return None  # Return None if hostname is not found
 
     def firewall_tests_open_test_file(self):
         """

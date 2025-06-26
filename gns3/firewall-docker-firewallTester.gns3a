@@ -1,0 +1,21 @@
+{
+    "name": "ftFirewall",
+    "default_name_format": "ftFirewall-{0}",
+    "category": "guest",
+    "description": "t Template used for the software that performs firewall tests, available at https://github.com/luizsantos/firewallTester. In addition to this firewall testing software, the image of this template includes various useful network testing tools, as well as text-based clients for web browsing, FTP, SSH, Telnet, and DNS.",
+    "usage": "Template used for the software that performs firewall tests, available at https://github.com/luizsantos/firewallTester, also includes essential network tools such as SSH, FTP, and DNS text clients.",
+    "vendor_name": "cyberinfra",
+    "vendor_url": "https://luizsantos.github.io/cyberinfra/",
+    "product_name": "Ubuntu",
+    "registry_version": 1,
+    "status": "stable",
+    "maintainer": "Prof. Luiz Arthur",
+    "maintainer_email": "luiz.arthur.feitosa.santos@gmail.com",
+    "symbol": ":/symbols/classic/router_firewall.svg",
+    "docker": {
+        "adapters": 4,
+        "image": "luizarthur/cyberinfra:firewall_tester",
+        "console_type": "telnet",
+        "extra_volumes": ["/etc", "/usr", "/home", "/lib", "/lib64", "/var"]
+    }
+}

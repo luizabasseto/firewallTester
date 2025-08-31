@@ -1,1 +1,21 @@
+# Arquivos compilados e cache do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pastas de ambientes virtuais
+.venv/
+venv/
+ENV/
+env/
+
+# Arquivos de configuração do editor e do sistema
+.vscode/
+.idea/
+.DS_Store
+
+# Arquivos de variáveis de ambiente
 .env
+
+# Logs
+*.log

@@ -25,7 +25,6 @@ import sys
 import os
 import json
 import re
-import threading
 import webbrowser
 import textwrap
 from PyQt5.QtWidgets import *

@@ -24,7 +24,7 @@
 
 import subprocess
 import json
-from docker_host import DockerHost
+from .docker_host import DockerHost
 
 def get_ip_info_from_docker(container_id):
     """

@@ -1,86 +1,74 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel, QPushButton, QScrollArea, QGroupBox, QMessageBox)
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+    QPushButton, QScrollArea, QMessageBox)
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
 
-def create_hosts_tab(self):
-    self.hosts_frame = QWidget()
-    layout = QVBoxLayout(self.hosts_frame)
-    self.notebook.addTab(self.hosts_frame, "Hosts")
+from ui.widgets.hosts_cards import HostCardWidget # type: ignore
 
-    top_layout = QHBoxLayout()
-    layout.addLayout(top_layout)
+class HostsTab(QWidget):
+    def __init__(self, container_manager, parent=None):
+        super().__init__(parent)
+        self.container_manager = container_manager
+        self.host_cards = {}  
+        self._load_icons()
+        self._setup_ui()
 
-    top_layout.addWidget(QLabel("Network Containers Hosts:", font=QFont("Arial", 12)))
-    top_layout.addStretch(1)
-    btn_start_all = QPushButton("Turn on all servers")
-    btn_start_all.clicked.connect(self.hosts_start_servers)
-    top_layout.addWidget(btn_start_all)
+    def _load_icons(self):
+        self.icons = {
+            "on": QIcon("assets/power_on.png"),
+            "off": QIcon("assets/power_off.png")
+        }
 
-    self.scroll_area_hosts = QScrollArea()
-    self.scroll_area_hosts.setWidgetResizable(True)
-    layout.addWidget(self.scroll_area_hosts)
+    def _setup_ui(self):
+        main_layout = QVBoxLayout(self)
+        
+        top_layout = QHBoxLayout()
+        top_layout.addWidget(QLabel("Hosts (Containers de Rede):", font=QFont("Arial", 12)))
+        top_layout.addStretch(1)
+        btn_start_all = QPushButton("Ligar Servidores de Todos")
+        btn_start_all.clicked.connect(self._start_all_servers)
+        top_layout.addWidget(btn_start_all)
+        main_layout.addLayout(top_layout)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        main_layout.addWidget(scroll_area)
+        
+        content_widget = QWidget()
+        self.layout_all_hosts = QVBoxLayout(content_widget)
+        self.layout_all_hosts.setAlignment(Qt.AlignTop)
+        scroll_area.setWidget(content_widget)
+
+    def update_hosts_display(self, hosts_list):
+        current_host_ids = {host['id'] for host in hosts_list}
+        existing_host_ids = set(self.host_cards.keys())
+
+        for host_id in existing_host_ids - current_host_ids:
+            card_to_remove = self.host_cards.pop(host_id)
+            card_to_remove.setParent(None)
+            card_to_remove.deleteLater()
+
+        for host_data in hosts_list:
+            host_id = host_data['id']
+            if host_id not in self.host_cards:
+                new_card = HostCardWidget(host_data, self.icons)
+                new_card.btn_toggle.clicked.connect(lambda _, cid=host_id: self._toggle_server(cid))
+                new_card.btn_edit_ports.clicked.connect(lambda _, cid=host_id, hname=host_data['hostname']: self._edit_ports(cid, hname))
+                
+                self.layout_all_hosts.addWidget(new_card)
+                self.host_cards[host_id] = new_card
+            
+            status, _ = self.container_manager.check_server_status(host_id)
+            self.host_cards[host_id].update_status(status)
+
+    def _toggle_server(self, host_id):
+        success, new_status = self.container_manager.toggle_server(host_id)
+        if success and host_id in self.host_cards:
+            self.host_cards[host_id].update_status(new_status)
     
-    self.frame_all_hosts_content = QWidget()
-    self.layout_all_hosts = QVBoxLayout(self.frame_all_hosts_content)
-    self.layout_all_hosts.setAlignment(Qt.AlignTop)
-    self.scroll_area_hosts.setWidget(self.frame_all_hosts_content)
-    
-    # Icons
-    self.power_icon = QIcon("img/system-shutdown-symbolic.png")
-    self.power_icon_off = QIcon("img/system-shutdown-symbolic-off.png")
+    def _start_all_servers(self):
+        for host_id in self.host_cards.keys():
+            self._toggle_server(host_id)
 
-def hosts_show_host_informations_in_host_tab(self):
-    # Clear previous widgets
-    for i in reversed(range(self.layout_all_hosts.count())): 
-        self.layout_all_hosts.itemAt(i).widget().setParent(None)
-    
-    self.list_button_servers_onOff = []
-    #cont = containers.getContainersByImageName()
-
-    for host in cont:
-        container_id = host["id"]
-        hostname = host["hostname"]
-        
-        host_box = QGroupBox(f"{hostname}")
-        host_layout = QVBoxLayout(host_box)
-        self.layout_all_hosts.addWidget(host_box)
-
-        info_layout = QFormLayout()
-        host_layout.addLayout(info_layout)
-        
-        info_layout.addRow("Container:", QLabel(f"{host['id']} - {host['nome']}"))
-
-        if not host['interfaces']:
-            info_layout.addRow("Interfaces:", QLabel("None or Down"))
-        else:
-            for interface in host['interfaces']:
-                if_name = interface['nome']
-                ips = ", ".join(interface['ips']) if interface['ips'] else "No IP"
-                info_layout.addRow(f"Interface {if_name}:", QLabel(ips))
-
-        # Status and Controls
-        status_layout = QHBoxLayout()
-        host_layout.addLayout(status_layout)
-        
-        status = self.host_check_server_on_off(container_id)
-        lbl_status = QLabel(f"Server Status: {status}")
-        
-        btn_toggle = QPushButton()
-        btn_toggle.setIcon(self.power_icon if status == 'on' else self.power_icon_off)
-        btn_toggle.setFixedSize(32, 32)
-        btn_toggle.clicked.connect(lambda _, cid=container_id: self.host_toggle_server_and_button_between_onOff(cid))
-        
-        btn_edit_ports = QPushButton("Edit Ports")
-        btn_edit_ports.clicked.connect(lambda _, cid=container_id, hname=hostname: self.edit_host_ports(cid, hname))
-
-        status_layout.addWidget(lbl_status)
-        status_layout.addStretch(1)
-        status_layout.addWidget(btn_edit_ports)
-        status_layout.addWidget(btn_toggle)
-
-        self.list_button_servers_onOff.append({"id": container_id, "button": btn_toggle, "label": lbl_status})
-
-def edit_host_ports(self, container_id, hostname):
-    # This function would create a new QDialog to edit ports.
-    # Implementation is similar to the Tkinter version but with QDialog, QTreeWidget, etc.
-    QMessageBox.information(self, "Not Implemented", f"Port editing for {hostname} would open here.")
+    def _edit_ports(self, container_id, hostname):
+        QMessageBox.information(self, "Não Implementado", f"A edição de portas para {hostname} seria aberta aqui.")

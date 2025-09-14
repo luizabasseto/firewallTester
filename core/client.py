@@ -2,8 +2,10 @@
 
 """
     Program Name: Firewall Tester - Client
-    Description: Acts as a client so that the firewall rule testing software can send packets to the server software in the test scenario.
-    Author: Luiz Arthur Feitosa dos Santos - luiz.arthur.feitosa.santos@gmail.com / luizsantos@utfpr.edu.br
+    Description: Acts as a client so that the firewall rule testing software 
+    can send packets to the server software in the test scenario.
+    Author: Luiz Arthur Feitosa dos Santos - 
+    luiz.arthur.feitosa.santos@gmail.com / luizsantos@utfpr.edu.br
     License: GNU General Public License v3.0
     Version: 1.0
 """
@@ -11,13 +13,13 @@
 import socket
 import argparse
 import json
-import datetime
 import os
 import time
 from datetime import datetime
 
 from scapy.all import IP, ICMP, sr1
-# TODO - Fazer essa validação para todos logo no inicio, se não passar nem inicia os testes - colocar uma msg no status
+# TODO - Fazer essa validação para todos logo no inicio, 
+# se não passar nem inicia os testes - colocar uma msg no status
 def validar_host(host):
     try:
         socket.gethostbyname(host)  # Tenta resolver o nome do host
@@ -28,7 +30,8 @@ def validar_host(host):
 def ping(host, count):
     """Envia pacotes ICMP Echo Request e verifica a resposta."""
     received = 0
-    count = 1 # ignora a quantidade de msg passada pelo usuário, pois na interface essa é a porta e por exemplo a porta é 80 serão 80 pings...
+    count = 1 # ignora a quantidade de msg passada pelo usuário, pois na 
+    #interface essa é a porta e por exemplo a porta é 80 serão 80 pings...
     if verbose > 0: print(f"\nPING {host}:")
     for seq in range(1, count + 1):
         if not validar_host(host):
@@ -180,7 +183,12 @@ try:
             response, _ = client_sock.recvfrom(1024) if args.protocol == "udp" else (client_sock.recv(1024), None)
             timestamp_response = datetime.now().isoformat()
             if verbose > 0: print(f"\033[32m\t+ Response received from the server {args.server_host}:{args.server_port}/{args.protocol.upper()}->{client_ip}:{client_port}.\033[0m")
-            if verbose > 0: print(f"Round-trip time of the message: {calcular_diferenca_timestamp(message["timestamp_send"], timestamp_response)} ms")
+            if verbose > 0:
+                try:
+                    rtt = calcular_diferenca_timestamp(message["timestamp_send"], timestamp_response)
+                    print(f"Round-trip time of the message: {rtt} ms")
+                except Exception as e:
+                    print(f"Could not calculate round-trip time: {e}")
             response_data = response.decode()
             if verbose > 2: print(f"+ Server response: {response_data}")
             message = json.loads(response_data)

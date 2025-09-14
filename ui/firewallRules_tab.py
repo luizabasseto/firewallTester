@@ -154,3 +154,12 @@ class FirewallRulesTab(QWidget):
         else:
             self.log_output.append(f"<font color='red'><b>&gt; Erro ao aplicar regras:</b><br><pre>{message}</pre></font>")
             QMessageBox.warning(self, "Erro", "Algo deu errado ao executar as regras. Verifique a saída.")
+
+    def update_hosts_list(self, hosts_data_tuples):
+        self.hosts_data = hosts_data_tuples
+        
+        host_names = [name for name, _ in self.hosts_data]
+        
+        self.combo_hosts.clear()
+        self.combo_hosts.addItems(host_names)
+        self.combo_hosts.setCurrentIndex(-1)

@@ -13,6 +13,7 @@ from .settings_tab import SettingsTab
 from .help_tab import HelpTab
 from .about_tab import AboutTab
 from .widgets.header import Header
+from core.ai_assistance import AIAssistant
 
 class MainWindow(QMainWindow):
     
@@ -33,6 +34,7 @@ class MainWindow(QMainWindow):
 
         self.container_manager = ContainerManager()
         self.test_runner = TestRunner()
+        self.ai_assistant = AIAssistant()
         self.config = self._load_app_config() 
         
         main_widget = QWidget()
@@ -88,7 +90,7 @@ class MainWindow(QMainWindow):
         self.tab_widget.addTab(self.hosts_tab, "Hosts")
 
         hosts_for_combobox = self.container_manager.get_hosts_for_combobox()
-        self.firewall_rules_tab = FirewallRulesTab(self.container_manager, hosts_for_combobox, self.config)
+        self.firewall_rules_tab = FirewallRulesTab(self.container_manager, hosts_for_combobox, self.config, self.ai_assistant)
         self.tab_widget.addTab(self.firewall_rules_tab, "Regras de Firewall")
 
         self.tests_tab = FirewallTestsTab(self.test_runner, self.config)

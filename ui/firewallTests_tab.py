@@ -233,3 +233,16 @@ class FirewallTestsTab(QWidget):
         # ... (lógica para carregar um JSON e popular a árvore) ...
         pass
 
+    def update_hosts_list(self, hosts_data_tuples):
+
+        self.hosts_data = hosts_data_tuples
+        
+        host_names = [name for name, _ in self.hosts_data]
+        
+        self.src_ip_combo.clear()
+        self.src_ip_combo.addItems(host_names)
+        self.src_ip_combo.setCurrentIndex(-1)
+        
+        self.dst_ip_combo.clear()
+        self.dst_ip_combo.addItems(host_names)
+        self.dst_ip_combo.setCurrentIndex(-1)

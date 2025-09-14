@@ -1,8 +1,18 @@
-from PyQt5.QtWidgets import (QGroupBox, QVBoxLayout, QHBoxLayout, 
-    QFormLayout, QLabel, QPushButton)
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (
+    QGroupBox,
+    QVBoxLayout,
+    QHBoxLayout,
+    QFormLayout,
+    QLabel,
+    QPushButton,
+)
 
 class HostCardWidget(QGroupBox):
+    """Displays host information and controls in a card-like widget.
+
+    This widget presents details about a host, including interfaces and status,
+    and provides controls for interaction.
+    """
     
     def __init__(self, host_data, icons, parent=None):
         super().__init__(host_data.get("hostname", "Unknown Host"), parent)
@@ -39,6 +49,10 @@ class HostCardWidget(QGroupBox):
         status_layout.addWidget(self.btn_toggle)
         
     def update_status(self, status):
+        """Updates the displayed server status and toggle button icon.
+        Args:
+            status (str): The current status of the server, typically 'on' or 'off'.
+        """
         self.lbl_status.setText(f"Server Status: <b>{status}</b>")
         icon = self.icons.get('on') if status == 'on' else self.icons.get('off')
         if icon:

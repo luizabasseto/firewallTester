@@ -24,7 +24,6 @@
 import socket
 import json
 import threading
-import sys
 import psutil
 import ipaddress
 import os
@@ -192,7 +191,7 @@ def lidar_com_cliente_TCP(client_socket):
         if (dest_ip not in server_ips) and check_if_validIP_not_localhost_or_zero(dest_ip):
             #print(f"ips diferentes {dest_ip}")
             host_name = socket.getfqdn()
-            json_data["message"] = f"Looks like DNAT was made {json_data["server_ip"]}->{host_name}"
+            json_data["message"] = f"Looks like DNAT was made {json_data['server_ip']}->{host_name}"
             json_data = add_dnat_to_json(json_data, host_name, server_ip, server_port)
             print(json.dumps(json_data, indent=4))
 

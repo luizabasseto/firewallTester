@@ -45,7 +45,7 @@ the Free Software Foundation, either version 3 of the License, or
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
- Program Name: Firewall Tester - Graphical Interface
+Program Name: Firewall Tester - Graphical Interface
     Description: This is the graphical interface and the main part of the firewall rule testing software.
     Author: Luiz Arthur Feitosa dos Santos - luiz.arthur.feitosa.santos@gmail.com / luizsantos@utfpr.edu.br
     License: GNU General Public License v3.0
@@ -80,10 +80,15 @@ the Free Software Foundation, either version 3 of the License, or
 # TODO - relate the name of the docker image with the name used in the configuration tab.
 # TODO -
 
-
 class MainWindow(QMainWindow):
     """
-    The main window of the application, which contains all UI elements."""
+    The main window of the application, which contains all UI elements.
+
+    (R0902): This class has many instance attributes, which is acceptable for a
+    main window that manages multiple tabs and core components.
+    (R0903): This class has few public methods as it's the top-level widget.
+    Its primary role is orchestration, handled by private methods.
+    """
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Firewall Tester")
@@ -192,8 +197,9 @@ class MainWindow(QMainWindow):
         Overrides the default close event to show a confirmation dialog.
         The name 'closeEvent' is a PyQt convention and must be kept.
         """
-        reply = QMessageBox.question(self, 'Confirmação', 'Deseja realmente sair do programa?',
-                                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = QMessageBox.question(
+            self, 'Confirmação', 'Deseja realmente sair do programa?',
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             event.accept()
         else:

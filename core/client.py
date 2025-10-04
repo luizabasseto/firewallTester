@@ -15,12 +15,14 @@ import argparse
 import json
 import os
 import time
+import sys
 from datetime import datetime
 
 from scapy.all import IP, ICMP, sr1
 # TODO - Fazer essa validação para todos logo no inicio, 
 # se não passar nem inicia os testes - colocar uma msg no status
 def validar_host(host):
+    """Checks if a hostname can be resolved."""
     try:
         socket.gethostbyname(host)  # Tenta resolver o nome do host
         return True  # Host válido
@@ -30,9 +32,10 @@ def validar_host(host):
 def ping(host, count):
     """Envia pacotes ICMP Echo Request e verifica a resposta."""
     received = 0
-    count = 1 # ignora a quantidade de msg passada pelo usuário, pois na 
-    #interface essa é a porta e por exemplo a porta é 80 serão 80 pings...
-    if verbose > 0: print(f"\nPING {host}:")
+    # The count is ignored; only one ping is sent per test run.
+    count = 1
+    if verbose > 0:
+        print(f"\nPING {host}:")
     for seq in range(1, count + 1):
         if not validar_host(host):
             #print(f"Erro: O host {host} não é valido no cliente no módulo scapy")
@@ -45,10 +48,12 @@ def ping(host, count):
 
         if reply:
             elapsed_time = (time.time() - start_time) * 1000
-            if verbose > 0: print(f"\033[32m\t+ Response from {host}: Time = {elapsed_time:.2f} ms - {seq}/{count}\033[0m")
+            if verbose > 0:
+                print(f"\033[32m\t+ Response from {host}: Time = {elapsed_time:.2f} ms - {seq}/{count}\033[0m")
             received += 1
         else:
-            if verbose > 0: print(f"\033[31m\t- No response from {host} - {seq}/{count}\033[0m")
+            if verbose > 0:
+                print(f"\033[31m\t- No response from {host} - {seq}/{count}\033[0m")
 
         time.sleep(1)
     return received
@@ -61,13 +66,13 @@ def calcular_diferenca_timestamp(timestamp_envio, timestamp_recebido):
     return diferenca
 
 # Configuração dos argumentos de linha de comando
-parser = argparse.ArgumentParser(description="Cliente UDP/TCP/ICMP")
+parser = argparse.ArgumentParser(description="Firewall Tester Client (UDP/TCP/ICMP)")
 parser.add_argument("server_host", type=str, help="Endereço IP do servidor")
 parser.add_argument("protocol", type=str.lower, help="Protocolo utilizado TCP/UDP/ICMP")
 parser.add_argument("server_port", type=int, help="Porta do servidor")
 parser.add_argument("testId", type=int, help="ID do teste")
 parser.add_argument("timestamp", type=str, help="Timestamp do teste")
-parser.add_argument("verbose", type=int, help="Nível de verbose - 0,1,2 quanto maior o valor mais detalhes")
+parser.add_argument("verbose", type=int, help="Nível de verbose (0, 1, 2)")
 
 args = parser.parse_args()
 verbose = args.verbose
@@ -75,6 +80,7 @@ verbose = args.verbose
 # Inicializando socket de acordo com o protocolo
 client_sock = None
 client_port = -1
+icmp_status = 0
 
 if args.protocol.lower() == "udp" or args.protocol.lower() == "UDP":
     if verbose > 0: print("Protocol: UDP")
@@ -97,12 +103,15 @@ elif args.protocol.lower() == "icmp" or args.protocol.lower() == "ICMP":
     client_port = 0  # ICMP não usa portas convencionais
 else:
     if verbose > 0: print("Choose a valid protocol (TCP, UDP ou ICMP).")
-    quit()
+    sys.exit(1)
 
 # Obtendo informações do cliente
 # TODO - se o nome do host estiver errado no arquivo /etc/host esse programa não funciona! Bem isso está aqui para pegar o ip do cliente, então não sei se precisa pegar o nome para pegar o IP - ver como fazer isso só pegando o IP - ai uma questão que teria, seria se o cliente tiver mais que um IP.
 client_host = socket.gethostname()
-client_ip = socket.gethostbyname(client_host) # TODO - se o IP for 0.0.0.0 significa que o host de destino não tem IP, inserir isso no resultado - melhor nem executar a conexão, ou seja, terminar antes e já colocar no objeto json que houve erro.
+try:
+    client_ip = socket.gethostbyname(client_host)
+except socket.gaierror:
+    client_ip = "0.0.0.0" # Could not resolve hostname
 timestamp = datetime.now().isoformat()
 
 # Criando diretório e nome do arquivo JSON
@@ -113,9 +122,9 @@ os.makedirs(dir_name, exist_ok=True)
 
 # Carregando JSON existente ou criando um novo
 try:
-    with open(filename, 'r') as file:
+    with open(filename, 'r', encoding="utf-8") as file:
         dados = json.load(file)
-except:
+except (FileNotFoundError, json.JSONDecodeError):
     dados = {"tests": []}
 
 # Criando estrutura do JSON
@@ -150,14 +159,15 @@ if args.protocol == "icmp":
     else:
         message["server_response"] = icmp_status > 0
         message["server_port"] = 8  # ICMP echo reply
-        
+
     dados["tests"].append(message)
-    with open(filename, "w") as file:
+    with open(filename, "w", encoding="utf-8") as file:
         json.dump(dados, file, indent=4)
-    if verbose > 0: print(f"Writing to file: {json.dumps(message, indent=4)}")
-    # envia icmp para a gui
+    if verbose > 0:
+        print(f"Writing to file: {json.dumps(message, indent=4)}")
+
     print(json.dumps(message, indent=4))
-    quit()
+    sys.exit(0)
 
 # Envio de dados (UDP e TCP)
 json_message = json.dumps(message, indent=4)
@@ -165,8 +175,9 @@ server_address = (args.server_host, args.server_port)
 
 try:
     if verbose > 0: print(f"-> Sending message to: {args.server_host}:{args.server_port}/{args.protocol.upper()}.")
-    if verbose > 0: print(f"Sending: {json_message}")
-    
+    if verbose > 0:
+        print(f"Sending: {json_message}")
+
     if args.server_host == "0.0.0.0":
         message["status_msg"] = "Error by using destination IP 0.0.0.0"
     else:
@@ -182,7 +193,8 @@ try:
         try:
             response, _ = client_sock.recvfrom(1024) if args.protocol == "udp" else (client_sock.recv(1024), None)
             timestamp_response = datetime.now().isoformat()
-            if verbose > 0: print(f"\033[32m\t+ Response received from the server {args.server_host}:{args.server_port}/{args.protocol.upper()}->{client_ip}:{client_port}.\033[0m")
+            if verbose > 0:
+                print(f"\033[32m\t+ Response received from {args.server_host}:{args.server_port} -> {client_ip}:{client_port}.\033[0m")
             if verbose > 0:
                 try:
                     rtt = calcular_diferenca_timestamp(message["timestamp_send"], timestamp_response)
@@ -198,15 +210,15 @@ try:
 
         # TODO - enviar essas mensagens para a interface gráfica utilizando o objeto json - colocar um campo observação ou algo do gênero - caso contrário a interface gráfica pode quebrar, já que ela espera o json.
         except socket.timeout:
-            if verbose > 0 : print(f"\033[31m\t- No response from {args.server_host}:{args.server_port}/{args.protocol.upper()}.\033[0m")
-    
-
+            if verbose > 0:
+                print(f"\033[31m\t- No response from {args.server_host}:{args.server_port}/{args.protocol.upper()}.\033[0m")
 
     dados["tests"].append(message)
-    with open(filename, "w") as file:
+    with open(filename, "w", encoding="utf-8") as file:
         json.dump(dados, file, indent=4)
 
-    if verbose > 0: print(f"Writing to file: {json.dumps(message, indent=4)}")
+    if verbose > 0:
+        print(f"Writing to file: {json.dumps(message, indent=4)}")
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
     if verbose > 0: print(f"Communication error: {e}")
@@ -216,9 +228,10 @@ except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OS
     message["status"] = '0'
     message["status_msg"] = "Firewall Drop or Network Error"
     dados["tests"].append(message)
-    with open(filename, "w") as file:
+    with open(filename, "w", encoding="utf-8") as file:
         json.dump(dados, file, indent=4)
-    if verbose > 0: print(f"Writing to file: {json.dumps(message, indent=4)}")
+    if verbose > 0:
+        print(f"Writing to file: {json.dumps(message, indent=4)}")
 
 finally:
     if client_sock:
@@ -226,3 +239,4 @@ finally:
 
 # print que manda a msg para a interface
 print(json.dumps(message, indent=4))
+sys.exit(0)

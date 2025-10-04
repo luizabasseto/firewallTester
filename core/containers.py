@@ -24,16 +24,16 @@
 
 import subprocess
 import json
-from .docker_host import DockerHost
+from core.docker_host import DockerHost
 
 def get_ip_info_from_docker(container_id):
     """
     Runs the command 'ip -4 -json a' inside a Docker container and returns the resulting JSON.
-    
+
     Args:
-        containerId: container ID.
-    
-    :return: 
+        container_id: container ID.
+
+    :return:
         A list of containers informations.
     """
     try:
@@ -48,10 +48,10 @@ def get_ip_info_from_docker(container_id):
 
 def start_server(container_id):
     """
-        Starts the script that simulates server ports in containers.
-        
-        Args:
-            containerId: container ID - container that will start the server.
+    Starts the script that simulates server ports in containers.
+
+    Args:
+        container_id: container ID - container that will start the server.
     """
     # TODO - if you are using DHCP, UDP ports 68 and 69 may be in use, so you will not be able to run these ports! See how to solve...
     print(f"Start server in container {container_id}")
@@ -63,7 +63,8 @@ def start_server(container_id):
         )
         try:
             return json.loads(result.stdout)
-        except json.JSONDecodeError: # actually the output for the command's success doesn't return anything, so it gives the json error.
+        except json.JSONDecodeError:
+            # The command's success output is empty, so a JSON error is expected.
             print("Servers turned on...")
             print("Output received:", result.stdout)
             return None  # Or some default value
@@ -74,21 +75,21 @@ def start_server(container_id):
 
 def stop_server(container_id):
     """
-        Stop the script that simulates server ports in containers.
-        
-        Args:
-            containerId: container ID - container that will stop the server.
+    Stop the script that simulates server ports in containers.
+
+    Args:
+        container_id: container ID - container that will stop the server.
     """
     print(f"Stop server in container {container_id}")
     command = 'docker exec '+ container_id +' pkill server.py'
     run_command_shell(command)
-    
+
 def run_command(command):
     """
-        Execute a command.
-        
-        Args:
-            command: command that will be executed, but the commands, their options and parameters must be in a python list.
+    Execute a command.
+
+    Args:
+        command: command that will be executed as a list of arguments.
     """
     # TODO - if you are using DHCP, UDP ports 68 and 69 may be in use, so you will not be able to run these ports! see how to solve...
     try:
@@ -102,14 +103,14 @@ def run_command(command):
 # para executar sem precisar separar em lista
 def run_command_shell(command):
     """
-        Execute a command but the commando is like the console command, not a list.
-        
-        Args:
-            command: command that will be executed.
+    Execute a command in a shell.
+
+    Args:
+        command: command that will be executed as a single string.
     """
     # TODO - if you are using DHCP, UDP ports 68 and 69 may be in use, so you will not be able to run these ports! see how to solve...
     try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=False)
         return result.stdout
 
     except subprocess.CalledProcessError as e:
@@ -120,19 +121,22 @@ def run_command_shell(command):
 
 def get_port_from_container(container_id):
     """
-        Get open ports from container:
+    Get open ports from a container.
 
-        Args:
-            container_id: ID from container.
+    Args:
+        container_id: ID from container.
     """
     print(f"Get ports from container - {container_id}")
 
-    net_command = ' netstat -atuln | awk \'$1 ~ /^(tcp|udp)$/ {split($4, a, ":"); print $1 "/" a[2]}\' | sort -t \'/\' -k 2n'
+    net_command = (
+        " netstat -atuln | awk '$1 ~ /^(tcp|udp)$/ {split($4, a, \":\"); "
+        "print $1 \"/\" a[2]}' | sort -t '/' -k 2n"
+    )
     command = "docker exec "+container_id+net_command
     
     #docker exec 9eb8ef3327d1 netstat -atuln | awk '$1 ~ /^(tcp|udp)$/ {split($4, a, ":"); print $1 "/" a[2]}' | sort -t '/' -k 2n
 
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    result = subprocess.run(command, shell=True, capture_output=True, text=True, check=False)
 
     if result.returncode == 0:
         # Processes output to get protocol and port
@@ -142,18 +146,18 @@ def get_port_from_container(container_id):
                 protocol, port = linha.split('/')
                 ports.append((protocol.upper(), int(port)))  # Add to list as tuple
         return ports
-    else:
-        print(f"Error: {result.stderr}")
-        return []  # Returns an empty list on error
-    
+
+    print(f"Error: {result.stderr}")
+    return []  # Returns an empty list on error
+
 def copy_host2container(container_id, source_file, destination_file):
     """
-        Copy a file from host to container.
+    Copy a file from host to container.
 
-        Args:
-            container_id: Container ID.
-            source_file: Source file.
-            destination_file: Destination file.
+    Args:
+        container_id: Container ID.
+        source_file: Source file.
+        destination_file: Destination file.
 
     """
     print(f"Copy file ({source_file}) to container {container_id}")
@@ -169,11 +173,11 @@ def copy_host2container(container_id, source_file, destination_file):
 
 def copy_ports2server(container_id, source_file):
     """
-        Copy ports file to container/server.
-        
-        Args:
-            container_id: Container ID.
-            source_file: Source file.
+    Copy ports file to container/server.
+
+    Args:
+        container_id: Container ID.
+        source_file: Source file.
     """
     print(f"Copy port file to server in container {container_id}")
     return copy_host2container(container_id, source_file, "/firewallTester/src/conf/ports.conf")
@@ -181,20 +185,23 @@ def copy_ports2server(container_id, source_file):
 #teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port
 def run_client_test(container_id, dst_ip, protocol, dst_port, teste_id, timestamp, verbose):
     """
-        Executa o teste no container/host.
+    Executes the client test script inside a container.
 
-        Args:
-            container_id: Container ID;
-            dst_ip: Destination IP;
-            protocol: Protocol (TCP, UDP or ICMP);
-            dst_port: Destination port;
-            test_id: Test ID - some value;
-            timestamp: Timestamp from test.
-            verbose: Output verbose - the Firewall test interface just suport verbose mode 0 - DONT USE ANOTHER VALUE.
+    Args:
+        container_id: Container ID.
+        dst_ip: Destination IP.
+        protocol: Protocol (TCP, UDP or ICMP).
+        dst_port: Destination port.
+        test_id: Test ID.
+        timestamp: Timestamp for the test run (currently unused).
+        verbose: Verbosity level (currently unused, defaults to 0).
     """
+    # The 'timestamp' and 'verbose' arguments are kept for signature consistency
+    # but are hardcoded in the command below for now.
     try:
         result = subprocess.run(
-            ["docker", "exec", container_id, "/firewallTester/src/client.py", dst_ip, protocol, dst_port, teste_id, "2025", "0"],
+            ["docker", "exec", container_id, "/firewallTester/src/client.py",
+             dst_ip, protocol, str(dst_port), str(test_id), "2025", "0"],
             capture_output=True, text=True, check=True
         )
         #return json.loads(result.stdout)
@@ -207,39 +214,38 @@ def run_client_test(container_id, dst_ip, protocol, dst_port, teste_id, timestam
 
 def process_ip_info(interfaces, host):
     """
-        Processes the JSON output of the 'ip -4 -json a' command and displays network interfaces and their IPs, ignoring interface 'lo' (loopback).
+    Processes the JSON output of 'ip -4 -json a' and adds interfaces to a host object.
 
-        Args:
-            interfaces: network interfaces from a host;
-            host: A host.
+    Args:
+        interfaces: network interfaces from a host.
+        host: A host object.
     """
 
     for interface in interfaces:
-        list=[]
+        ip_list = []
         if interface["ifname"] == "lo":
             continue  # Ignore the loopback interface
 
-        ifname = interface["ifname"]
         ips = [addr["local"] for addr in interface.get("addr_info", [])]
 
         if ips:
             #print(f"\tInterface: {ifname}")
             for ip in ips:
                 #print(f"\t\t  IP: {ip}")
-                list.append(ip)
+                ip_list.append(ip)
 
-        host.add_interface(interface["ifname"], list)
+        host.add_interface(interface["ifname"], ip_list)
 
     return host
 
 def extract_hostname_ips(json_list):
     """
-        Extrai o hostname e os IPs de uma lista de objetos JSON.
+    Extracts the hostname and IPs from a list of JSON objects.
 
-        Args:
-            param: json_list: List of JSON objects in DockerHost format.
-            
-        :return: List of strings in the format "hostname: ip".
+    Args:
+        json_list: List of JSON objects in DockerHost format.
+
+    :return: List of strings in the format "hostname: ip".
     """
     result = []
 
@@ -255,14 +261,14 @@ def extract_hostname_ips(json_list):
 
     return result
 
-def extract_containerid_hostname_ips( ):
+def extract_containerid_hostname_ips():
     """
     Extracts the container ID, hostname and IPs from a list of JSON objects.
-    
+
     :return: Sorted list of dictionaries in the format {"id": "container_id", "hostname": "hostname", "ip": "ip"}.
     """
 
-    json_list = getContainersByImageName()  # get container information (id, hostname, etc)
+    json_list = get_containers_by_image_name()  # get container information (id, hostname, etc)
 
     result = []
 
@@ -292,14 +298,14 @@ def extract_containerid_hostname_ips( ):
 
     return sorted(result, key=lambda x: x["hostname"])
 
-def get_containerid_hostname( ):
+def get_containerid_hostname():
     """
     Get the container ID and hostname.
-    
+
     :return: Sorted list of dictionaries in the format [container_id, hostname}.
     """
 
-    json_list = getContainersByImageName()  # get container information (id, hostname, etc)
+    json_list = get_containers_by_image_name()  # get container information (id, hostname, etc)
 
     result = []
 
@@ -317,11 +323,11 @@ def extract_hostname_interface_ips(json_list):
 
     Args:
         json_list: List of JSON objects in DockerHost format.
-    
+
     :return: List of lists in the format [hostname, [interface1, interface2, ...]],
         where each interface is a dictionary {"name": "eth0", "ips": ["ip1", "ip2"]}.
     """
-    print(f"\nGetting list: hostname and interfaces:ip.")
+    print("\nGetting list: hostname and interfaces:ip.")
     result = []
 
     # Iterates through each JSON object in the list
@@ -344,16 +350,17 @@ def extract_hostname_interface_ips(json_list):
 
 def get_container_info_by_filter(filter_string):
     """
-        Gets detailed information about Docker containers whose hostname contains the given string.
-        
-        Args:
-            filter_string: String filter that will be used in the container search.
-        
-        :return: List of containers that match with the filter.
+    Gets detailed information about Docker containers whose image name contains the given string.
+
+    Args:
+        filter_string: String filter that will be used in the container search.
+
+    :return: List of containers that match with the filter.
     """
     print(f"\nGetting container information: \n\tAll containers must have names containing the word: {filter_string}.")
     try:
         # Get all running containers
+        # Using check=True as we expect this to succeed.
         result = subprocess.run(
             ["docker", "ps", "-q"], capture_output=True, text=True, check=True
         )
@@ -369,7 +376,9 @@ def get_container_info_by_filter(filter_string):
             inspect_cmd = [
                 "docker", "inspect", container_id
             ]
-            inspect_result = subprocess.run(inspect_cmd, capture_output=True, text=True)
+            inspect_result = subprocess.run(
+                inspect_cmd, capture_output=True, text=True, check=False
+            )
 
             if inspect_result.returncode == 0:
                 container_data = json.loads(inspect_result.stdout)[0]
@@ -403,17 +412,16 @@ def get_container_info_by_filter(filter_string):
 
 # TODO - make method to return hostname, interface, IP
 
-def getContainersByImageName():
+def get_containers_by_image_name():
     """
-        Get containers using Docker image name. Previously this was returned by the host name, but this was changed to the image name.
-        
-        :return: A list of containers/hosts.
+    Get containers using Docker image name.
+
+    :return: A list of containers/hosts as dictionaries.
     """
 
     hosts = []
-    filter_string = "firewall_tester" # part of the image name - in this case all test containers must have firewall_tester in their iamge name
+    filter_string = "firewall_tester"
     matching_containers = get_container_info_by_filter(filter_string)
-    #printContainerList(matching_containers, filter_string)
 
     print(f"\nGetting container network information: \n\tGenerating JSON of this information!")
     for container in matching_containers:
@@ -424,7 +432,6 @@ def getContainersByImageName():
             hostname=container['hostname']
         )
 
-        #print(f"\nContainer found: {container['hostname']} - ID: {container['id']}")
         # Run the command in Docker and process the output
         interfaces = get_ip_info_from_docker(container['id'])
         #print(f"interfaces - {interfaces}")
@@ -438,13 +445,15 @@ def getContainersByImageName():
     #print(hosts_json)
     return hosts
 
-def printContainerList(matching_containers, filter_string):
+def print_container_list(matching_containers, filter_string):
+    """Prints a list of containers in JSON format."""
     if matching_containers:
         print(json.dumps(matching_containers, indent=4))
     else:
         print("No container found with hostname containing:", filter_string)
 
 # Example of use
-#hosts = getContainersHostNames()
-#hosts_json = json.dumps(hosts, indent=2)
-#print(hosts_json)
+# if __name__ == "__main__":
+#     hosts = get_containers_by_image_name()
+#     hosts_json = json.dumps(hosts, indent=2)
+#     print(hosts_json)

@@ -1,3 +1,5 @@
+"""Defines the 'About' tab for the Firewall Tester application."""
+
 import webbrowser
 import pathlib
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel, QPushButton
@@ -5,11 +7,13 @@ from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
 
 class AboutTab(QWidget):
+    """A QWidget that displays information about the application and its author."""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.create_about_tab()
 
     def create_about_tab(self):
+        """Sets up the UI elements for the 'About' tab."""
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignTop)
 
@@ -42,7 +46,8 @@ class AboutTab(QWidget):
         lbl_developer_name.setFont(QFont("Arial", 12, QFont.Bold))
         info_layout.addRow("<b>Desenvolvedor:</b>", lbl_developer_name)
 
-        email_link = "<a href='mailto:luiz.arthur.feitosa.santos@gmail.com'>luiz.arthur.feitosa.santos@gmail.com</a>"
+        email_link = ("<a href='mailto:luiz.arthur.feitosa.santos@gmail.com'>"
+                      "luiz.arthur.feitosa.santos@gmail.com</a>")
         lbl_email = QLabel(email_link)
         lbl_email.setOpenExternalLinks(True)
         info_layout.addRow("<b>Email:</b>", lbl_email)
@@ -51,7 +56,8 @@ class AboutTab(QWidget):
         lbl_institution.setFont(QFont("Arial", 12, QFont.Bold))
         info_layout.addRow("<b>Instituição:</b>", lbl_institution)
 
-        lbl_project_link = QLabel("<a href='https://github.com/luizsantos/firewallTester'>Repositório GitHub</a>")
+        project_link = "<a href='https://github.com/luizsantos/firewallTester'>Repositório GitHub</a>"
+        lbl_project_link = QLabel(project_link)
         lbl_project_link.setOpenExternalLinks(True)
         info_layout.addRow("<b>Projeto:</b>", lbl_project_link)
 
@@ -72,4 +78,5 @@ class AboutTab(QWidget):
         layout.addStretch(1)
 
     def open_github_project(self):
+        """Opens the project's GitHub repository in the default web browser."""
         webbrowser.open_new_tab("https://github.com/luizsantos/firewallTester")

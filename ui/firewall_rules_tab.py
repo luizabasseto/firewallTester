@@ -1,24 +1,34 @@
+"""
+Defines the 'Firewall Rules' tab for the Firewall Tester application.
+
+This tab allows users to view, edit, and apply iptables rules to the
+Docker containers in the test environment. It also includes an AI feature
+to analyze and explain firewall rules.
+"""
+
 import os
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
-                             QComboBox, QGroupBox, QTextEdit, QCheckBox, QMessageBox,
-                             QApplication)
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+                            QComboBox, QGroupBox, QTextEdit, QCheckBox, QMessageBox,
+                            QApplication)
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
 class FirewallRulesTab(QWidget):
+    """A QWidget for managing firewall rules on selected container hosts."""
+    # R0902: Pylint flags too many attributes. This is common for UI classes
+    # where widgets are stored as instance attributes for later access.
+    # R0913/R0917: Pylint flags too many arguments. These are necessary dependencies
+    # passed from the main window.
     def __init__(self, container_manager, hosts_data, config, ai_assistant, parent=None):
         super().__init__(parent)
-        
         self.container_manager = container_manager
-        self.hosts_data = hosts_data 
+        self.hosts_data = hosts_data
         self.config = config
         self.ai_assistant = ai_assistant
-        
         self.selected_container_id = None
         self.selected_hostname = None
-        
         self._setup_ui()
-        self._on_host_selected() 
+        self._on_host_selected()
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -38,7 +48,6 @@ class FirewallRulesTab(QWidget):
         self.text_editor_rules = QTextEdit()
         self.text_editor_rules.setFont(QFont("Monospace", 10))
         rules_layout.addWidget(self.text_editor_rules)
-        
         editor_buttons_layout = QHBoxLayout()
         self.check_reset_rules = QCheckBox("Resetar as regras do firewall antes de aplicar as novas")
         self.btn_analyze_rule = QPushButton("Analisar Regra com IA")
@@ -68,7 +77,7 @@ class FirewallRulesTab(QWidget):
         self.btn_deploy_rules.clicked.connect(self._apply_rules)
         btn_toggle_output = QPushButton("Mostrar/Esconder Saída")
         btn_toggle_output.clicked.connect(lambda: self.output_box.setVisible(not self.output_box.isVisible()))
-        
+
         buttons_layout.addWidget(self.btn_retrieve_rules)
         buttons_layout.addWidget(self.btn_deploy_rules)
         buttons_layout.addStretch(1)
@@ -78,23 +87,21 @@ class FirewallRulesTab(QWidget):
     def _on_host_selected(self):
         selected_index = self.combo_hosts.currentIndex()
         is_host_selected = selected_index != -1
-        
         self.btn_retrieve_rules.setEnabled(is_host_selected)
         self.btn_deploy_rules.setEnabled(is_host_selected)
         self.btn_list_rules.setEnabled(is_host_selected)
         self.btn_analyze_rule.setEnabled(True)
-        
         if is_host_selected:
             self.selected_hostname, self.selected_container_id = self.hosts_data[selected_index]
         else:
             self.selected_hostname, self.selected_container_id = None, None
-        
         self.text_editor_rules.clear()
         self.log_output.clear()
 
     def _list_rules(self):
-        if not self.selected_container_id: return
-        
+        if not self.selected_container_id:
+            return
+
         self.log_output.clear()
         self.log_output.append(f"<i>Listando regras para <b>{self.selected_hostname}</b>...</i>")
         QApplication.processEvents()
@@ -104,16 +111,18 @@ class FirewallRulesTab(QWidget):
             'nat': self.config.get("include_nat_table", True),
             'filter': self.config.get("include_filter_table", True)
         }
-        
-        success, result = self.container_manager.get_firewall_rules(self.selected_container_id, tables_to_check)
-        
+
+        success, result = self.container_manager.get_firewall_rules(
+            self.selected_container_id, tables_to_check
+        )
+
         self.log_output.clear()
         if not success:
             self.log_output.setHtml(f"<font color='red'><b>Erro ao listar regras:</b><br><pre>{result}</pre></font>")
             return
-        
+
         if not result:
-            self.log_output.setText("Nenhuma tabela de firewall selecionada para listagem nas Configurações.")
+            self.log_output.setText("Nenhuma tabela de firewall selecionada nas Configurações.")
             return
 
         html_output = "".join(
@@ -123,31 +132,34 @@ class FirewallRulesTab(QWidget):
         self.log_output.setHtml(html_output)
 
     def _load_rules(self):
-        if not self.selected_container_id: return
-        
-        reply = QMessageBox.question(self, "Confirmação", 
-                                    "Isso irá sobrescrever o conteúdo do editor com as regras atuais do host. Continuar?",
+        if not self.selected_container_id:
+            return
+
+        reply = QMessageBox.question(self, "Confirmação",
+                                    "Isso irá sobrescrever o editor com as regras atuais do host. "
+                                    "Continuar?",
                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.No:
             return
 
         container_path = os.path.join(self.config.get("firewall_directory", "/etc/"), "firewall.sh")
         success, content = self.container_manager.get_rules_from_file(self.selected_container_id, container_path)
-        
+
         if success:
             self.text_editor_rules.setPlainText(content)
-            self.log_output.append(f"<i>Regras carregadas de '{container_path}' do host {self.selected_hostname}.</i>")
+            self.log_output.append(
+                f"<i>Regras carregadas de '{container_path}' do host {self.selected_hostname}.</i>"
+            )
         else:
             QMessageBox.warning(self, "Erro", f"Não foi possível carregar as regras: {content}")
 
     def _apply_rules(self):
-        if not self.selected_container_id: return
+        if not self.selected_container_id:
+            return
 
         self.log_output.append(f"<i>Aplicando regras no host <b>{self.selected_hostname}</b>...</i>")
         QApplication.processEvents()
-        
         rules_text = self.text_editor_rules.toPlainText()
-        
         success, message = self.container_manager.apply_firewall_rules(
             host_id=self.selected_container_id,
             hostname=self.selected_hostname,
@@ -157,22 +169,23 @@ class FirewallRulesTab(QWidget):
             container_dir=self.config.get("firewall_directory"),
             reset_first=self.check_reset_rules.isChecked()
         )
-        
+
         if success:
             self.log_output.append(f"<b>&gt; {message}</b>")
             self._list_rules()
         else:
-            self.log_output.append(f"<font color='red'><b>&gt; Erro ao aplicar regras:</b><br><pre>{message}</pre></font>")
+            error_msg = (f"<font color='red'><b>&gt; Erro ao aplicar regras:</b>"
+                        f"<br><pre>{message}</pre></font>")
+            self.log_output.append(error_msg)
             QMessageBox.warning(self, "Erro", "Algo deu errado ao executar as regras. Verifique a saída.")
 
     def update_hosts_list(self, hosts_data_tuples):
+        """Updates the dropdown list of hosts."""
         self.hosts_data = hosts_data_tuples
         host_names = [name for name, _ in self.hosts_data]
-        
         current_selection = self.combo_hosts.currentText()
         self.combo_hosts.clear()
         self.combo_hosts.addItems(host_names)
-        
         index = self.combo_hosts.findText(current_selection)
         if index != -1:
             self.combo_hosts.setCurrentIndex(index)
@@ -180,15 +193,20 @@ class FirewallRulesTab(QWidget):
             self.combo_hosts.setCurrentIndex(-1)
 
     def _analyze_rule_with_ai(self):
+        """
+        Analyzes the selected or all firewall rules using the AI assistant
+        and displays the explanation in a message box.
+        """
         selected_text = self.text_editor_rules.textCursor().selectedText()
         rule_text = selected_text or self.text_editor_rules.toPlainText().strip()
-        
+
         if not rule_text:
-            QMessageBox.warning(self, "Entrada Vazia", "Por favor, digite ou selecione uma regra de firewall para analisar.")
+            QMessageBox.warning(self, "Entrada Vazia",
+                                "Por favor, digite ou selecione uma regra para analisar.")
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         explanation = self.ai_assistant.explain_firewall_rule(rule_text)
         QApplication.restoreOverrideCursor()
-        
+
         QMessageBox.information(self, "Análise da IA", explanation)

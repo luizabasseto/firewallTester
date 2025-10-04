@@ -1,3 +1,5 @@
+"""Defines the 'Settings' tab for the Firewall Tester application."""
+
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QPushButton, QLineEdit, QCheckBox,
@@ -8,6 +10,14 @@ from PyQt5.QtCore import Qt
 
 
 class SettingsTab(QWidget):
+    """
+    A QWidget for viewing and editing application settings.
+
+    (R0902): This class has many instance attributes, which is acceptable for a
+    UI class that manages numerous configuration widgets.
+    (R0903): This class has few public methods as it's primarily a self-contained
+    UI component for data entry, which is an acceptable design.
+    """
     DEFAULT_SETTINGS = {
         "firewall_directory": "/etc/",
         "reset_rules_file": "",
@@ -42,8 +52,10 @@ class SettingsTab(QWidget):
         self.config_docker_image_entry = QLineEdit()
 
         form_layout.addRow("Diretório do Firewall (no container):", self.config_firewall_dir_entry)
-        form_layout.addRow("Arquivo de Reset de Regras (local):", self.config_firewall_reset_rules_entry)
-        form_layout.addRow("Arquivo de Regras de Firewall (local):", self.config_firewall_rules_entry)
+        form_layout.addRow("Arquivo de Reset de Regras (local):",
+                           self.config_firewall_reset_rules_entry)
+        form_layout.addRow("Arquivo de Regras de Firewall (local):",
+                           self.config_firewall_rules_entry)
         form_layout.addRow("Arquivo de Portas do Servidor (local):", self.config_server_ports_entry)
         form_layout.addRow("Nome da Imagem Docker Padrão:", self.config_docker_image_entry)
         main_layout.addLayout(form_layout)
@@ -51,10 +63,10 @@ class SettingsTab(QWidget):
         checkbox_group = QGroupBox("Opções de Interface e Listagem")
         checkbox_layout = QVBoxLayout(checkbox_group)
 
-        self.config_show_container_id_check = QCheckBox("Exibir coluna de ID do Container na aba de Hosts")
-        self.config_include_filter_check = QCheckBox("Incluir tabela 'Filter' na listagem de regras")
-        self.config_include_nat_check = QCheckBox("Incluir tabela 'NAT' na listagem de regras")
-        self.config_include_mangle_check = QCheckBox("Incluir tabela 'Mangle' na listagem de regras")
+        self.config_show_container_id_check = QCheckBox("Exibir ID do Container na aba Hosts")
+        self.config_include_filter_check = QCheckBox("Incluir tabela 'Filter' na listagem")
+        self.config_include_nat_check = QCheckBox("Incluir tabela 'NAT' na listagem")
+        self.config_include_mangle_check = QCheckBox("Incluir tabela 'Mangle' na listagem")
 
         checkbox_layout.addWidget(self.config_show_container_id_check)
         checkbox_layout.addWidget(self.config_include_filter_check)

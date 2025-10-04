@@ -1,9 +1,16 @@
+"""Defines the 'Help' tab for the Firewall Tester application."""
+
 import pathlib
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTextBrowser
 from PyQt5.QtCore import Qt
 
 
 class HelpTab(QWidget):
+    """
+    A QWidget that displays help content loaded from an HTML file.
+    (R0903: This is a simple display widget with no public methods
+    needed beyond its initialization, which is acceptable for this use case.)
+    """
     def __init__(self, parent=None):
         super().__init__(parent)
         self._create_ui()

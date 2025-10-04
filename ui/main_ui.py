@@ -1,8 +1,15 @@
-# Salve como: ui/main_window.py
-import sys
+"""
+Main window for the Firewall Tester application.
+
+This module defines the main graphical user interface, which includes the
+tabbed layout for all features, and orchestrates the core components like
+the ContainerManager and TestRunner.
+"""
+
 import json
 import pathlib
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTabWidget, QMessageBox, QFrame
+from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+                            QPushButton, QTabWidget, QMessageBox, QFrame)
 from PyQt5.QtGui import QIcon
 
 from core.container_manager import ContainerManager
@@ -11,7 +18,7 @@ from core.ai_assistance import AIAssistant
 
 from .hosts_tab import HostsTab
 from .firewall_rules_tab import FirewallRulesTab
-from .firewall_tests_tab import FirewallTestsTab 
+from .firewall_tests_tab import FirewallTestsTab
 from .settings_tab import SettingsTab
 from .help_tab import HelpTab
 from .about_tab import AboutTab
@@ -19,6 +26,11 @@ from .widgets.header import Header
 
 
 #!/usr/bin/env python
+"""
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,15 +45,12 @@ from .widgets.header import Header
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-"""
-    Program Name: Firewall Tester - Graphical Interface
+ Program Name: Firewall Tester - Graphical Interface
     Description: This is the graphical interface and the main part of the firewall rule testing software.
     Author: Luiz Arthur Feitosa dos Santos - luiz.arthur.feitosa.santos@gmail.com / luizsantos@utfpr.edu.br
     License: GNU General Public License v3.0
     Version: 1.1 (Ported to PyQt5)
 """
-
-
 
 # TODO - Standardize variable and function names - use English names.
 # TODO - Leave all print and graphical messages in English - buttons, labels, etc...
@@ -71,7 +80,10 @@ from .widgets.header import Header
 # TODO - relate the name of the docker image with the name used in the configuration tab.
 # TODO -
 
+
 class MainWindow(QMainWindow):
+    """
+    The main window of the application, which contains all UI elements."""
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Firewall Tester")
@@ -79,12 +91,22 @@ class MainWindow(QMainWindow):
         self._set_window_icon()
 
         self.config = self._load_app_config()
-        self.container_manager = ContainerManager(self.config.get("docker_image", "firewall_tester"))
+        docker_image = self.config.get("docker_image", "firewall_tester")
+        self.container_manager = ContainerManager(docker_image)
         self.test_runner = TestRunner()
         self.ai_assistant = AIAssistant()
-        
+
+        # Initialize tab attributes
+        self.tab_widget = None
+        self.hosts_tab = None
+        self.firewall_rules_tab = None
+        self.tests_tab = None
+        self.settings_tab = None
+        self.help_tab = None
+        self.about_tab = None
+
         self._setup_ui()
-        
+
         self._update_all_hosts(is_initial_load=True)
 
     def _setup_ui(self):
@@ -94,7 +116,7 @@ class MainWindow(QMainWindow):
 
         app_header = Header("assets/logo.png", "Firewall Tester")
         main_layout.addWidget(app_header)
-        
+
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
@@ -102,7 +124,7 @@ class MainWindow(QMainWindow):
 
         self.tab_widget = QTabWidget()
         main_layout.addWidget(self.tab_widget)
-        
+
         self._create_tabs()
 
         bottom_layout = QHBoxLayout()
@@ -110,7 +132,7 @@ class MainWindow(QMainWindow):
         btn_update_hosts.clicked.connect(self._update_all_hosts)
         btn_exit = QPushButton("Sair")
         btn_exit.clicked.connect(self.close)
-        
+
         bottom_layout.addWidget(btn_update_hosts)
         bottom_layout.addStretch(1)
         bottom_layout.addWidget(btn_exit)
@@ -130,22 +152,21 @@ class MainWindow(QMainWindow):
         hosts_for_combobox = self.container_manager.get_hosts_for_combobox()
 
         self.hosts_tab = HostsTab(self.container_manager, self.config)
-        self.firewall_rules_tab = FirewallRulesTab(self.container_manager, hosts_for_combobox, self.config, self.ai_assistant)
-        
+        self.firewall_rules_tab = FirewallRulesTab(
+            self.container_manager, hosts_for_combobox, self.config, self.ai_assistant
+        )
         self.tests_tab = FirewallTestsTab(self.test_runner, hosts_for_combobox, self.config)
-        
         self.settings_tab = SettingsTab(self.config)
         self.help_tab = HelpTab()
-        
         self.about_tab = AboutTab()
-        
+
         self.tab_widget.addTab(self.hosts_tab, "Hosts")
         self.tab_widget.addTab(self.firewall_rules_tab, "Regras de Firewall")
         self.tab_widget.addTab(self.tests_tab, "Testes de Firewall")
         self.tab_widget.addTab(self.settings_tab, "Configurações")
         self.tab_widget.addTab(self.help_tab, "Ajuda")
         self.tab_widget.addTab(self.about_tab, "Sobre")
-        
+
     def _update_all_hosts(self, is_initial_load=False):
         all_hosts_data = self.container_manager.get_all_containers_data()
         hosts_for_combobox = self.container_manager.get_hosts_for_combobox()
@@ -153,7 +174,7 @@ class MainWindow(QMainWindow):
         self.hosts_tab.update_hosts_display(all_hosts_data)
         self.firewall_rules_tab.update_hosts_list(hosts_for_combobox)
         self.tests_tab.update_hosts_list(hosts_for_combobox)
-        
+
         if not is_initial_load:
             QMessageBox.information(self, "Sucesso", "Informações dos hosts atualizadas.")
 
@@ -163,12 +184,16 @@ class MainWindow(QMainWindow):
             icon_path = script_dir / "assets" / "logo.png"
             if icon_path.exists():
                 self.setWindowIcon(QIcon(str(icon_path)))
-        except Exception as e:
+        except FileNotFoundError as e:
             print(f"Erro ao carregar o ícone: {e}")
 
     def closeEvent(self, event):
+        """
+        Overrides the default close event to show a confirmation dialog.
+        The name 'closeEvent' is a PyQt convention and must be kept.
+        """
         reply = QMessageBox.question(self, 'Confirmação', 'Deseja realmente sair do programa?',
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             event.accept()
         else:

@@ -1,0 +1,75 @@
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1 { color: #2c3e50; text-align: center; }
+        h2 { color: #34495e; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 30px;}
+        p  { font-size: 14px; line-height: 1.6; text-align: justify; }
+        ul { list-style-type: none; padding-left: 0; }
+        li { margin-bottom: 15px; }
+        b { color: #2980b9; }
+        code { background-color: #f4f4f4; padding: 2px 5px; border-radius: 4px; font-family: monospace; color: #c0392b; }
+        .step-number { font-weight: bold; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+    <h1>Como Usar o Firewall Tester</h1>
+    <p>
+        Esta ferramenta foi projetada para automatizar e simplificar a criação e validação de regras de firewall em um ambiente de laboratório, utilizando GNS3 e Docker. Siga os passos abaixo para realizar seus testes de forma eficiente.
+    </p>
+
+    <h2>Guia de Início Rápido</h2>
+    <ul>
+        <li>
+            <span class="step-number">Passo 1: Prepare o Ambiente</span><br>
+            Certifique-se de que sua topologia no GNS3 está totalmente iniciada, com todos os contêineres Docker (hosts) em execução e com suas configurações de rede já aplicadas.
+        </li>
+        <li>
+            <span class="step-number">Passo 2: Carregue os Hosts na Ferramenta</span><br>
+            Com o ambiente GNS3 pronto, clique no botão <b>"Atualizar Hosts"</b> no canto inferior esquerdo da aplicação. Isso fará com que o software detecte todos os contêineres ativos.
+        </li>
+        <li>
+            <span class="step-number">Passo 3: Verifique os Hosts e Servidores</span><br>
+            Vá para a aba <b>"Hosts"</b>. Verifique se todos os seus contêineres estão listados. Para que os testes de conectividade funcionem (exceto ICMP), o processo <code>server.py</code> deve estar rodando no host de destino. Use o botão de ligar/desligar em cada card de host para iniciar os servidores necessários.
+        </li>
+        <li>
+            <span class="step-number">Passo 4: Configure o Firewall</span><br>
+            Navegue para a aba <b>"Regras de Firewall"</b>. Selecione o host que atuará como firewall no menu suspenso. Você pode escrever as regras de <code>iptables</code> diretamente no editor, ou clicar em <b>"Carregar Regras do Host"</b> para ver o que já está configurado. Após editar, clique em <b>"Aplicar Regras no Host"</b> para enviá-las ao contêiner.
+        </li>
+        <li>
+            <span class="step-number">Passo 5: Crie sua Suíte de Testes</span><br>
+            Vá para a aba <b>"Testes de Firewall"</b>. Use o formulário "Novo Teste" para definir as condições de cada teste: origem, destino, protocolo, porta e o resultado esperado (se a conexão deve ser "Permitida" ou "Bloqueada"). Clique em <b>"Adicionar"</b> para inserir cada teste na tabela.
+        </li>
+        <li>
+            <span class="step-number">Passo 6: Execute e Analise os Resultados</span><br>
+            Com sua lista de testes pronta, clique em <b>"Testar Todos"</b>. Uma barra de progresso aparecerá. Ao final, cada linha da tabela será colorida de acordo com o resultado, permitindo que você valide rapidamente se suas regras de firewall estão funcionando conforme o esperado.
+        </li>
+    </ul>
+
+    <h2>Dicas Avançadas</h2>
+    <ul>
+        <li>
+            <b>Análise com IA:</b> Na aba de "Regras de Firewall", escreva uma regra e clique no botão <b>"💡 Analisar Regra com IA"</b> para obter uma explicação detalhada sobre o que a regra faz.
+        </li>
+        <li>
+            <b>Salvar e Carregar Testes:</b> Na aba de "Testes de Firewall", use os botões <b>"Salvar Testes"</b> e <b>"Abrir Testes"</b> para guardar e reutilizar suas suítes de testes em diferentes cenários ou sessões de trabalho.
+        </li>
+    </ul>
+
+    <h2>Solução de Problemas Comuns (FAQ)</h2>
+    <ul>
+        <li>
+            <b>Erro de conexão com o Docker ao iniciar?</b><br>
+            Certifique-se de que o <b>Docker Desktop</b> está em execução no seu computador antes de iniciar a aplicação.
+        </li>
+        <li>
+            <b>Nenhum host aparece na lista após clicar em "Atualizar Hosts"?</b><br>
+            Verifique se sua topologia no GNS3 está realmente ativa. Em seguida, vá para a aba <b>"⚙️ Configurações"</b> e confirme se o "Nome da Imagem Docker Padrão" corresponde exatamente ao nome da imagem que você está usando nos seus contêineres.
+        </li>
+        <li>
+            <b>Testes TCP/UDP retornam 'ERROR' ou falham inesperadamente?</b><br>
+            Isso geralmente significa que o <code>server.py</code> não está rodando no contêiner de destino. Vá para a aba <b>"🖥️ Hosts"</b> e verifique se o "Server Status" do host de destino está como <b>on</b>. Se não estiver, clique no botão para ligá-lo.
+        </li>
+    </ul>
+</body>
+</html>

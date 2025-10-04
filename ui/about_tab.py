@@ -14,7 +14,6 @@ class AboutTab(QWidget):
         layout.setAlignment(Qt.AlignTop)
 
         script_dir = pathlib.Path(__file__).parent.resolve()
-        user_icon = str(script_dir / "assets" / "do-utilizador.png")
         github_icon = str(script_dir / "assets" / "github.png")
 
         lbl_title = QLabel("Sobre o Software")
@@ -43,7 +42,8 @@ class AboutTab(QWidget):
         lbl_developer_name.setFont(QFont("Arial", 12, QFont.Bold))
         info_layout.addRow("<b>Desenvolvedor:</b>", lbl_developer_name)
 
-        lbl_email = QLabel("<a href='mailto:luiz.arthur.feitosa.santos@gmail.com'>luiz.arthur.feitosa.santos@gmail.com</a>")
+        email_link = "<a href='mailto:luiz.arthur.feitosa.santos@gmail.com'>luiz.arthur.feitosa.santos@gmail.com</a>"
+        lbl_email = QLabel(email_link)
         lbl_email.setOpenExternalLinks(True)
         info_layout.addRow("<b>Email:</b>", lbl_email)
 

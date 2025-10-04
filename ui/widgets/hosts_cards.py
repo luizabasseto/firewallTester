@@ -1,3 +1,5 @@
+"""Defines the HostCardWidget for displaying individual host information."""
+
 from PyQt5.QtWidgets import (
     QGroupBox,
     QVBoxLayout,
@@ -8,18 +10,21 @@ from PyQt5.QtWidgets import (
 )
 
 class HostCardWidget(QGroupBox):
-    """Displays host information and controls in a card-like widget.
+    """
+    Displays host information and controls in a card-like widget.
 
     This widget presents details about a host, including interfaces and status,
     and provides controls for interaction.
+    (R0903): This class has few public methods as it's primarily a display
+    widget updated by its parent, which is an acceptable design.
     """
-    
+
     def __init__(self, host_data, icons, parent=None):
         super().__init__(host_data.get("hostname", "Unknown Host"), parent)
-        
+
         self.host_id = host_data.get("id")
         self.hostname = host_data.get("hostname")
-        self.icons = icons 
+        self.icons = icons
 
         main_layout = QVBoxLayout(self)
         info_layout = QFormLayout()
@@ -28,7 +33,7 @@ class HostCardWidget(QGroupBox):
         main_layout.addLayout(status_layout)
 
         info_layout.addRow("Container:", QLabel(f"{self.host_id} - {host_data.get('nome', '')}"))
-        
+
         if interfaces := host_data.get('interfaces', []):
             for interface in interfaces:
                 if_name = interface.get('nome', 'N/A')
@@ -40,16 +45,17 @@ class HostCardWidget(QGroupBox):
         self.lbl_status = QLabel()
         self.btn_toggle = QPushButton()
         self.btn_toggle.setFixedSize(32, 32)
-        
-        btn_edit_ports = QPushButton("Editar Portas")
+
+        self.btn_edit_ports = QPushButton("Editar Portas")
 
         status_layout.addWidget(self.lbl_status)
         status_layout.addStretch(1)
-        status_layout.addWidget(btn_edit_ports)
+        status_layout.addWidget(self.btn_edit_ports)
         status_layout.addWidget(self.btn_toggle)
-        
+
     def update_status(self, status):
         """Updates the displayed server status and toggle button icon.
+
         Args:
             status (str): The current status of the server, typically 'on' or 'off'.
         """

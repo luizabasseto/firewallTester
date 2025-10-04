@@ -1,18 +1,38 @@
+"""
+This module defines the TestRunner class, which is responsible for
+executing individual firewall tests and analyzing their results.
+"""
+
 import json
 import re
 
 from . import containers
 
 class TestRunner:
+    """Orchestrates the execution of tests and interpretation of outcomes."""
 
     def run_single_test(self, container_id, dst_ip, protocol, dst_port):
+        """
+        Runs a single client test inside a container and returns the result.
+
+        Args:
+            container_id (str): The ID of the source container.
+            dst_ip (str): The destination IP address or hostname.
+            protocol (str): The protocol to use (TCP, UDP, ICMP).
+            dst_port (str): The destination port.
+
+        Returns:
+            tuple: A tuple containing a boolean for success and a dictionary
+                   with the test result.
+        """
         processed_dst_ip = self._extract_destination_host(dst_ip)
         if not processed_dst_ip:
             error_result = {"status": "1", "status_msg": f"Invalid destination: {dst_ip}"}
             return False, error_result
 
-        result_str = containers.run_client_test(container_id, processed_dst_ip, protocol.lower(), dst_port, "1", "2025", "0")
-        
+        result_str = containers.run_client_test(
+            container_id, processed_dst_ip, protocol.lower(), dst_port, "1", "2025", "0"
+        )
         try:
             result_dict = json.loads(result_str)
             return True, result_dict
@@ -21,6 +41,17 @@ class TestRunner:
             return False, error_result
 
     def analyze_test_result(self, expected_result, test_output):
+        """
+        Analyzes the output of a test to determine if it passed or failed.
+
+        Args:
+            expected_result (str): The expected outcome ('yes' for pass, 'no' for fail).
+            test_output (dict): The JSON output from the client test script.
+
+        Returns:
+            tuple: A tuple containing a dictionary with analysis details
+                   (result, flow, data) and a tag for UI color-coding.
+        """
         result_status = "Fail"
         network_flow = "Sent"
         tag = "no"
@@ -37,17 +68,16 @@ class TestRunner:
         elif not test_output.get("server_response"):
             if expected_result.lower() == "no":
                 result_status = "Pass"
-                tag = "yesFail" 
-        
+                tag = "yesFail"
+
         if "dnat" in test_output:
             network_flow += " (DNAT)"
-            
+
         return {"result": result_status, "flow": network_flow, "data": str(test_output)}, tag
 
     def _extract_destination_host(self, destination):
         if ip_match := re.search(r'\((\d+\.\d+\.\d+\.\d+)\)', destination):
             return ip_match[1]
-
         regex_ip = r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$'
         regex_domain = r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if re.match(regex_ip, destination) or re.match(regex_domain, destination):

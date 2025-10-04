@@ -49,7 +49,7 @@ class FirewallRulesTab(QWidget):
         self.text_editor_rules.setFont(QFont("Monospace", 10))
         rules_layout.addWidget(self.text_editor_rules)
         editor_buttons_layout = QHBoxLayout()
-        self.check_reset_rules = QCheckBox("Resetar as regras do firewall antes de aplicar as novas")
+        self.check_reset_rules = QCheckBox("Resetar regras antes de aplicar")
         self.btn_analyze_rule = QPushButton("Analisar Regra com IA")
         self.btn_analyze_rule.clicked.connect(self._analyze_rule_with_ai)
 
@@ -118,11 +118,14 @@ class FirewallRulesTab(QWidget):
 
         self.log_output.clear()
         if not success:
-            self.log_output.setHtml(f"<font color='red'><b>Erro ao listar regras:</b><br><pre>{result}</pre></font>")
+            error_html = f"<font color='red'><b>Erro ao listar regras:</b><br><pre>{result}</pre></font>"
+            self.log_output.setHtml(error_html)
             return
 
         if not result:
-            self.log_output.setText("Nenhuma tabela de firewall selecionada nas Configurações.")
+            self.log_output.setText(
+                "Nenhuma tabela de firewall selecionada nas Configurações."
+            )
             return
 
         html_output = "".join(
@@ -135,10 +138,11 @@ class FirewallRulesTab(QWidget):
         if not self.selected_container_id:
             return
 
-        reply = QMessageBox.question(self, "Confirmação",
-                                    "Isso irá sobrescrever o editor com as regras atuais do host. "
-                                    "Continuar?",
-                                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = QMessageBox.question(
+            self, "Confirmação",
+            "Isso irá sobrescrever o editor com as regras atuais do host. Continuar?",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
         if reply == QMessageBox.No:
             return
 
@@ -147,11 +151,11 @@ class FirewallRulesTab(QWidget):
 
         if success:
             self.text_editor_rules.setPlainText(content)
-            self.log_output.append(
-                f"<i>Regras carregadas de '{container_path}' do host {self.selected_hostname}.</i>"
-            )
+            log_msg = f"<i>Regras carregadas de '{container_path}' do host {self.selected_hostname}.</i>"
+            self.log_output.append(log_msg)
         else:
-            QMessageBox.warning(self, "Erro", f"Não foi possível carregar as regras: {content}")
+            QMessageBox.warning(self, "Erro",
+                                f"Não foi possível carregar as regras: {content}")
 
     def _apply_rules(self):
         if not self.selected_container_id:
@@ -174,10 +178,12 @@ class FirewallRulesTab(QWidget):
             self.log_output.append(f"<b>&gt; {message}</b>")
             self._list_rules()
         else:
-            error_msg = (f"<font color='red'><b>&gt; Erro ao aplicar regras:</b>"
-                        f"<br><pre>{message}</pre></font>")
+            error_msg = (
+                f"<font color='red'><b>&gt; Erro ao aplicar regras:</b>"
+                f"<br><pre>{message}</pre></font>"
+            )
             self.log_output.append(error_msg)
-            QMessageBox.warning(self, "Erro", "Algo deu errado ao executar as regras. Verifique a saída.")
+            QMessageBox.warning(self, "Erro", "Falha ao executar as regras. Verifique a saída.")
 
     def update_hosts_list(self, hosts_data_tuples):
         """Updates the dropdown list of hosts."""
@@ -201,8 +207,9 @@ class FirewallRulesTab(QWidget):
         rule_text = selected_text or self.text_editor_rules.toPlainText().strip()
 
         if not rule_text:
-            QMessageBox.warning(self, "Entrada Vazia",
-                                "Por favor, digite ou selecione uma regra para analisar.")
+            QMessageBox.warning(
+                self, "Entrada Vazia", "Por favor, digite ou selecione uma regra para analisar."
+            )
             return
 
         QApplication.setOverrideCursor(Qt.WaitCursor)

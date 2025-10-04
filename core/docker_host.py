@@ -15,8 +15,9 @@
 
 """
     Program Name: Firewall Tester - Docker Host
-    Description: Code used to create the json object used in the firewall rules testing program.
-    Author: Luiz Arthur Feitosa dos Santos - luiz.arthur.feitosa.santos@gmail.com / luizsantos@utfpr.edu.br
+    Description: A data class for representing a Docker container as a host
+                 in the test environment.
+    Author: Luiz Arthur Feitosa dos Santos
     License: GNU General Public License v3.0
     Version: 1.0
 """
@@ -24,11 +25,15 @@
 import json
 
 class DockerHost:
+    """
+    Represents a Docker container, storing its ID, name, hostname, and
+    network interfaces.
+    """
     def __init__(self, container_id, nome, hostname):
         """
         Inicializa um objeto DockerHost.
 
-        :param container_id: ID do container Docker.
+        :param container_id: ID do contêiner Docker.
         :param nome: Nome do container.
         :param hostname: Hostname do container.
         """

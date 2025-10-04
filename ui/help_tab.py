@@ -17,7 +17,7 @@ class HelpTab(QWidget):
 
         try:
             script_dir = pathlib.Path(__file__).parent.resolve()
-            help_file_path = script_dir / "help_frame.html"
+            help_file_path = script_dir / "widgets/help_frame.html"
 
             with open(help_file_path, 'r', encoding="utf-8") as f:
                 help_content = f.read()

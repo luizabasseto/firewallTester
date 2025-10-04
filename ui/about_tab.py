@@ -1,15 +1,12 @@
-# ui/about_tab.py
+import webbrowser
+import pathlib
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel, QPushButton
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
-import webbrowser
-import pathlib
-
 
 class AboutTab(QWidget):
-    def __init__(self, notebook):
-        super().__init__()
-        self.notebook = notebook
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.create_about_tab()
 
     def create_about_tab(self):
@@ -19,8 +16,6 @@ class AboutTab(QWidget):
         script_dir = pathlib.Path(__file__).parent.resolve()
         user_icon = str(script_dir / "assets" / "do-utilizador.png")
         github_icon = str(script_dir / "assets" / "github.png")
-
-        self.notebook.addTab(self, QIcon(user_icon), "Sobre")
 
         lbl_title = QLabel("Sobre o Software")
         lbl_title.setFont(QFont("Arial", 14, QFont.Bold))

@@ -45,13 +45,12 @@ class TestRunner:
         return {"result": result_status, "flow": network_flow, "data": str(test_output)}, tag
 
     def _extract_destination_host(self, destination):
-        ip_match = re.search(r'\((\d+\.\d+\.\d+\.\d+)\)', destination)
-        if ip_match:
-            return ip_match.group(1)
-        
+        if ip_match := re.search(r'\((\d+\.\d+\.\d+\.\d+)\)', destination):
+            return ip_match[1]
+
         regex_ip = r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$'
         regex_domain = r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if re.match(regex_ip, destination) or re.match(regex_domain, destination):
             return destination
-        
+
         return None

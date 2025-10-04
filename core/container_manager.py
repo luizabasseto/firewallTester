@@ -102,7 +102,7 @@ class ContainerManager:
             return (False, f"Erro ao salvar arquivo local: {e}")
 
     def apply_firewall_rules(self, host_id, hostname, local_rules_path, 
-                             local_reset_path, container_dir, reset_first):
+        local_reset_path, container_dir, reset_first):
 
         if reset_first:
             container_path = os.path.join(container_dir, os.path.basename(local_reset_path)).replace("\\", "/")

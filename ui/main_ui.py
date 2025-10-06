@@ -14,7 +14,6 @@ from PyQt5.QtGui import QIcon
 
 from core.container_manager import ContainerManager
 from core.test_runner import TestRunner
-from core.ai_assistance import AIAssistant
 
 from .hosts_tab import HostsTab
 from .firewall_rules_tab import FirewallRulesTab
@@ -99,7 +98,6 @@ class MainWindow(QMainWindow):
         docker_image = self.config.get("docker_image", "firewall_tester")
         self.container_manager = ContainerManager(docker_image)
         self.test_runner = TestRunner()
-        self.ai_assistant = AIAssistant()
 
         # Initialize tab attributes
         self.tab_widget = None
@@ -158,7 +156,7 @@ class MainWindow(QMainWindow):
 
         self.hosts_tab = HostsTab(self.container_manager, self.config)
         self.firewall_rules_tab = FirewallRulesTab(
-            self.container_manager, hosts_for_combobox, self.config, self.ai_assistant
+            self.container_manager, hosts_for_combobox, self.config
         )
         self.tests_tab = FirewallTestsTab(self.test_runner, hosts_for_combobox, self.config)
         self.settings_tab = SettingsTab(self.config)

@@ -19,12 +19,11 @@ class FirewallRulesTab(QWidget):
     # where widgets are stored as instance attributes for later access.
     # R0913/R0917: Pylint flags too many arguments. These are necessary dependencies
     # passed from the main window.
-    def __init__(self, container_manager, hosts_data, config, ai_assistant, parent=None):
+    def __init__(self, container_manager, hosts_data, config, parent=None):
         super().__init__(parent)
         self.container_manager = container_manager
         self.hosts_data = hosts_data
         self.config = config
-        self.ai_assistant = ai_assistant
         self.selected_container_id = None
         self.selected_hostname = None
         self._setup_ui()

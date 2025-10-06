@@ -176,6 +176,7 @@ class FirewallTestsTab(QWidget):
         self.btn_save.clicked.connect(self._save_tests)
         self.btn_save_as.clicked.connect(self._save_tests_as)
         self.btn_load.clicked.connect(self._open_tests)
+        
 
     def _run_selected_test(self):
         selected_items = self.tree.selectedItems()
@@ -365,13 +366,14 @@ class FirewallTestsTab(QWidget):
 
     def update_hosts_list(self, hosts_data_tuples):
         """Updates the host dropdowns with the latest list of available hosts."""
-        self.hosts_data = hosts_data_tuples
+        self.hosts_data = hosts_data_tuples        
 
         host_names = [name for name, _ in self.hosts_data]
 
         self.src_ip_combo.clear()
         self.src_ip_combo.addItems(host_names)
         self.src_ip_combo.setCurrentIndex(-1)
+        
 
         self.dst_ip_combo.clear()
         self.dst_ip_combo.addItems(host_names)
@@ -384,6 +386,7 @@ class FirewallTestsTab(QWidget):
             "",  
             "JSON Files (*.json);;All Files (*)"
         )
+        
 
         if file_path:
             self.save_file_path = file_path
@@ -399,6 +402,7 @@ class FirewallTestsTab(QWidget):
             item = self.tree.topLevelItem(i)
             test_dict = {self.header_labels[j]: item.text(j) for j in range(len(self.header_labels))}
             tests_data.append(test_dict)
+            
 
         try:
             with open(self.save_file_path, "w", encoding="utf-8") as f:

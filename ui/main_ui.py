@@ -154,11 +154,13 @@ class MainWindow(QMainWindow):
     def _create_tabs(self):
         hosts_for_combobox = self.container_manager.get_hosts_for_combobox()
 
+        all_hosts_data = self.container_manager.get_all_containers_data()
+        
         self.hosts_tab = HostsTab(self.container_manager, self.config)
         self.firewall_rules_tab = FirewallRulesTab(
             self.container_manager, hosts_for_combobox, self.config
         )
-        self.tests_tab = FirewallTestsTab(self.test_runner, hosts_for_combobox, self.config)
+        self.tests_tab = FirewallTestsTab(self.test_runner, all_hosts_data, self.config)
         self.settings_tab = SettingsTab(self.config)
         self.help_tab = HelpTab()
         self.about_tab = AboutTab()
@@ -176,7 +178,7 @@ class MainWindow(QMainWindow):
 
         self.hosts_tab.update_hosts_display(all_hosts_data)
         self.firewall_rules_tab.update_hosts_list(hosts_for_combobox)
-        self.tests_tab.update_hosts_list(hosts_for_combobox)
+        self.tests_tab.update_hosts_list(all_hosts_data)
 
         if not is_initial_load:
             QMessageBox.information(self, "Sucesso", "Informações dos hosts atualizadas.")

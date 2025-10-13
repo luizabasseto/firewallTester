@@ -20,7 +20,8 @@ class HostCardWidget(QGroupBox):
     """
 
     def __init__(self, host_data, icons, parent=None):
-        super().__init__(host_data.get("hostname", "Unknown Host"), parent)
+        title = f"{host_data.get('hostname', 'N/A')} ({host_data.get('ip', 'N/A')})"
+        super().__init__(title, parent)
 
         self.host_id = host_data.get("id")
         self.hostname = host_data.get("hostname")
@@ -32,8 +33,10 @@ class HostCardWidget(QGroupBox):
         main_layout.addLayout(info_layout)
         main_layout.addLayout(status_layout)
 
-        info_layout.addRow("Container:", QLabel(f"{self.host_id} - {host_data.get('nome', '')}"))
-
+        info_layout.addRow("Container:", QLabel(f"{self.host_id} - {host_data.get('full_name', '')}"))
+        
+        info_layout.addRow("Interfaces:", QLabel("Nenhuma ou Desligada"))
+        
         if interfaces := host_data.get('interfaces', []):
             for interface in interfaces:
                 if_name = interface.get('nome', 'N/A')

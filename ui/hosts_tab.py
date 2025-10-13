@@ -3,11 +3,12 @@
 import pathlib
 from functools import partial
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QScrollArea, QMessageBox)
+    QPushButton, QScrollArea, QMessageBox, QDialog)
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
+from .widgets.edit_ports import EditPortsDialog
 
-from ui.widgets.hosts_cards import HostCardWidget # type: ignore
+from ui.widgets.hosts_cards import HostCardWidget
 
 class HostsTab(QWidget):
     """
@@ -26,13 +27,20 @@ class HostsTab(QWidget):
         self._setup_ui()
 
     def _load_icons(self):
-        base_path = pathlib.Path(__file__).parent.parent.parent.resolve()
+        base_path = pathlib.Path(__file__).parent.parent.resolve()
         assets_path = base_path / "assets"
+        
+        power_on_path = assets_path / "power_on.png"
+        power_off_path = assets_path / "power_off.png"
 
-        self.icons = {
-            "on": QIcon(str(assets_path / "power_on.png")),
-            "off": QIcon(str(assets_path / "power_off.png"))
-        }
+        if not power_on_path.exists() or not power_off_path.exists():
+            print(f"AVISO: Arquivos de ícone não encontrados em '{assets_path}'. Os botões ficarão em branco.")
+            self.icons = {"on": QIcon(), "off": QIcon()}
+        else:
+            self.icons = {
+                "on": QIcon(str(power_on_path)),
+                "off": QIcon(str(power_off_path))
+            }
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -40,8 +48,14 @@ class HostsTab(QWidget):
         top_layout = QHBoxLayout()
         top_layout.addWidget(QLabel("Hosts (Containers de Rede):", font=QFont("Arial", 12)))
         top_layout.addStretch(1)
-        btn_start_all = QPushButton("Ligar Servidores de Todos")
+        
+        btn_start_all = QPushButton("Ligar Todos")
         btn_start_all.clicked.connect(self._start_all_servers)
+        
+        btn_stop_all = QPushButton("Desligar Todos")
+        btn_stop_all.clicked.connect(self._stop_all_servers)
+        
+        top_layout.addWidget(btn_stop_all)
         top_layout.addWidget(btn_start_all)
         main_layout.addLayout(top_layout)
 
@@ -56,6 +70,7 @@ class HostsTab(QWidget):
 
     def update_hosts_display(self, hosts_list):
         """Updates the display with the current list of hosts, adding or removing cards."""
+        
         current_host_ids = {host['id'] for host in hosts_list}
         existing_host_ids = set(self.hosts_cards.keys())
 
@@ -73,7 +88,7 @@ class HostsTab(QWidget):
                 new_card.btn_edit_ports.clicked.connect(edit_ports_handler)
 
                 self.layout_all_hosts.addWidget(new_card)
-                self.host_cards[host_id] = new_card
+                self.hosts_cards[host_id] = new_card
 
             success, status = self.container_manager.check_server_status(host_id)
             if success:
@@ -87,9 +102,27 @@ class HostsTab(QWidget):
             self.hosts_cards[host_id].update_status(new_status)
 
     def _start_all_servers(self):
+        print("Tentando ligar todos os servidores que estão desligados...")
         for host_id in self.hosts_cards:
-            self._toggle_server(host_id)
+            success, status = self.container_manager.check_server_status(host_id)
+            if success and status == 'off':
+                self._toggle_server(host_id)
 
+    def _stop_all_servers(self):
+        print("Tentando desligar todos os servidores que estão ligados...")
+        for host_id in self.hosts_cards:
+            success, status = self.container_manager.check_server_status(host_id)
+            if success and status == 'on':
+                self._toggle_server(host_id)
+                
     def _edit_ports(self, container_id, hostname):
-        msg = f"A edição de portas para {hostname} ({container_id}) seria aberta aqui."
-        QMessageBox.information(self, "Não Implementado", msg)
+        dialog = EditPortsDialog(self.container_manager, container_id, hostname, self)
+        
+        result = dialog.exec_()
+
+        if result == QDialog.Accepted:
+            print(f"Portas atualizadas para {hostname}. Atualizando status na UI.")
+            if container_id in self.hosts_cards:
+                success, status = self.container_manager.check_server_status(container_id)
+                if success:
+                    self.hosts_cards[container_id].update_status(status)

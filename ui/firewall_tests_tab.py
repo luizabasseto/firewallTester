@@ -8,6 +8,7 @@ loading test suites.
 
 import json
 import os
+import time
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QComboBox, QGroupBox, QGridLayout, QLineEdit,
     QRadioButton, QTreeWidget, QTreeWidgetItem,
@@ -21,31 +22,37 @@ class TestWorker(QObject):
     item_tested = pyqtSignal(QTreeWidgetItem, dict, str)
     finished = pyqtSignal()
 
-    def __init__(self, test_items, test_runner, parent=None):
+    def __init__(self, test_items, test_runner, hosts_map, parent=None):
         super().__init__(parent)
         self.test_items = test_items
         self.test_runner = test_runner
+        self.hosts_map = hosts_map 
         self.is_cancelled = False
-
     def run(self):
         """Executes the test items and emits signals for progress and results."""
+        print("--- DEBUG (Worker): Thread iniciada, método run() EXECUTANDO ---")
         total = len(self.test_items)
         for i, item in enumerate(self.test_items):
             if self.is_cancelled:
                 break
-
+            
             progress_msg = f"Testando {i+1}/{total}: {item.text(2)} -> {item.text(3)}"
             self.progress.emit(int(((i + 1) / total) * 100), progress_msg)
 
-            _, container_id, _, dst_ip, proto, _, dst_port, expected, _, _, _ = [
+            _, container_id, _, dst_hostname, proto, _, dst_port, expected, _, _, _ = [
                 item.text(c) for c in range(item.columnCount())
             ]
-
-            _, result_dict = self.test_runner.run_single_test(container_id, dst_ip, proto, dst_port)
+            
+            print(f"--- DEBUG (Worker): Chamando self.test_runner para o item {i+1}...")
+            destination_ip = self.hosts_map.get(dst_hostname, {}).get('ip', dst_hostname)
+            
+            # Chama o backend com o IP correto
+            _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, dst_port)
             analysis, tag = self.test_runner.analyze_test_result(expected, result_dict)
 
             self.item_tested.emit(item, analysis, tag)
-
+            
+            
         self.finished.emit()
 
     def cancel(self):
@@ -64,6 +71,7 @@ class FirewallTestsTab(QWidget):
         super().__init__(parent)
         self.test_runner = test_runner
         self.hosts_data = hosts_data
+        self.hosts_map = {host['hostname']: host for host in hosts_data}
         self.config = config
         self.save_file_path = None
 
@@ -184,13 +192,13 @@ class FirewallTestsTab(QWidget):
             return
         item = selected_items[0]
 
-        _, container_id, _, dst_ip, proto, _, dst_port, expected, _, _, _ = [
+        _, container_id, _, dst_hostname, proto, _, dst_port, expected, _, _, _ = [
             item.text(c) for c in range(item.columnCount())
         ]
-
-        _, result_dict = self.test_runner.run_single_test(
-            container_id, dst_ip, proto, dst_port
-        )
+        
+        destination_ip = self.hosts_map.get(dst_hostname, {}).get('ip', dst_hostname)
+        
+        _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, dst_port)
         analysis, tag = self.test_runner.analyze_test_result(expected, result_dict)
 
         self._update_tree_item(item, analysis, tag)
@@ -209,18 +217,20 @@ class FirewallTestsTab(QWidget):
             item.setBackground(i, QBrush(color))
 
     def _run_all_tests(self):
+        print("--- DEBUG (UI): _run_all_tests CHAMADO ---")
         tests_to_run = [self.tree.topLevelItem(i) for i in range(self.tree.topLevelItemCount())]
         if not tests_to_run:
+            print("--- DEBUG (UI): Nenhum teste para rodar.")
             return
 
         self.progress_dialog = QProgressDialog("Executando testes...", "Cancelar", 0, 100, self)
         self.progress_dialog.setWindowTitle("Processando Testes")
         self.progress_dialog.setWindowModality(Qt.WindowModal)
-
+        
         self.thread = QThread()
-        self.worker = TestWorker(tests_to_run, self.test_runner)
+        self.worker = TestWorker(tests_to_run, self.test_runner, self.hosts_map)
         self.worker.moveToThread(self.thread)
-
+        
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
@@ -230,9 +240,10 @@ class FirewallTestsTab(QWidget):
         self.progress_dialog.canceled.connect(self.worker.cancel)
         self.thread.finished.connect(self.progress_dialog.close)
 
+        print("--- DEBUG (UI): Iniciando a thread de testes...")
         self.thread.start()
         self.progress_dialog.exec_()
-
+        print("--- DEBUG (UI): Diálogo de progresso fechado.")
     def _update_progress_dialog(self, value, text):
         """Updates the progress dialog's value and label text."""
         self.progress_dialog.setValue(value)
@@ -243,8 +254,7 @@ class FirewallTestsTab(QWidget):
             return
 
         src_text = self.src_ip_combo.currentText()
-        selected_index = self.src_ip_combo.currentIndex()
-        container_id = self.hosts_data[selected_index][1] if selected_index >= 0 else "N/A"
+        container_id = self.hosts_map.get(src_text, {}).get('id', 'N/A')
 
         values = [
             str(self.tree.topLevelItemCount() + 1),
@@ -254,7 +264,7 @@ class FirewallTestsTab(QWidget):
             self.protocol_combo.currentText(),
             self.src_port_entry.text(),
             self.dst_port_entry.text(),
-            "yes" if self.expected_yes_radio.isChecked() else "no",
+            "Permitido" if self.expected_yes_radio.isChecked() else "Bloqueado",
             "-", "", ""
         ]
 
@@ -272,15 +282,15 @@ class FirewallTestsTab(QWidget):
 
         item = selected_items[0]
         src_text = self.src_ip_combo.currentText()
-        selected_index = self.src_ip_combo.currentIndex()
-        container_id = self.hosts_data[selected_index][1] if selected_index >= 0 else "N/A"
+        container_id = self.hosts_map.get(src_text, {}).get('id', 'N/A')
 
         item.setText(1, container_id)
         item.setText(2, src_text)
         item.setText(3, self.dst_ip_combo.currentText())
         item.setText(4, self.protocol_combo.currentText())
         item.setText(6, self.dst_port_entry.text())
-        item.setText(7, "yes" if self.expected_yes_radio.isChecked() else "no")
+        item.setText(7, "Permitido" if self.expected_yes_radio.isChecked() else "Bloqueado")
+        
         for i in range(8, 11):
             item.setText(i, "" if i > 8 else "-")
             item.setBackground(i, QBrush(QColor("transparent")))
@@ -368,7 +378,9 @@ class FirewallTestsTab(QWidget):
         """Updates the host dropdowns with the latest list of available hosts."""
         self.hosts_data = hosts_data_tuples        
 
-        host_names = [name for name, _ in self.hosts_data]
+        self.hosts_map = {host['hostname']: host for host in hosts_data_tuples}
+        
+        host_names = list(self.hosts_map.keys())
 
         self.src_ip_combo.clear()
         self.src_ip_combo.addItems(host_names)

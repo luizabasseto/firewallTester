@@ -6,7 +6,7 @@ executing individual firewall tests and analyzing their results.
 import json
 import re
 import subprocess
-
+import sys
 from . import containers
 
 class TestRunner:
@@ -26,9 +26,13 @@ class TestRunner:
             tuple: A tuple containing a boolean for success and a dictionary
                    with the test result.
         """
+        print("--- DEBUG: MÉTODO run_single_test CHAMADO ---", file=sys.stderr)
+        sys.stderr.flush()
         processed_dst_ip = self._extract_destination_host(dst_ip)
         if not processed_dst_ip:
             error_result = {"status": "1", "status_msg": f"Invalid destination: {dst_ip}"}
+            print(f"--- DEBUG: Destino inválido: {dst_ip}", file=sys.stderr)
+            sys.stderr.flush()
             return False, error_result
 
         command = [
@@ -42,11 +46,14 @@ class TestRunner:
         ]
         
         try:
-            # Executa o comando
             print(f"--- DEBUG: Executando comando: {' '.join(command)}")
             result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8', timeout=10)
             
-            print(f"--- DEBUG: Comando finalizado. Return Code: {result.returncode}")
+            print("--- DEBUG: Comando finalizado.", file=sys.stderr)
+            print(f"--- DEBUG: Return Code: {result.returncode}", file=sys.stderr)
+            print(f"--- DEBUG: STDOUT:\n---\n{result.stdout}\n---", file=sys.stderr)
+            print(f"--- DEBUG: STDERR:\n---\n{result.stderr}\n---", file=sys.stderr)
+            sys.stderr.flush()
             
             if result.returncode != 0:
                 raise subprocess.CalledProcessError(result.returncode, command, stderr=result.stderr)
@@ -62,6 +69,8 @@ class TestRunner:
             if hasattr(e, 'stderr') and e.stderr:
                 error_msg = e.stderr.strip()
             
+            print(f"--- ERRO no TestRunner: {error_msg}", file=sys.stderr)
+            sys.stderr.flush()
             error_result = {"status": "1", "status_msg": f"Execution Error: {error_msg}"}
             return False, error_result
 

@@ -2,4 +2,3 @@ PyQt5
 docker
 scapy
 python-dotenv
-google-generativeai

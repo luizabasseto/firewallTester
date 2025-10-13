@@ -5,6 +5,7 @@ executing individual firewall tests and analyzing their results.
 
 import json
 import re
+import subprocess
 
 from . import containers
 
@@ -30,15 +31,40 @@ class TestRunner:
             error_result = {"status": "1", "status_msg": f"Invalid destination: {dst_ip}"}
             return False, error_result
 
-        result_str = containers.run_client_test(
-            container_id, processed_dst_ip, protocol.lower(), dst_port, "1", "2025", "0"
-        )
+        command = [
+            "docker", "exec", container_id,
+            "python3",
+            "/firewallTester/src/client.py", # <-- Caminho absoluto
+            processed_dst_ip,
+            protocol.lower(),
+            dst_port,
+            "1", "2025", "0" # Argumentos padrão
+        ]
+        
         try:
-            result_dict = json.loads(result_str)
+            # Executa o comando
+            print(f"--- DEBUG: Executando comando: {' '.join(command)}")
+            result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8', timeout=10)
+            
+            print(f"--- DEBUG: Comando finalizado. Return Code: {result.returncode}")
+            
+            if result.returncode != 0:
+                raise subprocess.CalledProcessError(result.returncode, command, stderr=result.stderr)
+                
+            if not result.stdout:
+                raise json.JSONDecodeError("A saída do script estava vazia.", "", 0)
+
+            result_dict = json.loads(result.stdout)
             return True, result_dict
-        except (json.JSONDecodeError, TypeError) as e:
-            error_result = {"status": "1", "status_msg": f"JSON Error: {e}"}
+
+        except Exception as e:
+            error_msg = str(e)
+            if hasattr(e, 'stderr') and e.stderr:
+                error_msg = e.stderr.strip()
+            
+            error_result = {"status": "1", "status_msg": f"Execution Error: {error_msg}"}
             return False, error_result
+
 
     def analyze_test_result(self, expected_result, test_output):
         """

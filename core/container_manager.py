@@ -3,6 +3,8 @@
 import subprocess
 import os
 import json
+from .docker_host import DockerHost
+import tempfile
 
 class ContainerManager:
     """
@@ -12,55 +14,122 @@ class ContainerManager:
     def __init__(self, docker_image_name="firewall_tester"):
         self.docker_image_name = docker_image_name
 
-    def _run_command(self, command_list):
+    def _run_command(self, command_list, check=False):
+        """
+        Método auxiliar privado para executar comandos de forma segura.
+        Aceita um argumento 'check' para lançar uma exceção em caso de erro.
+        """
         try:
-            # `check=False` is used because we handle the return code manually.
-            return subprocess.run(
-                command_list, capture_output=True, text=True, encoding='utf-8', check=False
-            )
-        except FileNotFoundError:
-            return subprocess.CompletedProcess(
-                args=command_list,
-                returncode=1,
-                stderr=(
-                    "Comando 'docker' não encontrado. "
-                    "Verifique se o Docker está instalado e no PATH do sistema."
-                ),
-                stdout=""
-            )
-        except OSError as e:
-            return subprocess.CompletedProcess(args=command_list, returncode=1, stderr=str(e), stdout="")
+            # O 'check' recebido agora é passado para o subprocess.run
+            return subprocess.run(command_list, capture_output=True, text=True, encoding='utf-8', check=check)
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            # Se 'check=True' falhar, a exceção é capturada aqui.
+            print(f"Erro ao executar comando {' '.join(command_list)}: {e}")
+            # Retorna um objeto de processo com o erro para consistência
+            return subprocess.CompletedProcess(command_list, 1, stderr=str(e), stdout="")
+    
+    def _get_container_info_by_image_filter(self):
+        """
+        Busca IDs de containers em execução e inspeciona-os para filtrar pela imagem.
+        Adaptado de get_container_info_by_filter do código original.
+        """
+        ps_cmd = ["docker", "ps", "-q"]
+        result = self._run_command(ps_cmd, check=True)
+        container_ids = result.stdout.strip().splitlines()
+        
+        matched_containers = []
+        for container_id in filter(None, container_ids):
+            inspect_cmd = ["docker", "inspect", container_id]
+            inspect_result = self._run_command(inspect_cmd)
+            if inspect_result.returncode == 0:
+                container_data = json.loads(inspect_result.stdout)[0]
+                image = container_data["Config"]["Image"]
+                
+                if self.docker_image_name in image:
+                    matched_containers.append({
+                        "id": container_id,
+                        "hostname": container_data["Config"]["Hostname"],
+                        "name": container_data["Name"].strip("/"),
+                    })
+        return matched_containers
+
+    def _get_ip_info_from_docker(self, container_id):
+        """
+        Executa 'ip -4 -json a' dentro de um container.
+        Adaptado de get_ip_info_from_docker.
+        """
+        cmd = ["docker", "exec", container_id, "ip", "-4", "-json", "a"]
+        result = self._run_command(cmd, check=True)
+        return json.loads(result.stdout)
+
+    def _process_ip_info(self, interfaces_json, host_obj):
+        """
+        Processa o JSON de IPs e adiciona as interfaces ao objeto DockerHost.
+        Adaptado de process_ip_info.
+        """
+        for interface in interfaces_json:
+            if interface.get("ifname") == "lo":
+                continue
+            
+            ifname = interface.get("ifname")
+            if ips := [addr.get("local") for addr in interface.get("addr_info", [])]:
+                host_obj.add_interface(ifname, ips)
+        return host_obj
 
     def get_all_containers_data(self):
         """
-        Retrieves a list of all running containers based on the configured
-        Docker image name.
+        Função principal que orquestra a busca e processamento dos dados dos hosts.
+        Equivalente a getContainersByImageName + extract_containerid_hostname_ips.
         """
-        cmd = [
-            "docker", "ps",
-            "--filter", f"ancestor={self.docker_image_name}",
-            "--format", "{{json .}}"
-        ]
-        result = self._run_command(cmd)
-        if result.returncode != 0:
-            print(f"Erro ao buscar containers: {result.stderr}")
+        print(f"\nBuscando containers com a imagem contendo: '{self.docker_image_name}'")
+        
+        matching_containers_info = self._get_container_info_by_image_filter()
+        if not matching_containers_info:
             return []
 
-        hosts = []
-        for line in result.stdout.strip().splitlines():
+        detailed_hosts = []
+        for container_info in matching_containers_info:
+            host = DockerHost(
+                container_id=container_info['id'],
+                nome=container_info['name'],
+                hostname=container_info['hostname']
+            )
+            
             try:
-                data = json.loads(line)
-                host_details = {
-                    "id": data.get("ID", "")[:12],
-                    "hostname": data.get("Names", ""),
-                    "nome": data.get("Names", ""),
-                    "interfaces": []
-                }
-                hosts.append(host_details)
-            except json.JSONDecodeError:
-                continue
-        return hosts
+                interfaces_json = self._get_ip_info_from_docker(container_info['id'])
+                host = self._process_ip_info(interfaces_json, host)
+            except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+                print(f"Aviso: Não foi possível obter IPs para o host {host.hostname}: {e}")
 
+            host_dict = host.to_dict()
+            
+            # Garante que haja um IP para exibição, mesmo que seja 'N/A'
+            ip_found = "N/A"
+            if host_dict["interfaces"]:
+                if (first_interface_ips := host_dict["interfaces"][0].get("ips")):
+                    ip_found = first_interface_ips[0]
+            
+            # Adiciona o IP ao dicionário principal para fácil acesso pela UI
+            host_dict['ip'] = ip_found
+            detailed_hosts.append(host_dict)
+        
+        return sorted(detailed_hosts, key=lambda x: x["hostname"])
+    
+    def toggle_server(self, host_id):
+        """
+        Verifica o status do servidor e o liga ou desliga.
+        Retorna (sucesso, novo_status).
+        """
+        success_check, current_status = self.check_server_status(host_id)
+        if not success_check:
+            return (False, "error")
+
+        if current_status == 'on':
+            success_action, _ = self.stop_server(host_id)
+            return (success_action, "off" if success_action else "on")
+        else:
+            success_action, _ = self.start_server(host_id)
+            return (success_action, "on" if success_action else "off")
     def get_hosts_for_combobox(self):
         """
         Gets a simplified list of hosts (hostname, id) suitable for use in
@@ -125,7 +194,7 @@ class ContainerManager:
             return (False, f"Erro ao salvar arquivo local: {e}")
 
     def apply_firewall_rules(self, host_id, hostname, rules_string, local_rules_path,
-                             local_reset_path, container_dir, reset_first):
+                            local_reset_path, container_dir, reset_first):
         """
         Applies firewall rules to a container.
 
@@ -160,3 +229,54 @@ class ContainerManager:
             return (False, result_exec.stderr)
 
         return (True, "Script executado com sucesso.")
+    
+    def get_host_ports(self, host_id):
+        """
+        Lê o arquivo de configuração de portas de dentro de um contêiner.
+        Retorna uma lista de tuplas (protocolo, porta).
+        """
+        # Assume que o arquivo está em /firewallTester/src/conf/ports.conf
+        # Você pode tornar este caminho configurável no futuro.
+        container_path = "/firewallTester/src/conf/ports.conf"
+        cmd = ["docker", "exec", host_id, "cat", container_path]
+        result = self._run_command(cmd)
+
+        if result.returncode != 0:
+            print(f"Aviso: Não foi possível ler o arquivo de portas para {host_id}. Pode não existir. Erro: {result.stderr}")
+            return [] # Retorna lista vazia se o arquivo não existir ou houver erro
+
+        ports = []
+        for line in result.stdout.strip().splitlines():
+            if '/' in line:
+                try:
+                    port, protocol = line.strip().split('/')
+                    ports.append((protocol.upper(), port))
+                except ValueError:
+                    continue # Ignora linhas mal formatadas
+        return ports
+
+    def update_host_ports(self, host_id, ports_list):
+        content = "\n".join([f"{port}/{protocol}" for protocol, port in ports_list])
+        
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".conf", encoding="utf-8") as tmp:
+            tmp.write(content)
+            local_temp_path = tmp.name
+
+        container_path = "/firewallTester/src/conf/ports.conf"
+        
+        try:
+            copy_result = self._run_command(["docker", "cp", local_temp_path, f"{host_id}:{container_path}"])
+            if copy_result.returncode != 0:
+                return (False, f"Falha ao copiar o arquivo de portas:\n{copy_result.stderr}")
+
+            print(f"Reiniciando servidor em {host_id} para aplicar novas portas...")
+            self.stop_server(host_id)
+            start_success, msg = self.start_server(host_id)
+            if not start_success:
+                return (False, f"Falha ao reiniciar o servidor:\n{msg}")
+            
+            return (True, "Portas atualizadas e servidor reiniciado com sucesso.")
+        
+        finally:
+            if os.path.exists(local_temp_path):
+                os.remove(local_temp_path)

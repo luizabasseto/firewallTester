@@ -3,13 +3,14 @@
 import pathlib
 from functools import partial
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QScrollArea, QMessageBox, QDialog)
+    QPushButton, QScrollArea, QDialog)
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
 from .widgets.edit_ports import EditPortsDialog
 
 from ui.widgets.hosts_cards import HostCardWidget
 
+#TODO - Ajustar mudança de portas 
 class HostsTab(QWidget):
     """
     A QWidget that displays a card for each available host (Docker container).

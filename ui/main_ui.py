@@ -8,6 +8,7 @@ the ContainerManager and TestRunner.
 
 import json
 import pathlib
+import sys
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                             QPushButton, QTabWidget, QMessageBox, QFrame)
 from PyQt5.QtGui import QIcon
@@ -155,6 +156,8 @@ class MainWindow(QMainWindow):
         hosts_for_combobox = self.container_manager.get_hosts_for_combobox()
 
         all_hosts_data = self.container_manager.get_all_containers_data()
+        print(f"Dados dos hosts encontrados: {all_hosts_data}", file=sys.stderr)
+        sys.stderr.flush()
         
         self.hosts_tab = HostsTab(self.container_manager, self.config)
         self.firewall_rules_tab = FirewallRulesTab(

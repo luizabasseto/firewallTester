@@ -26,8 +26,6 @@ class TestRunner:
             tuple: A tuple containing a boolean for success and a dictionary
                    with the test result.
         """
-        print("--- DEBUG: MÉTODO run_single_test CHAMADO ---", file=sys.stderr)
-        sys.stderr.flush()
         processed_dst_ip = self._extract_destination_host(dst_ip)
         if not processed_dst_ip:
             error_result = {"status": "1", "status_msg": f"Invalid destination: {dst_ip}"}
@@ -38,22 +36,16 @@ class TestRunner:
         command = [
             "docker", "exec", container_id,
             "python3",
-            "/firewallTester/src/client.py", # <-- Caminho absoluto
+            "/firewallTester/src/client.py",
             processed_dst_ip,
             protocol.lower(),
             dst_port,
-            "1", "2025", "0" # Argumentos padrão
+            "1", "2025", "0" 
         ]
         
         try:
-            print(f"--- DEBUG: Executando comando: {' '.join(command)}")
             result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8', timeout=10)
             
-            print("--- DEBUG: Comando finalizado.", file=sys.stderr)
-            print(f"--- DEBUG: Return Code: {result.returncode}", file=sys.stderr)
-            print(f"--- DEBUG: STDOUT:\n---\n{result.stdout}\n---", file=sys.stderr)
-            print(f"--- DEBUG: STDERR:\n---\n{result.stderr}\n---", file=sys.stderr)
-            sys.stderr.flush()
             
             if result.returncode != 0:
                 raise subprocess.CalledProcessError(result.returncode, command, stderr=result.stderr)
@@ -87,29 +79,35 @@ class TestRunner:
             tuple: A tuple containing a dictionary with analysis details
                    (result, flow, data) and a tag for UI color-coding.
         """
-        result_status = "Fail"
-        network_flow = "Sent"
-        tag = "no"
+        expected = expected_result.lower()
 
         if test_output.get("status", "1") != '0':
             result_status = "ERROR"
             network_flow = "Not Sent"
             tag = "error"
+
         elif test_output.get("server_response"):
-            result_status = "Pass"
             network_flow = "Sent/Received"
-            if expected_result.lower() == "yes":
+            if expected in ["yes", "permitido"]:
+                result_status = "Pass"
                 tag = "yes"
+            else:
+                result_status = "Fail"
+                tag = "no" 
+
         elif not test_output.get("server_response"):
-            if expected_result.lower() == "no":
+            network_flow = "Sent"
+            if expected in ["no", "bloqueado"]:
                 result_status = "Pass"
                 tag = "yesFail"
+            else:
+                result_status = "Fail"
+                tag = "no"
 
         if "dnat" in test_output:
             network_flow += " (DNAT)"
 
         return {"result": result_status, "flow": network_flow, "data": str(test_output)}, tag
-
     def _extract_destination_host(self, destination):
         if ip_match := re.search(r'\((\d+\.\d+\.\d+\.\d+)\)', destination):
             return ip_match[1]

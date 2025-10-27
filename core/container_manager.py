@@ -202,20 +202,35 @@ class ContainerManager:
         the core logic together. They could be grouped into a data class in a
         future refactor.
         """
+        commands_to_run = []
+        
+        # Comandos de reset (agora sem o -P FORWARD ACCEPT)
         if reset_first:
-            container_path = os.path.join(
-                container_dir, os.path.basename(local_reset_path)
-            ).replace("\\", "/")
-            result = self._copy_and_execute_script(host_id, local_reset_path, container_path)
-            if not result[0]:
-                return (False, f"Falha no script de reset:\n{result[1]}")
+            commands_to_run.extend([
+                "iptables -F FORWARD",
+                "iptables -F INPUT",
+                "iptables -F OUTPUT",
+                "iptables -X",
+                "iptables -t nat -F",
+                "iptables -t nat -X",
+                "iptables -t mangle -F",
+                "iptables -t mangle -X"
+            ])
 
-        container_path = os.path.join(
-            container_dir, os.path.basename(local_rules_path)
-        ).replace("\\", "/")
-        result = self._copy_and_execute_script(host_id, local_rules_path, container_path)
-        if not result[0]:
-            return (False, f"Falha no script de regras:\n{result[1]}")
+        for line in rules_string.strip().splitlines():
+            clean_line = line.strip()
+            if clean_line and not clean_line.startswith('#'):
+                commands_to_run.append(clean_line)
+
+        for cmd_str in commands_to_run:
+            cmd_list = ["docker", "exec", host_id, "sh", "-c", cmd_str]
+            
+            result = self._run_command(cmd_list)
+            
+            if result.returncode != 0:
+                error_message = (f"Falha ao executar o comando:\n'{cmd_str}'\n\n"
+                                 f"Erro:\n{result.stderr}")
+                return (False, error_message)
 
         return (True, f"Regras aplicadas com sucesso no host {hostname}.")
 
@@ -237,13 +252,13 @@ class ContainerManager:
         """
         # Assume que o arquivo está em /firewallTester/src/conf/ports.conf
         # Você pode tornar este caminho configurável no futuro.
-        container_path = "/firewallTester/src/conf/ports.conf"
+        container_path = "/firewallTester/src/config/ports.conf"
         cmd = ["docker", "exec", host_id, "cat", container_path]
         result = self._run_command(cmd)
 
         if result.returncode != 0:
             print(f"Aviso: Não foi possível ler o arquivo de portas para {host_id}. Pode não existir. Erro: {result.stderr}")
-            return [] # Retorna lista vazia se o arquivo não existir ou houver erro
+            return []
 
         ports = []
         for line in result.stdout.strip().splitlines():
@@ -252,7 +267,7 @@ class ContainerManager:
                     port, protocol = line.strip().split('/')
                     ports.append((protocol.upper(), port))
                 except ValueError:
-                    continue # Ignora linhas mal formatadas
+                    continue
         return ports
 
     def update_host_ports(self, host_id, ports_list):
@@ -262,7 +277,7 @@ class ContainerManager:
             tmp.write(content)
             local_temp_path = tmp.name
 
-        container_path = "/firewallTester/src/conf/ports.conf"
+        container_path = "/firewallTester/src/config/ports.conf"
         
         try:
             copy_result = self._run_command(["docker", "cp", local_temp_path, f"{host_id}:{container_path}"])

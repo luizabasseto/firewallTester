@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushBut
     QRadioButton, QTreeWidget, QTreeWidgetItem,
     QAbstractItemView, QProgressDialog, QMessageBox, QFileDialog)
 from PyQt5.QtGui import QColor, QBrush
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject, QEvent
 
 class TestWorker(QObject):
     """A worker that runs firewall tests in a separate thread."""
@@ -43,10 +43,8 @@ class TestWorker(QObject):
                 item.text(c) for c in range(item.columnCount())
             ]
             
-            print(f"--- DEBUG (Worker): Chamando self.test_runner para o item {i+1}...")
             destination_ip = self.hosts_map.get(dst_hostname, {}).get('ip', dst_hostname)
             
-            # Chama o backend com o IP correto
             _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, dst_port)
             analysis, tag = self.test_runner.analyze_test_result(expected, result_dict)
 
@@ -145,6 +143,8 @@ class FirewallTestsTab(QWidget):
         main_layout.addWidget(self.tree)
         self.tree.setColumnWidth(0, 40)
         self.tree.setColumnHidden(1, not self.config.get("show_container_id", False))
+        self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tree.viewport().installEventFilter(self)
 
         legend_box = QGroupBox("Legenda")
         legend_layout = QHBoxLayout(legend_box)
@@ -270,8 +270,8 @@ class FirewallTestsTab(QWidget):
 
         new_item = QTreeWidgetItem(values)
         self.tree.addTopLevelItem(new_item)
-        self._set_buttons_normal_state()
-
+        self._clear_selection_and_reset_buttons()
+        
     def _edit_test(self):
         selected_items = self.tree.selectedItems()
         if not selected_items:
@@ -290,6 +290,8 @@ class FirewallTestsTab(QWidget):
         item.setText(4, self.protocol_combo.currentText())
         item.setText(6, self.dst_port_entry.text())
         item.setText(7, "Permitido" if self.expected_yes_radio.isChecked() else "Bloqueado")
+        
+        self._clear_selection_and_reset_buttons()
         
         for i in range(8, 11):
             item.setText(i, "" if i > 8 else "-")
@@ -464,3 +466,17 @@ class FirewallTestsTab(QWidget):
 
         except (IOError, json.JSONDecodeError) as e:
             QMessageBox.critical(self, "Erro", f"Não foi possível carregar o arquivo:\n{e}")
+            
+    def _clear_selection_and_reset_buttons(self):
+        """Limpa a seleção da árvore e reseta os botões."""
+        self.tree.clearSelection()
+        self._set_buttons_normal_state()
+         
+    def eventFilter(self, source, event):
+        """Filtro de eventos para capturar cliques no viewport da árvore."""
+        if event.type() == QEvent.MouseButtonPress and source is self.tree.viewport():
+            item = self.tree.itemAt(event.pos())
+            if item is None:
+                # O usuário clicou em uma área vazia
+                self._clear_selection_and_reset_buttons()
+        return super().eventFilter(source, event)       

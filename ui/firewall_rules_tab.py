@@ -49,12 +49,9 @@ class FirewallRulesTab(QWidget):
         rules_layout.addWidget(self.text_editor_rules)
         editor_buttons_layout = QHBoxLayout()
         self.check_reset_rules = QCheckBox("Resetar regras antes de aplicar")
-        self.btn_analyze_rule = QPushButton("Analisar Regra com IA")
-        self.btn_analyze_rule.clicked.connect(self._analyze_rule_with_ai)
 
         editor_buttons_layout.addWidget(self.check_reset_rules)
         editor_buttons_layout.addStretch(1)
-        editor_buttons_layout.addWidget(self.btn_analyze_rule)
         rules_layout.addLayout(editor_buttons_layout)
         main_layout.addWidget(rules_box)
 
@@ -89,7 +86,6 @@ class FirewallRulesTab(QWidget):
         self.btn_retrieve_rules.setEnabled(is_host_selected)
         self.btn_deploy_rules.setEnabled(is_host_selected)
         self.btn_list_rules.setEnabled(is_host_selected)
-        self.btn_analyze_rule.setEnabled(True)
         if is_host_selected:
             self.selected_hostname, self.selected_container_id = self.hosts_data[selected_index]
         else:
@@ -197,22 +193,4 @@ class FirewallRulesTab(QWidget):
         else:
             self.combo_hosts.setCurrentIndex(-1)
 
-    def _analyze_rule_with_ai(self):
-        """
-        Analyzes the selected or all firewall rules using the AI assistant
-        and displays the explanation in a message box.
-        """
-        selected_text = self.text_editor_rules.textCursor().selectedText()
-        rule_text = selected_text or self.text_editor_rules.toPlainText().strip()
-
-        if not rule_text:
-            QMessageBox.warning(
-                self, "Entrada Vazia", "Por favor, digite ou selecione uma regra para analisar."
-            )
-            return
-
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        explanation = self.ai_assistant.explain_firewall_rule(rule_text)
-        QApplication.restoreOverrideCursor()
-
-        QMessageBox.information(self, "Análise da IA", explanation)
+    

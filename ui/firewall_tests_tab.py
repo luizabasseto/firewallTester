@@ -30,7 +30,6 @@ class TestWorker(QObject):
         self.is_cancelled = False
     def run(self):
         """Executes the test items and emits signals for progress and results."""
-        print("--- DEBUG (Worker): Thread iniciada, método run() EXECUTANDO ---")
         total = len(self.test_items)
         for i, item in enumerate(self.test_items):
             if self.is_cancelled:
@@ -120,14 +119,14 @@ class FirewallTestsTab(QWidget):
         buttons_layout = QHBoxLayout()
         main_layout.addLayout(buttons_layout)
         self.btn_add = QPushButton("Adicionar")
-        self.btn_edit = QPushButton("Editar")
         self.btn_del = QPushButton("Deletar")
+        self.btn_del_all = QPushButton("Deletar Todos")
         self.btn_test = QPushButton("Testar Linha")
         self.btn_test_all = QPushButton("Testar Todos")
 
         buttons_layout.addStretch(1)
         buttons_layout.addWidget(self.btn_add)
-        buttons_layout.addWidget(self.btn_edit)
+        buttons_layout.addWidget(self.btn_del_all)
         buttons_layout.addWidget(self.btn_del)
         buttons_layout.addWidget(self.btn_test)
         buttons_layout.addWidget(self.btn_test_all)
@@ -176,7 +175,7 @@ class FirewallTestsTab(QWidget):
         file_buttons_layout.addStretch(1)
 
         self.btn_add.clicked.connect(self._add_test)
-        self.btn_edit.clicked.connect(self._edit_test)
+        self.btn_del_all.clicked.connect(self._delete_all_test)
         self.btn_del.clicked.connect(self._delete_test)
         self.btn_test.clicked.connect(self._run_selected_test)
         self.btn_test_all.clicked.connect(self._run_all_tests)
@@ -217,10 +216,10 @@ class FirewallTestsTab(QWidget):
             item.setBackground(i, QBrush(color))
 
     def _run_all_tests(self):
-        print("--- DEBUG (UI): _run_all_tests CHAMADO ---")
+        print(" _run_all_tests")
         tests_to_run = [self.tree.topLevelItem(i) for i in range(self.tree.topLevelItemCount())]
         if not tests_to_run:
-            print("--- DEBUG (UI): Nenhum teste para rodar.")
+            print("Nenhum teste para rodar.")
             return
 
         self.progress_dialog = QProgressDialog("Executando testes...", "Cancelar", 0, 100, self)
@@ -240,10 +239,10 @@ class FirewallTestsTab(QWidget):
         self.progress_dialog.canceled.connect(self.worker.cancel)
         self.thread.finished.connect(self.progress_dialog.close)
 
-        print("--- DEBUG (UI): Iniciando a thread de testes...")
+        print("Iniciando a thread de testes...")
         self.thread.start()
         self.progress_dialog.exec_()
-        print("--- DEBUG (UI): Diálogo de progresso fechado.")
+        print("Diálogo de progresso fechado.")
     def _update_progress_dialog(self, value, text):
         """Updates the progress dialog's value and label text."""
         self.progress_dialog.setValue(value)
@@ -272,30 +271,17 @@ class FirewallTestsTab(QWidget):
         self.tree.addTopLevelItem(new_item)
         self._clear_selection_and_reset_buttons()
         
-    def _edit_test(self):
-        selected_items = self.tree.selectedItems()
-        if not selected_items:
+    def _delete_all_test(self):
+        if self.tree.topLevelItemCount() == 0:
             return
 
-        if not self._validate_inputs():
-            return
-
-        item = selected_items[0]
-        src_text = self.src_ip_combo.currentText()
-        container_id = self.hosts_map.get(src_text, {}).get('id', 'N/A')
-
-        item.setText(1, container_id)
-        item.setText(2, src_text)
-        item.setText(3, self.dst_ip_combo.currentText())
-        item.setText(4, self.protocol_combo.currentText())
-        item.setText(6, self.dst_port_entry.text())
-        item.setText(7, "Permitido" if self.expected_yes_radio.isChecked() else "Bloqueado")
+        reply = QMessageBox.question(self, "Deletar Todos os Testes", 
+            "Tem certeza que deseja deletar TODOS os testes da lista?",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         
-        self._clear_selection_and_reset_buttons()
-        
-        for i in range(8, 11):
-            item.setText(i, "" if i > 8 else "-")
-            item.setBackground(i, QBrush(QColor("transparent")))
+        if reply == QMessageBox.Yes:
+            self.tree.clear() 
+            self._set_buttons_normal_state()
 
     def _delete_test(self):
         selected_items = self.tree.selectedItems()
@@ -332,7 +318,7 @@ class FirewallTestsTab(QWidget):
         else:
             self.expected_no_radio.setChecked(True)
 
-        self.btn_edit.setEnabled(True)
+        self.btn_del_all.setEnabled(True)
         self.btn_del.setEnabled(True)
         self.btn_test.setEnabled(True)
 
@@ -371,7 +357,7 @@ class FirewallTestsTab(QWidget):
         """Resets input fields and button states to their default."""
         self.tree.clearSelection()
         self.btn_add.setEnabled(True)
-        self.btn_edit.setEnabled(False)
+        self.btn_del_all.setEnabled(True)
         self.btn_del.setEnabled(False)
         self.btn_test.setEnabled(False)
         self.btn_test_all.setEnabled(self.tree.topLevelItemCount() > 0)
@@ -453,10 +439,6 @@ class FirewallTestsTab(QWidget):
 
             self.tree.clear()
             for test in tests_data:
-                # A lógica de remapear hosts ('ask_user_for_source_host')
-                # ainda precisa ser implementada aqui com um QDialog.
-
-                # Monta a lista de valores na ordem correta dos cabeçalhos
                 values = [test.get(key, "") for key in self.header_labels]
                 self.tree.addTopLevelItem(QTreeWidgetItem(values))
 

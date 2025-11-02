@@ -9,7 +9,7 @@ to analyze and explain firewall rules.
 import os
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                             QComboBox, QGroupBox, QTextEdit, QCheckBox, QMessageBox,
-                            QApplication)
+                            QApplication, QTreeWidgetItem, QMessageBox, QFileDialog)
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
@@ -28,6 +28,8 @@ class FirewallRulesTab(QWidget):
         self.selected_hostname = None
         self._setup_ui()
         self._on_host_selected()
+        self.save_file_path = None
+        
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -54,7 +56,24 @@ class FirewallRulesTab(QWidget):
         editor_buttons_layout.addStretch(1)
         rules_layout.addLayout(editor_buttons_layout)
         main_layout.addWidget(rules_box)
+        
+        file_buttons_layout = QHBoxLayout()
+        main_layout.addLayout(file_buttons_layout)
+        self.btn_save = QPushButton("Salvar Regras")
+        self.btn_save_as = QPushButton("Salvar Como...")
+        self.btn_load = QPushButton("Abrir Regras")
 
+        file_buttons_layout.addStretch(1)
+        file_buttons_layout.addWidget(self.btn_save)
+        file_buttons_layout.addWidget(self.btn_save_as)
+        file_buttons_layout.addWidget(self.btn_load)
+        file_buttons_layout.addStretch(1)
+
+        self.btn_save.clicked.connect(self._save_rules)
+        self.btn_save_as.clicked.connect(self._save_rules_as)
+        self.btn_load.clicked.connect(self._open_rules)
+        
+        
         self.output_box = QGroupBox("Saída e Regras Ativas")
         output_layout = QVBoxLayout(self.output_box)
         self.log_output = QTextEdit()
@@ -73,13 +92,14 @@ class FirewallRulesTab(QWidget):
         self.btn_deploy_rules.clicked.connect(self._apply_rules)
         btn_toggle_output = QPushButton("Mostrar/Esconder Saída")
         btn_toggle_output.clicked.connect(lambda: self.output_box.setVisible(not self.output_box.isVisible()))
-
+        
         buttons_layout.addWidget(self.btn_retrieve_rules)
         buttons_layout.addWidget(self.btn_deploy_rules)
         buttons_layout.addStretch(1)
         buttons_layout.addWidget(btn_toggle_output)
         main_layout.addLayout(buttons_layout)
 
+        
     def _on_host_selected(self):
         selected_index = self.combo_hosts.currentIndex()
         is_host_selected = selected_index != -1
@@ -193,4 +213,60 @@ class FirewallRulesTab(QWidget):
         else:
             self.combo_hosts.setCurrentIndex(-1)
 
-    
+    def _save_rules_as(self):
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Salvar Arquivo de Regras", 
+            "", 
+            "Arquivos Shell (*.sh);;Arquivos de Texto (*.txt);;Todos os Arquivos (*)"
+        )
+        
+        if file_path:
+            self.save_file_path = file_path
+            self._save_rules()
+
+    def _save_rules(self):
+        if not self.save_file_path:
+            self._save_rules_as()
+            return
+
+        rules_data = self.text_editor_rules.toPlainText()
+
+        try:
+            with open(self.save_file_path, "w", encoding="utf-8") as f:
+                f.write(rules_data)
+            QMessageBox.information(self, "Sucesso", f"Regras salvas em:\n{self.save_file_path}")
+        except (IOError, TypeError) as e:
+            QMessageBox.critical(self, "Erro", f"Não foi possível salvar o arquivo:\n{e}")
+
+    def _open_rules(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Abrir Arquivo de Regras", 
+            "", 
+            "Arquivos Shell (*.sh);;Arquivos de Texto (*.txt);;Todos os Arquivos (*)"
+        )
+        if file_path:
+            self.save_file_path = file_path
+            self._load_from_file()
+
+    def _load_from_file(self):
+        if not self.save_file_path or not os.path.exists(self.save_file_path):
+            QMessageBox.warning(self, "Erro", "Arquivo de regras não encontrado.")
+            return
+
+        reply = QMessageBox.question(self, "Carregar Regras", 
+                                     "Isso irá sobrescrever o conteúdo atual do editor. Deseja continuar?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.No:
+            return
+
+        try:
+            with open(self.save_file_path, "r", encoding="utf-8") as f:
+                rules_data = f.read()
+
+            self.text_editor_rules.setPlainText(rules_data)
+            QMessageBox.information(self, "Sucesso", "Regras carregadas com sucesso.")
+
+        except (IOError) as e:
+            QMessageBox.critical(self, "Erro", f"Não foi possível carregar o arquivo:\n{e}")

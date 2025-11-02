@@ -246,19 +246,12 @@ class ContainerManager:
         return (True, "Script executado com sucesso.")
     
     def get_host_ports(self, host_id):
-        """
-        Lê o arquivo de configuração de portas de dentro de um contêiner.
-        Retorna uma lista de tuplas (protocolo, porta).
-        """
-        # Assume que o arquivo está em /firewallTester/src/conf/ports.conf
-        # Você pode tornar este caminho configurável no futuro.
-        container_path = "/firewallTester/src/config/ports.conf"
+        """Lê o arquivo de configuração de portas de dentro de um contêiner."""
+        container_path = "/firewallTester/src/conf/ports.conf"
         cmd = ["docker", "exec", host_id, "cat", container_path]
         result = self._run_command(cmd)
-
         if result.returncode != 0:
-            print(f"Aviso: Não foi possível ler o arquivo de portas para {host_id}. Pode não existir. Erro: {result.stderr}")
-            return []
+            return [] 
 
         ports = []
         for line in result.stdout.strip().splitlines():
@@ -270,28 +263,25 @@ class ContainerManager:
                     continue
         return ports
 
-    def update_host_ports(self, host_id, ports_list):
-        content = "\n".join([f"{port}/{protocol}" for protocol, port in ports_list])
-        
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".conf", encoding="utf-8") as tmp:
-            tmp.write(content)
-            local_temp_path = tmp.name
-
-        container_path = "/firewallTester/src/config/ports.conf"
+    def update_host_ports(self, host_id, ports_list, local_ports_file_path):
+        """Atualiza o arquivo de portas local E o arquivo dentro do contêiner."""
+        content = "\n".join([f"{port}/{protocol.upper()}" for protocol, port in ports_list])
         
         try:
-            copy_result = self._run_command(["docker", "cp", local_temp_path, f"{host_id}:{container_path}"])
-            if copy_result.returncode != 0:
-                return (False, f"Falha ao copiar o arquivo de portas:\n{copy_result.stderr}")
+            with open(local_ports_file_path, "w", encoding="utf-8") as f:
+                f.write(content)
+        except IOError as e:
+            return (False, f"Falha ao salvar arquivo local: {e}")
 
-            print(f"Reiniciando servidor em {host_id} para aplicar novas portas...")
-            self.stop_server(host_id)
-            start_success, msg = self.start_server(host_id)
-            if not start_success:
-                return (False, f"Falha ao reiniciar o servidor:\n{msg}")
-            
-            return (True, "Portas atualizadas e servidor reiniciado com sucesso.")
+        container_path = "/firewallTester/src/conf/ports.conf"
+        copy_result = self._run_command(["docker", "cp", local_ports_file_path, f"{host_id}:{container_path}"])
+        if copy_result.returncode != 0:
+            return (False, f"Falha ao copiar arquivo de portas:\n{copy_result.stderr}")
+
+        print(f"Reiniciando servidor em {host_id} para aplicar novas portas...")
+        self.stop_server(host_id)
+        start_success, msg = self.start_server(host_id)
+        if not start_success:
+            return (False, f"Falha ao reiniciar o servidor:\n{msg}")
         
-        finally:
-            if os.path.exists(local_temp_path):
-                os.remove(local_temp_path)
+        return (True, "Portas atualizadas e servidor reiniciado.")

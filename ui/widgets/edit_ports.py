@@ -1,13 +1,19 @@
+import os
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, 
                              QTableWidgetItem, QAbstractItemView, QLineEdit, 
                              QComboBox, QPushButton, QMessageBox, QApplication)
 from PyQt5.QtCore import Qt
 
 class EditPortsDialog(QDialog):
-    def __init__(self, container_manager, host_id, hostname, parent=None):
+    """
+    Janela de diálogo para visualizar, adicionar e remover as portas que o
+    servidor de um host específico irá escutar.
+    """
+    def __init__(self, container_manager, host_id, hostname, config, parent=None):
         super().__init__(parent)
         self.container_manager = container_manager
         self.host_id = host_id
+        self.config = config 
         
         self.setWindowTitle(f"Editar Portas para {hostname}")
         self.setMinimumSize(400, 300)
@@ -45,6 +51,7 @@ class EditPortsDialog(QDialog):
         btn_save.clicked.connect(self._save_changes)
         btn_cancel = QPushButton("Cancelar")
         btn_cancel.clicked.connect(self.reject)
+
         buttons_layout.addStretch()
         buttons_layout.addWidget(btn_cancel)
         buttons_layout.addWidget(btn_save)
@@ -91,11 +98,21 @@ class EditPortsDialog(QDialog):
             new_ports_list.append((protocol, port))
             
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        success, message = self.container_manager.update_host_ports(self.host_id, new_ports_list)
+        
+        local_path = self.config.get("server_ports_file")
+        if not local_path:
+            QMessageBox.critical(self, "Erro de Configuração", "O caminho para 'server_ports_file' não está definido no config.json.")
+            QApplication.restoreOverrideCursor()
+            return
+
+        success, message = self.container_manager.update_host_ports(
+            self.host_id, new_ports_list, local_path
+        )
+        
         QApplication.restoreOverrideCursor()
 
         if success:
             QMessageBox.information(self, "Sucesso", message)
-            self.accept() # self.accept fecha o diálogo e retorna um sinal de sucesso
+            self.accept()
         else:
             QMessageBox.critical(self, "Erro", message)

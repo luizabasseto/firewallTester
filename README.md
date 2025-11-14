@@ -13,15 +13,15 @@ Additionally, the software allows you to save test results and rerun them later,
 ## Project Organization
 
 ```
-/firewallTester/  
-    ├── src/ (source files)  
-    │   ├── client.py (Acts as a client in the test scenario)  
-    │   ├── server.py (Acts as a server in the test scenario)  
-    │   ├── gui/  
-    │       ├── guiFirewallTest.py (Graphical interface for firewall rule testing)  
-    │  
-    ├── docker/ (Docker-related files)  
-    ├── gns3/ (GNS3 project files)  
+firewallTester/
+├── assets/
+├── core/
+├── docker/
+├── gns3_projects/
+├── ui/
+├── main.py
+├── requirements.txt
+
 ```
 
 ## License

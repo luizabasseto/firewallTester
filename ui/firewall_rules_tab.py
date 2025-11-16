@@ -9,7 +9,7 @@ to analyze and explain firewall rules.
 import os
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                             QComboBox, QGroupBox, QTextEdit, QCheckBox, QMessageBox,
-                            QApplication, QTreeWidgetItem, QMessageBox, QFileDialog)
+                            QApplication, QMessageBox, QFileDialog)
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 

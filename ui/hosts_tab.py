@@ -117,12 +117,12 @@ class HostsTab(QWidget):
                 self._toggle_server(host_id)
                 
     def _edit_ports(self, container_id, hostname):
-        dialog = EditPortsDialog(self.container_manager, container_id, hostname, self)
+        dialog = EditPortsDialog(self.container_manager, container_id, hostname, self.config)
         
         result = dialog.exec_()
 
         if result == QDialog.Accepted:
-            print(f"Portas atualizadas para {hostname}. Atualizando status na UI.")
+            print(f"Portas atualizadas para {hostname}. Atualizando status.")
             if container_id in self.hosts_cards:
                 success, status = self.container_manager.check_server_status(container_id)
                 if success:

@@ -346,7 +346,6 @@ class FirewallTestsTab(QWidget):
             self.tree.topLevelItem(i).setText(0, str(i + 1))
     def _on_item_double_clicked(self):
         self.src_ip_combo.setFocus()
-        self._edit_test = True
         self._edit_test()
         
     def _on_item_selected(self):

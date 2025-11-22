@@ -101,10 +101,10 @@ class MainWindow(QMainWindow):
         self.test_runner = TestRunner()
 
         # Initialize tab attributes
+        self.tests_tab = None
         self.tab_widget = None
         self.hosts_tab = None
         self.firewall_rules_tab = None
-        self.tests_tab = None
         self.settings_tab = None
         self.help_tab = None
         self.about_tab = None
@@ -168,9 +168,9 @@ class MainWindow(QMainWindow):
         self.help_tab = HelpTab()
         self.about_tab = AboutTab()
 
-        self.tab_widget.addTab(self.hosts_tab, "Hosts")
-        self.tab_widget.addTab(self.firewall_rules_tab, "Regras de Firewall")
         self.tab_widget.addTab(self.tests_tab, "Testes de Firewall")
+        self.tab_widget.addTab(self.firewall_rules_tab, "Regras de Firewall")
+        self.tab_widget.addTab(self.hosts_tab, "Hosts")
         self.tab_widget.addTab(self.settings_tab, "Configurações")
         self.tab_widget.addTab(self.help_tab, "Ajuda")
         self.tab_widget.addTab(self.about_tab, "Sobre")

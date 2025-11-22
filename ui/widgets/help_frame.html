@@ -7,8 +7,6 @@
         p  { font-size: 14px; line-height: 1.6; text-align: justify; }
         ul { list-style-type: none; padding-left: 0; }
         li { margin-bottom: 15px; }
-        b { color: #2980b9; }
-        code { background-color: #f4f4f4; padding: 2px 5px; border-radius: 4px; font-family: monospace; color: #c0392b; }
         .step-number { font-weight: bold; font-size: 1.1em; }
     </style>
 </head>
@@ -46,29 +44,15 @@
         </li>
     </ul>
 
-    <h2>Dicas Avançadas</h2>
+    <h2>Solução de Problemas Comuns </h2>
     <ul>
-        <li>
-            <b>Análise com IA:</b> Na aba de "Regras de Firewall", escreva uma regra e clique no botão <b>"💡 Analisar Regra com IA"</b> para obter uma explicação detalhada sobre o que a regra faz.
-        </li>
-        <li>
-            <b>Salvar e Carregar Testes:</b> Na aba de "Testes de Firewall", use os botões <b>"Salvar Testes"</b> e <b>"Abrir Testes"</b> para guardar e reutilizar suas suítes de testes em diferentes cenários ou sessões de trabalho.
-        </li>
-    </ul>
-
-    <h2>Solução de Problemas Comuns (FAQ)</h2>
-    <ul>
-        <li>
-            <b>Erro de conexão com o Docker ao iniciar?</b><br>
-            Certifique-se de que o <b>Docker Desktop</b> está em execução no seu computador antes de iniciar a aplicação.
-        </li>
         <li>
             <b>Nenhum host aparece na lista após clicar em "Atualizar Hosts"?</b><br>
-            Verifique se sua topologia no GNS3 está realmente ativa. Em seguida, vá para a aba <b>"⚙️ Configurações"</b> e confirme se o "Nome da Imagem Docker Padrão" corresponde exatamente ao nome da imagem que você está usando nos seus contêineres.
+            Verifique se sua topologia no GNS3 está realmente ativa. Em seguida, vá para a aba <b>"Configurações"</b> e confirme se o "Nome da Imagem Docker Padrão" corresponde exatamente ao nome da imagem que você está usando nos seus contêineres.
         </li>
         <li>
             <b>Testes TCP/UDP retornam 'ERROR' ou falham inesperadamente?</b><br>
-            Isso geralmente significa que o <code>server.py</code> não está rodando no contêiner de destino. Vá para a aba <b>"🖥️ Hosts"</b> e verifique se o "Server Status" do host de destino está como <b>on</b>. Se não estiver, clique no botão para ligá-lo.
+            Isso geralmente significa que o <code>server.py</code> não está rodando no contêiner de destino. Vá para a aba <b>"Hosts"</b> e verifique se o "Server Status" do host de destino está como <b>on</b>. Se não estiver, clique no botão para ligá-lo.
         </li>
     </ul>
 </body>

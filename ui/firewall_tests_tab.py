@@ -71,6 +71,7 @@ class FirewallTestsTab(QWidget):
         self.hosts_map = {host['hostname']: host for host in hosts_data}
         self.config = config
         self.save_file_path = None
+        self.is_editing = False
 
         # W0201: Initialize thread-related attributes to None
         self.progress_dialog = None
@@ -119,6 +120,7 @@ class FirewallTestsTab(QWidget):
         buttons_layout = QHBoxLayout()
         main_layout.addLayout(buttons_layout)
         self.btn_add = QPushButton("Adicionar")
+        self.btn_edit = QPushButton("Editar")
         self.btn_del = QPushButton("Deletar")
         self.btn_del_all = QPushButton("Deletar Todos")
         self.btn_test = QPushButton("Testar Linha")
@@ -126,6 +128,7 @@ class FirewallTestsTab(QWidget):
 
         buttons_layout.addStretch(1)
         buttons_layout.addWidget(self.btn_add)
+        buttons_layout.addWidget(self.btn_edit)
         buttons_layout.addWidget(self.btn_del_all)
         buttons_layout.addWidget(self.btn_del)
         buttons_layout.addWidget(self.btn_test)
@@ -175,11 +178,13 @@ class FirewallTestsTab(QWidget):
         file_buttons_layout.addStretch(1)
 
         self.btn_add.clicked.connect(self._add_test)
+        self.btn_edit.clicked.connect(self._edit_test)
         self.btn_del_all.clicked.connect(self._delete_all_test)
         self.btn_del.clicked.connect(self._delete_test)
         self.btn_test.clicked.connect(self._run_selected_test)
         self.btn_test_all.clicked.connect(self._run_all_tests)
         self.tree.itemSelectionChanged.connect(self._on_item_selected)
+        self.tree.itemDoubleClicked.connect(self._on_item_double_clicked)
         self.btn_save.clicked.connect(self._save_tests)
         self.btn_save_as.clicked.connect(self._save_tests_as)
         self.btn_load.clicked.connect(self._open_tests)
@@ -222,7 +227,7 @@ class FirewallTestsTab(QWidget):
             print("Nenhum teste para rodar.")
             return
 
-        self.progress_dialog = QProgressDialog("Executando testes...", "Cancelar", 0, 100, self)
+        self.progress_dialog = QProgressDialog("Executando testes", "Cancelar", 0, 100, self)
         self.progress_dialog.setWindowTitle("Processando Testes")
         self.progress_dialog.setWindowModality(Qt.WindowModal)
         
@@ -239,10 +244,8 @@ class FirewallTestsTab(QWidget):
         self.progress_dialog.canceled.connect(self.worker.cancel)
         self.thread.finished.connect(self.progress_dialog.close)
 
-        print("Iniciando a thread de testes...")
         self.thread.start()
         self.progress_dialog.exec_()
-        print("Diálogo de progresso fechado.")
     def _update_progress_dialog(self, value, text):
         """Updates the progress dialog's value and label text."""
         self.progress_dialog.setValue(value)
@@ -270,7 +273,48 @@ class FirewallTestsTab(QWidget):
         new_item = QTreeWidgetItem(values)
         self.tree.addTopLevelItem(new_item)
         self._clear_selection_and_reset_buttons()
-        
+    
+    def _edit_test(self):
+        if not self.is_editing:
+            selected_items = self.tree.selectedItems()
+            if not selected_items:
+                return
+            self.is_editing = True
+            self.btn_edit.setText("Salvar Edição")
+            self.btn_add.setEnabled(False)
+            self.btn_del.setEnabled(False)
+            self.btn_del_all.setEnabled(False)
+            self.btn_test.setEnabled(False)
+            self.btn_test_all.setEnabled(False)
+            self.tree.setEnabled(False)            
+            self.src_ip_combo.setFocus()
+            
+        else:
+            if not self._validate_inputs():
+                return
+
+            item = self.tree.selectedItems()[0]
+            
+            src_text = self.src_ip_combo.currentText()
+            container_id = self.hosts_map.get(src_text, {}).get('id', 'N/A')
+
+            item.setText(1, container_id)
+            item.setText(2, src_text)
+            item.setText(3, self.dst_ip_combo.currentText())
+            item.setText(4, self.protocol_combo.currentText())
+            item.setText(6, self.dst_port_entry.text())
+            item.setText(7, "Permitido" if self.expected_yes_radio.isChecked() else "Bloqueado")
+            
+            for i in range(8, 11):
+                item.setText(i, "" if i > 8 else "-")
+                item.setBackground(i, QBrush(QColor("transparent")))
+            
+            self.is_editing = False
+            self.btn_edit.setText("Editar")
+            self.tree.setEnabled(True)
+            self._clear_selection_and_reset_buttons()
+            
+            QMessageBox.information(self, "Sucesso", "Teste atualizado com sucesso.")
     def _delete_all_test(self):
         if self.tree.topLevelItemCount() == 0:
             return
@@ -300,7 +344,11 @@ class FirewallTestsTab(QWidget):
     def _renumber_tests(self):
         for i in range(self.tree.topLevelItemCount()):
             self.tree.topLevelItem(i).setText(0, str(i + 1))
-
+    def _on_item_double_clicked(self):
+        self.src_ip_combo.setFocus()
+        self._edit_test = True
+        self._edit_test()
+        
     def _on_item_selected(self):
         selected_items = self.tree.selectedItems()
         if not selected_items:
@@ -318,6 +366,8 @@ class FirewallTestsTab(QWidget):
         else:
             self.expected_no_radio.setChecked(True)
 
+        self.btn_edit.setText("Editar")
+        self.btn_edit.setEnabled(True)
         self.btn_del_all.setEnabled(True)
         self.btn_del.setEnabled(True)
         self.btn_test.setEnabled(True)
@@ -355,12 +405,24 @@ class FirewallTestsTab(QWidget):
 
     def _set_buttons_normal_state(self):
         """Resets input fields and button states to their default."""
-        self.tree.clearSelection()
+        
+        self.src_ip_combo.setCurrentIndex(0)
+        self.dst_ip_combo.setCurrentIndex(0)
+        self.dst_ip_combo.setCurrentText("") 
+        
+        self.protocol_combo.setCurrentIndex(0) 
+        self.dst_port_entry.setText("80")
+        
         self.btn_add.setEnabled(True)
+        self.btn_edit.setEnabled(False)
         self.btn_del_all.setEnabled(True)
         self.btn_del.setEnabled(False)
         self.btn_test.setEnabled(False)
         self.btn_test_all.setEnabled(self.tree.topLevelItemCount() > 0)
+        
+        self.is_editing = False
+        self.btn_edit.setText("Editar")
+        self.tree.setEnabled(True)
 
     def update_hosts_list(self, hosts_data_tuples):
         """Updates the host dropdowns with the latest list of available hosts."""
@@ -450,15 +512,12 @@ class FirewallTestsTab(QWidget):
             QMessageBox.critical(self, "Erro", f"Não foi possível carregar o arquivo:\n{e}")
             
     def _clear_selection_and_reset_buttons(self):
-        """Limpa a seleção da árvore e reseta os botões."""
         self.tree.clearSelection()
         self._set_buttons_normal_state()
          
     def eventFilter(self, source, event):
-        """Filtro de eventos para capturar cliques no viewport da árvore."""
         if event.type() == QEvent.MouseButtonPress and source is self.tree.viewport():
             item = self.tree.itemAt(event.pos())
             if item is None:
-                # O usuário clicou em uma área vazia
                 self._clear_selection_and_reset_buttons()
         return super().eventFilter(source, event)       

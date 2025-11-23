@@ -313,12 +313,7 @@ class FirewallTestsTab(QWidget):
             
             self.is_editing = False
             self.btn_edit.setText("Editar")
-            self.tree.setEnabled(True)
-            self.src_ip_combo.setCurrentIndex(0)
-            self.dst_ip_combo.setCurrentIndex(0)
-            self.dst_ip_combo.setCurrentText("") 
-            self.protocol_combo.setCurrentIndex(0) 
-            self.dst_port_entry.setText("80")
+            self.tree.setEnabled(True)           
             self._clear_selection_and_reset_buttons()
             
     def _delete_all_test(self):
@@ -518,4 +513,10 @@ class FirewallTestsTab(QWidget):
             item = self.tree.itemAt(event.pos())
             if item is None:
                 self._clear_selection_and_reset_buttons()
-        return super().eventFilter(source, event)       
+        return super().eventFilter(source, event)
+    
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape and self.is_editing:
+            self._clear_selection_and_reset_buttons()
+        else:
+            super().keyPressEvent(event)

@@ -183,9 +183,6 @@ class FirewallRulesTab(QWidget):
             host_id=self.selected_container_id,
             hostname=self.selected_hostname,
             rules_string=rules_text,
-            local_rules_path=self.config.get("firewall_rules_file"),
-            local_reset_path=self.config.get("reset_rules_file"),
-            container_dir=self.config.get("firewall_directory"),
             reset_first=self.check_reset_rules.isChecked()
         )
 

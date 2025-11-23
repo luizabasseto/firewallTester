@@ -206,6 +206,7 @@ class FirewallTestsTab(QWidget):
         analysis, tag = self.test_runner.analyze_test_result(expected, result_dict)
 
         self._update_tree_item(item, analysis, tag)
+        
 
     def _update_tree_item(self, item, analysis_dict, tag):
         item.setText(8, analysis_dict['result'])
@@ -219,6 +220,7 @@ class FirewallTestsTab(QWidget):
         color = QColor(color_map.get(tag, "transparent"))
         for i in range(item.columnCount()):
             item.setBackground(i, QBrush(color))
+        self._clear_selection_and_reset_buttons()
 
     def _run_all_tests(self):
         print(" _run_all_tests")

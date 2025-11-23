@@ -226,7 +226,8 @@ class FirewallTestsTab(QWidget):
         if not tests_to_run:
             print("Nenhum teste para rodar.")
             return
-
+        
+        self.tree.clearSelection()
         self.progress_dialog = QProgressDialog("Executando testes", "Cancelar", 0, 100, self)
         self.progress_dialog.setWindowTitle("Processando Testes")
         self.progress_dialog.setWindowModality(Qt.WindowModal)
@@ -246,6 +247,7 @@ class FirewallTestsTab(QWidget):
 
         self.thread.start()
         self.progress_dialog.exec_()
+        
     def _update_progress_dialog(self, value, text):
         """Updates the progress dialog's value and label text."""
         self.progress_dialog.setValue(value)
@@ -312,9 +314,13 @@ class FirewallTestsTab(QWidget):
             self.is_editing = False
             self.btn_edit.setText("Editar")
             self.tree.setEnabled(True)
+            self.src_ip_combo.setCurrentIndex(0)
+            self.dst_ip_combo.setCurrentIndex(0)
+            self.dst_ip_combo.setCurrentText("") 
+            self.protocol_combo.setCurrentIndex(0) 
+            self.dst_port_entry.setText("80")
             self._clear_selection_and_reset_buttons()
             
-            QMessageBox.information(self, "Sucesso", "Teste atualizado com sucesso.")
     def _delete_all_test(self):
         if self.tree.topLevelItemCount() == 0:
             return
@@ -404,13 +410,6 @@ class FirewallTestsTab(QWidget):
 
     def _set_buttons_normal_state(self):
         """Resets input fields and button states to their default."""
-        
-        self.src_ip_combo.setCurrentIndex(0)
-        self.dst_ip_combo.setCurrentIndex(0)
-        self.dst_ip_combo.setCurrentText("") 
-        
-        self.protocol_combo.setCurrentIndex(0) 
-        self.dst_port_entry.setText("80")
         
         self.btn_add.setEnabled(True)
         self.btn_edit.setEnabled(False)

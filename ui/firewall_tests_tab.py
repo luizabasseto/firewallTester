@@ -419,20 +419,54 @@ class FirewallTestsTab(QWidget):
 
     def update_hosts_list(self, hosts_data_tuples):
         """Updates the host dropdowns with the latest list of available hosts."""
-        self.hosts_data = hosts_data_tuples        
+        self.hosts_data_list = hosts_data_tuples
+        self.hosts_map = {}
+        display_names = []
 
-        self.hosts_map = {host['hostname']: host for host in hosts_data_tuples}
-        
-        host_names = list(self.hosts_map.keys())
+        for host in self.hosts_data_list:
+            hostname = host.get('hostname', 'N/A')
+            host_id = host.get('id', 'N/A')
+            raw_ips = host.get('ip', 'N/A')
+
+            if raw_ips and raw_ips != 'N/A':
+                ip_list = [ip.strip() for ip in raw_ips.split(',')]
+            else:
+                ip_list = ['N/A']
+
+            for ip in ip_list:
+                if ip == 'N/A':
+                    display_text = hostname
+                    ip_to_store = hostname
+                else:
+                    display_text = f"{hostname} ({ip})"
+                    ip_to_store = ip
+
+                display_names.append(display_text)
+
+                self.hosts_map[display_text] = {
+                    'id': host_id,
+                    'hostname': hostname,
+                    'ip': ip_to_store 
+                }
+
+        current_src = self.src_ip_combo.currentText()
+        current_dst = self.dst_ip_combo.currentText()
 
         self.src_ip_combo.clear()
-        self.src_ip_combo.addItems(host_names)
-        self.src_ip_combo.setCurrentIndex(-1)
+        self.src_ip_combo.addItems(display_names)
         
-
         self.dst_ip_combo.clear()
-        self.dst_ip_combo.addItems(host_names)
-        self.dst_ip_combo.setCurrentIndex(-1)
+        self.dst_ip_combo.addItems(display_names)
+        
+        if current_src in display_names:
+            self.src_ip_combo.setCurrentText(current_src)
+        else:
+            self.src_ip_combo.setCurrentIndex(-1)
+            
+        if current_dst in display_names:
+            self.dst_ip_combo.setCurrentText(current_dst)
+        else:
+            self.dst_ip_combo.setCurrentIndex(-1)
 
     def _save_tests_as(self):
         file_path, _ = QFileDialog.getSaveFileName(

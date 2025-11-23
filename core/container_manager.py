@@ -54,19 +54,12 @@ class ContainerManager:
         return matched_containers
 
     def _get_ip_info_from_docker(self, container_id):
-        """
-        Executa 'ip -4 -json a' dentro de um container.
-        Adaptado de get_ip_info_from_docker.
-        """
+
         cmd = ["docker", "exec", container_id, "ip", "-4", "-json", "a"]
         result = self._run_command(cmd, check=True)
         return json.loads(result.stdout)
 
     def _process_ip_info(self, interfaces_json, host_obj):
-        """
-        Processa o JSON de IPs e adiciona as interfaces ao objeto DockerHost.
-        Adaptado de process_ip_info.
-        """
         for interface in interfaces_json:
             if interface.get("ifname") == "lo":
                 continue
@@ -77,10 +70,6 @@ class ContainerManager:
         return host_obj
 
     def get_all_containers_data(self):
-        """
-        Função principal que orquestra a busca e processamento dos dados dos hosts.
-        Equivalente a getContainersByImageName + extract_containerid_hostname_ips.
-        """
         print(f"\nBuscando containers com a imagem contendo: '{self.docker_image_name}'")
         
         matching_containers_info = self._get_container_info_by_image_filter()
@@ -103,23 +92,24 @@ class ContainerManager:
 
             host_dict = host.to_dict()
             
-            # Garante que haja um IP para exibição, mesmo que seja 'N/A'
-            ip_found = "N/A"
+            all_ips = []
             if host_dict["interfaces"]:
-                if (first_interface_ips := host_dict["interfaces"][0].get("ips")):
-                    ip_found = first_interface_ips[0]
+                for iface in host_dict["interfaces"]:
+                    if ips := iface.get("ips"):
+                        all_ips.extend(ips)
             
-            # Adiciona o IP ao dicionário principal para fácil acesso pela UI
+
+            if all_ips:
+                ip_found = ", ".join(all_ips)
+            else:
+                ip_found = "N/A"
+            
             host_dict['ip'] = ip_found
             detailed_hosts.append(host_dict)
         
         return sorted(detailed_hosts, key=lambda x: x["hostname"])
     
     def toggle_server(self, host_id):
-        """
-        Verifica o status do servidor e o liga ou desliga.
-        Retorna (sucesso, novo_status).
-        """
         success_check, current_status = self.check_server_status(host_id)
         if not success_check:
             return (False, "error")
@@ -136,7 +126,27 @@ class ContainerManager:
         a combobox widget.
         """
         all_hosts = self.get_all_containers_data()
-        return [(host['hostname'], host['id']) for host in all_hosts]
+        formatted_list = []
+        for host in all_hosts:
+            hostname = host['hostname']
+            container_id = host['id']
+            interfaces = host.get('interfaces', [])
+            
+            found_any_ip = False
+            
+            for iface in interfaces:
+                iface_name = iface.get('nome')
+                ips = iface.get('ips', [])
+                
+                for ip in ips:
+                    display_text = f"{hostname} ({ip})"
+                    formatted_list.append((display_text, container_id))
+                    found_any_ip = True
+            
+            if not found_any_ip:
+                formatted_list.append((hostname, container_id))
+            
+        return formatted_list
 
     def check_server_status(self, host_id):
         """Checks if the server.py script is running inside a container."""
@@ -193,8 +203,7 @@ class ContainerManager:
         except IOError as e:
             return (False, f"Erro ao salvar arquivo local: {e}")
 
-    def apply_firewall_rules(self, host_id, hostname, rules_string, local_rules_path,
-                            local_reset_path, container_dir, reset_first):
+    def apply_firewall_rules(self, host_id, hostname, rules_string,reset_first):
         """
         Applies firewall rules to a container.
 

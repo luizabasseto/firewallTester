@@ -64,19 +64,7 @@ class AboutTab(QWidget):
         lbl_license = QLabel("<a href='https://www.gnu.org/licenses/gpl-3.0.html'>GNU GPL v3</a>")
         lbl_license.setOpenExternalLinks(True)
         info_layout.addRow("<b>Licença:</b>", lbl_license)
-
-        btn_repo = QPushButton("Visitar Repositório no GitHub")
-        btn_repo.setIcon(QIcon(github_icon))
-        btn_repo.clicked.connect(self.open_github_project)
-
-        help_layout = QHBoxLayout()
-        help_layout.addStretch(1)
-        help_layout.addWidget(btn_repo)
-        help_layout.addStretch(1)
-        layout.addLayout(help_layout)
+        
+        #TODO: Ver se funciona o botão de abrir repositório GitHub     
 
         layout.addStretch(1)
-
-    def open_github_project(self):
-        """Opens the project's GitHub repository in the default web browser."""
-        webbrowser.open_new_tab("https://github.com/luizsantos/firewallTester")

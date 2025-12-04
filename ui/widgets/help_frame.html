@@ -19,11 +19,11 @@
     <h2>Guia de Início Rápido</h2>
     <ul>
         <li>
-            <span class="step-number">Passo 1: Prepare o Ambiente</span><br>
+            <span class="step-number">Passo 1: Prepare o ambiente</span><br>
             Certifique-se de que sua topologia no GNS3 está totalmente iniciada, com todos os contêineres Docker (hosts) em execução e com suas configurações de rede já aplicadas.
         </li>
         <li>
-            <span class="step-number">Passo 2: Carregue os Hosts na Ferramenta</span><br>
+            <span class="step-number">Passo 2: Carregue os Hosts na ferramenta</span><br>
             Com o ambiente GNS3 pronto, clique no botão <b>"Atualizar Hosts"</b> no canto inferior esquerdo da aplicação. Isso fará com que o software detecte todos os contêineres ativos.
         </li>
         <li>
@@ -35,12 +35,12 @@
             Navegue para a aba <b>"Regras de Firewall"</b>. Selecione o host que atuará como firewall no menu suspenso. Você pode escrever as regras de <code>iptables</code> diretamente no editor, ou clicar em <b>"Carregar Regras do Host"</b> para ver o que já está configurado. Após editar, clique em <b>"Aplicar Regras no Host"</b> para enviá-las ao contêiner.
         </li>
         <li>
-            <span class="step-number">Passo 5: Crie sua Suíte de Testes</span><br>
+            <span class="step-number">Passo 5: Crie sua lista de testes</span><br>
             Vá para a aba <b>"Testes de Firewall"</b>. Use o formulário "Novo Teste" para definir as condições de cada teste: origem, destino, protocolo, porta e o resultado esperado (se a conexão deve ser "Permitida" ou "Bloqueada"). Clique em <b>"Adicionar"</b> para inserir cada teste na tabela.
         </li>
         <li>
-            <span class="step-number">Passo 6: Execute e Analise os Resultados</span><br>
-            Com sua lista de testes pronta, clique em <b>"Testar Todos"</b>. Uma barra de progresso aparecerá. Ao final, cada linha da tabela será colorida de acordo com o resultado, permitindo que você valide rapidamente se suas regras de firewall estão funcionando conforme o esperado.
+            <span class="step-number">Passo 6: Execute e analise os resultados</span><br>
+            Com sua lista de testes pronta, clique em <b>"Testar todos"</b>. Uma barra de progresso aparecerá. Ao final, cada linha da tabela será colorida de acordo com o resultado, permitindo que você valide rapidamente se suas regras de firewall estão funcionando conforme o esperado.
         </li>
     </ul>
 

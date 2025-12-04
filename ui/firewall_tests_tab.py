@@ -568,7 +568,7 @@ class FirewallTestsTab(QWidget):
                     final_src_text = new_src_display_text
                 else:
                     user_id, user_text, action = self._ask_user_for_source_host(
-                        src_hostname, test, current_idx=i+1, total_count=total_tests
+                        src_hostname, current_idx=i+1, total_count=total_tests
                     )
                     if action == 'abort':
                         QMessageBox.information(self, "Cancelado", "Importação interrompida")
@@ -627,9 +627,9 @@ class FirewallTestsTab(QWidget):
                 return data['id'], display_text
         return None, None
 
-    def _ask_user_for_source_host(self, source_hostname, test_data, current_idx=1, total_count=1):
+    def _ask_user_for_source_host(self, source_hostname, current_idx=1, total_count=1):
         dialog = QDialog(self)
-        dialog.setWindowTitle(f"Resolvendo conflito de Host ({current_idx} de {total_count})")
+        dialog.setWindowTitle(f"Resolvendo conflitos de Host ({current_idx} de {total_count})")
         dialog.setMinimumWidth(400)
         layout = QVBoxLayout(dialog)
 

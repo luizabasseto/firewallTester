@@ -8,11 +8,10 @@ loading test suites.
 
 import json
 import os
-import time
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QComboBox, QGroupBox, QGridLayout, QLineEdit,
     QRadioButton, QTreeWidget, QTreeWidgetItem,
-    QAbstractItemView, QProgressDialog, QMessageBox, QFileDialog)
+    QAbstractItemView, QProgressDialog, QMessageBox, QFileDialog, QDialog)
 from PyQt5.QtGui import QColor, QBrush
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject, QEvent
 
@@ -92,13 +91,16 @@ class FirewallTestsTab(QWidget):
         main_layout.addWidget(input_box)
 
         self.src_ip_combo = QComboBox()
+        self.src_ip_combo.setMinimumWidth(100)
         self.dst_ip_combo = QComboBox()
+        self.dst_ip_combo.setMinimumWidth(100)
         self.dst_ip_combo.setEditable(True)
         self.protocol_combo = QComboBox()
         self.protocol_combo.addItems(["TCP", "UDP", "ICMP"])
         self.src_port_entry = QLineEdit("*")
         self.src_port_entry.setEnabled(False)
         self.dst_port_entry = QLineEdit("80")
+        self.dst_port_entry.setMaximumWidth(50)
         self.expected_yes_radio = QRadioButton("Permitido")
         self.expected_no_radio = QRadioButton("Bloqueado")
         self.expected_yes_radio.setChecked(True)
@@ -209,6 +211,11 @@ class FirewallTestsTab(QWidget):
         
 
     def _update_tree_item(self, item, analysis_dict, tag):
+        print("\n Resultados dos testes completos executados:")
+        print(f"ID Container: {item.text(1)}")
+        print(f"Origem: {item.text(2)} -> Destino: {item.text(3)}")
+        print(f"Informações de envio completas: {analysis_dict['data']}")
+
         item.setText(8, analysis_dict['result'])
         item.setText(9, analysis_dict['flow'])
         item.setText(10, analysis_dict['data'])
@@ -491,9 +498,18 @@ class FirewallTestsTab(QWidget):
         tests_data = []
         for i in range(self.tree.topLevelItemCount()):
             item = self.tree.topLevelItem(i)
-            test_dict = {self.header_labels[j]: item.text(j) for j in range(len(self.header_labels))}
-            tests_data.append(test_dict)
+            # Salvamos o header e o valor para cada coluna
+            # Importante: salvar o hostname puro extraído da UI
+            test_dict = {}
+            for j, key in enumerate(self.header_labels):
+                test_dict[key] = item.text(j)
             
+            # Adicionalmente, vamos salvar explicitamente o hostname (sem IP) se possível
+            # para facilitar a busca ao recarregar
+            src_text = item.text(2) # Coluna Origem
+            test_dict['src_hostname_only'] = self._extract_hostname_from_combo_text(src_text)
+            
+            tests_data.append(test_dict)
 
         try:
             with open(self.save_file_path, "w", encoding="utf-8") as f:
@@ -529,13 +545,58 @@ class FirewallTestsTab(QWidget):
                 tests_data = json.load(f)
 
             self.tree.clear()
-            for test in tests_data:
-                values = [test.get(key, "") for key in self.header_labels]
+            
+            total_tests = len(tests_data)
+            
+            for i, test in enumerate(tests_data):
+                
+                src_hostname = test.get("src_hostname_only")
+                if not src_hostname:
+                    src_hostname = self._extract_hostname_from_combo_text(test.get("Origem", ""))
+                
+                dst_orig_text = test.get("Destino", "")
+                dst_hostname = self._extract_hostname_from_combo_text(dst_orig_text)
+
+                new_id, new_src_display_text = self._find_container_data_by_hostname(src_hostname)
+                
+                _, new_dst_display_text = self._find_container_data_by_hostname(dst_hostname)
+                if not new_dst_display_text:
+                     new_dst_display_text = dst_orig_text
+
+                if new_id:
+                    final_id = new_id
+                    final_src_text = new_src_display_text
+                else:
+                    user_id, user_text, action = self._ask_user_for_source_host(
+                        src_hostname, test, current_idx=i+1, total_count=total_tests
+                    )
+                    if action == 'abort':
+                        QMessageBox.information(self, "Cancelado", "Importação interrompida")
+                        break
+                    elif action == 'skip':
+                        continue
+                    elif action == 'update':
+                        final_id = user_id
+                        final_src_text = user_text
+                    else:
+                        continue
+
+                values = [
+                    test.get("#", ""),
+                    final_id,
+                    final_src_text,
+                    new_dst_display_text,
+                    test.get("Protocolo", ""),
+                    test.get("P. Origem", ""),
+                    test.get("P. Destino", ""),
+                    test.get("Esperado", ""),
+                    "-", "", ""
+                ]
                 self.tree.addTopLevelItem(QTreeWidgetItem(values))
 
             self._renumber_tests()
             self._set_buttons_normal_state()
-            QMessageBox.information(self, "Sucesso", "Testes carregados com sucesso.")
+            QMessageBox.information(self, "Sucesso", "Testes carregados e sincronizados com o cenário atual.")
 
         except (IOError, json.JSONDecodeError) as e:
             QMessageBox.critical(self, "Erro", f"Não foi possível carregar o arquivo:\n{e}")
@@ -556,3 +617,63 @@ class FirewallTestsTab(QWidget):
             self._clear_selection_and_reset_buttons()
         else:
             super().keyPressEvent(event)
+            
+    def _extract_hostname_from_combo_text(self, text):
+        return text.split(' (')[0] if ' (' in text else text
+
+    def _find_container_data_by_hostname(self, search_hostname):
+        for display_text, data in self.hosts_map.items():
+            if data['hostname'] == search_hostname:
+                return data['id'], display_text
+        return None, None
+
+    def _ask_user_for_source_host(self, source_hostname, test_data, current_idx=1, total_count=1):
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Resolvendo conflito de Host ({current_idx} de {total_count})")
+        dialog.setMinimumWidth(400)
+        layout = QVBoxLayout(dialog)
+
+        msg = (f"Atenção: O host de origem '{source_hostname}' salvo no arquivo "
+               f"não foi encontrado no cenário atual.\n\n"
+               f"Por favor, selecione um host correspondente na lista abaixo"
+               f"para atualizar o teste, \n ou clique em 'Ignorar' para pular este teste.")
+        layout.addWidget(QLabel(msg))
+
+        combo = QComboBox()
+        available_hosts = list(self.hosts_map.keys())
+        combo.addItems(available_hosts)
+        layout.addWidget(combo)
+        
+        result_state = {"id": None, "name": None, "action": "abort"}
+
+        btn_layout = QHBoxLayout()
+        btn_select = QPushButton("Selecionar e atualizar")
+        btn_ignore = QPushButton("Ignorar Teste")
+        btn_canceled = QPushButton("Cancelar todos os testes")
+        btn_layout.addWidget(btn_select)
+        btn_layout.addWidget(btn_ignore)
+        btn_layout.addWidget(btn_canceled)
+        layout.addLayout(btn_layout)
+
+        def on_select():
+            selected_text = combo.currentText()
+            new_id = self.hosts_map.get(selected_text, {}).get('id')
+            result_state["id"] = new_id
+            result_state["name"] = selected_text
+            result_state["action"] = "update"
+            dialog.accept()
+
+        def on_ignore():
+            result_state["action"] = "skip"
+            dialog.accept()
+        
+        def on_cancel():
+            result_state["action"] = "abort"
+            dialog.reject()
+
+        btn_select.clicked.connect(on_select)
+        btn_ignore.clicked.connect(on_ignore)
+        btn_canceled.clicked.connect(on_cancel)
+        
+        dialog.exec_()
+        return result_state["id"], result_state["name"], result_state["action"]

@@ -3,7 +3,6 @@ import os
 import json
 import io
 
-# Caminho para o seu arquivo .gns3project
 caminho_do_arquivo = r"/home/gns3/firewallTesterLuiza/gns3_projects/network1.gns3project"
 if not os.path.exists(caminho_do_arquivo):
     print(f"Erro: Arquivo não encontrado em {caminho_do_arquivo}")
@@ -25,11 +24,9 @@ else:
                 arquivo_json_principal = 'project.gns3'
             
             if arquivo_json_principal:
-                print(f"\n--- Conteúdo do JSON da Topologia ({arquivo_json_principal}) ---")
+                print(f"\nConteúdo do JSON da Topologia ({arquivo_json_principal}) ---")
                 
-                # Abre o 'project.gns3' de dentro do ZIP
                 with zf.open(arquivo_json_principal) as f:
-                    # Lê o conteúdo como texto
                     conteudo_json_str = io.TextIOWrapper(f, encoding="utf-8").read()
                     
                     # Converte a string para um dicionário Python

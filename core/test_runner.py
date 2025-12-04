@@ -29,7 +29,7 @@ class TestRunner:
         processed_dst_ip = self._extract_destination_host(dst_ip)
         if not processed_dst_ip:
             error_result = {"status": "1", "status_msg": f"Invalid destination: {dst_ip}"}
-            print(f"--- DEBUG: Destino inválido: {dst_ip}", file=sys.stderr)
+            print(f"Destino inválido: {dst_ip}", file=sys.stderr)
             sys.stderr.flush()
             return False, error_result
 
@@ -61,7 +61,7 @@ class TestRunner:
             if hasattr(e, 'stderr') and e.stderr:
                 error_msg = e.stderr.strip()
             
-            print(f"--- ERRO no TestRunner: {error_msg}", file=sys.stderr)
+            print(f"Erro TestRunner: {error_msg}", file=sys.stderr)
             sys.stderr.flush()
             error_result = {"status": "1", "status_msg": f"Execution Error: {error_msg}"}
             return False, error_result

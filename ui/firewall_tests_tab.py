@@ -44,8 +44,10 @@ class TestWorker(QObject):
             destination_ip = self.hosts_map.get(dst_hostname, {}).get('ip', dst_hostname)
             
             _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, dst_port)
+            if self.is_cancelled:
+                break
+            
             analysis, tag = self.test_runner.analyze_test_result(expected, result_dict)
-
             self.item_tested.emit(item, analysis, tag)
             
             
@@ -211,6 +213,9 @@ class FirewallTestsTab(QWidget):
         
 
     def _update_tree_item(self, item, analysis_dict, tag):
+        if self.progress_dialog and not self.progress_dialog.isVisible():
+            return
+        
         print("\n Resultados dos testes completos executados:")
         print(f"ID Container: {item.text(1)}")
         print(f"Origem: {item.text(2)} -> Destino: {item.text(3)}")
@@ -230,7 +235,6 @@ class FirewallTestsTab(QWidget):
         self._clear_selection_and_reset_buttons()
 
     def _run_all_tests(self):
-        print(" _run_all_tests")
         tests_to_run = [self.tree.topLevelItem(i) for i in range(self.tree.topLevelItemCount())]
         if not tests_to_run:
             print("Nenhum teste para rodar.")
@@ -240,10 +244,16 @@ class FirewallTestsTab(QWidget):
         self.progress_dialog = QProgressDialog("Executando testes", "Cancelar", 0, 100, self)
         self.progress_dialog.setWindowTitle("Processando Testes")
         self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.setAutoClose(False) 
         
         self.thread = QThread()
         self.worker = TestWorker(tests_to_run, self.test_runner, self.hosts_map)
         self.worker.moveToThread(self.thread)
+        
+        def on_cancel():
+            self.worker.cancel()
+            self.progress_dialog.close()
         
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
@@ -251,8 +261,9 @@ class FirewallTestsTab(QWidget):
         self.thread.finished.connect(self.thread.deleteLater)
         self.worker.item_tested.connect(self._update_tree_item)
         self.worker.progress.connect(self._update_progress_dialog)
-        self.progress_dialog.canceled.connect(self.worker.cancel)
+        self.progress_dialog.canceled.connect(on_cancel)
         self.thread.finished.connect(self.progress_dialog.close)
+        
 
         self.thread.start()
         self.progress_dialog.exec_()
@@ -545,58 +556,74 @@ class FirewallTestsTab(QWidget):
                 tests_data = json.load(f)
 
             self.tree.clear()
-            
+            replacements = {}
             total_tests = len(tests_data)
-            
-            for i, test in enumerate(tests_data):
-                
-                src_hostname = test.get("src_hostname_only")
-                if not src_hostname:
-                    src_hostname = self._extract_hostname_from_combo_text(test.get("Origem", ""))
-                
-                dst_orig_text = test.get("Destino", "")
-                dst_hostname = self._extract_hostname_from_combo_text(dst_orig_text)
+            was_aborted = False
 
-                new_id, new_src_display_text = self._find_container_data_by_hostname(src_hostname)
-                
-                _, new_dst_display_text = self._find_container_data_by_hostname(dst_hostname)
-                if not new_dst_display_text:
-                     new_dst_display_text = dst_orig_text
+            def resolve_host(hostname, current_idx):
+                if not hostname: return "", ""
 
+                new_id, new_display_text = self._find_container_data_by_hostname(hostname)
                 if new_id:
-                    final_id = new_id
-                    final_src_text = new_src_display_text
-                else:
-                    user_id, user_text, action = self._ask_user_for_source_host(
+                    return new_id, new_display_text
+
+                if hostname in replacements:
+                    return replacements[hostname]
+
+                user_id, user_text, action = self._ask_user_for_source_host(
                         src_hostname, current_idx=i+1, total_count=total_tests
                     )
-                    if action == 'abort':
-                        QMessageBox.information(self, "Cancelado", "Importação interrompida")
-                        break
-                    elif action == 'skip':
-                        continue
-                    elif action == 'update':
-                        final_id = user_id
-                        final_src_text = user_text
-                    else:
-                        continue
 
-                values = [
-                    test.get("#", ""),
-                    final_id,
-                    final_src_text,
-                    new_dst_display_text,
-                    test.get("Protocolo", ""),
-                    test.get("P. Origem", ""),
-                    test.get("P. Destino", ""),
-                    test.get("Esperado", ""),
-                    "-", "", ""
-                ]
-                self.tree.addTopLevelItem(QTreeWidgetItem(values))
+                if action == 'abort':
+                    raise StopIteration("Aborted")
+                elif action == 'update':
+                    replacements[hostname] = (user_id, user_text)
+                    return user_id, user_text
+                
+                else:
+                    replacements[hostname] = (None, None)
+                    return None, None
 
-            self._renumber_tests()
-            self._set_buttons_normal_state()
-            QMessageBox.information(self, "Sucesso", "Testes carregados e sincronizados com o cenário atual.")
+            for i, test in enumerate(tests_data):
+                try:
+                    src_hostname = test.get("src_hostname_only")
+                    if not src_hostname:
+                        src_hostname = self._extract_hostname_from_combo_text(test.get("Origem", ""))
+                    
+                    dst_orig_text = test.get("Destino", "")
+                    dst_hostname = self._extract_hostname_from_combo_text(dst_orig_text)
+
+                    final_src_id, final_src_text = resolve_host(src_hostname, i+1)
+                    if final_src_id is None and src_hostname in replacements:
+                        continue
+                    final_dst_id, final_dst_text = resolve_host(dst_hostname, i+1)
+                    
+                    if not final_dst_text: 
+                        final_dst_text = dst_orig_text
+
+                    values = [
+                        test.get("#", ""),
+                        final_src_id,
+                        final_src_text,
+                        final_dst_text,
+                        test.get("Protocolo", ""),
+                        test.get("P. Origem", ""),
+                        test.get("P. Destino", ""),
+                        test.get("Esperado", ""),
+                        "-", "", ""
+                    ]
+                    self.tree.addTopLevelItem(QTreeWidgetItem(values))
+
+                except StopIteration:
+                    was_aborted = True
+                    break
+
+            if was_aborted:
+                QMessageBox.information(self, "Cancelado", "Importação interrompida pelo usuário.")
+            else:
+                self._renumber_tests()
+                self._set_buttons_normal_state()
+                QMessageBox.information(self, "Sucesso", "Testes carregados e sincronizados.")
 
         except (IOError, json.JSONDecodeError) as e:
             QMessageBox.critical(self, "Erro", f"Não foi possível carregar o arquivo:\n{e}")

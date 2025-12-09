@@ -9,8 +9,9 @@ the ContainerManager and TestRunner.
 import json
 import pathlib
 import sys
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                            QPushButton, QTabWidget, QMessageBox, QFrame)
+                            QPushButton, QTabWidget, QMessageBox, QFrame, QApplication)
 from PyQt5.QtGui import QIcon
 
 from core.container_manager import ContainerManager
@@ -183,7 +184,32 @@ class MainWindow(QMainWindow):
         self.firewall_rules_tab.update_hosts_list(hosts_for_combobox)
         self.tests_tab.update_hosts_list(all_hosts_data)
 
-        if not is_initial_load:
+        if is_initial_load:
+            if not all_hosts_data:
+                QMessageBox.warning(self, "Nenhum Host detectado", 
+                                    "O software não encontrou nenhum host ativo.\n\n"
+                                    "Verifique se o projeto no GNS3 está rodando (Play).\n"
+                                    "Verifique se a imagem Docker na aba 'Configurações' está correta.")
+            else:
+                servidores_ligados = 0
+                
+                QApplication.setOverrideCursor(Qt.WaitCursor)
+                for host in all_hosts_data:
+                    host_id = host['id']
+                    _, status = self.container_manager.check_server_status(host_id)
+                    if status == 'off':
+                        success, _ = self.container_manager.start_server(host_id)
+                        if success:
+                            servidores_ligados += 1
+                
+                QApplication.restoreOverrideCursor()
+
+                if servidores_ligados > 0:
+                    self.hosts_tab.update_hosts_display(all_hosts_data)
+                    self.statusBar().showMessage(f"{len(all_hosts_data)} hosts detectados. {servidores_ligados} servidores iniciados.", 5000)
+                else:
+                    self.statusBar().showMessage(f"{len(all_hosts_data)} hosts detectados e prontos.", 5000)
+        elif not is_initial_load:
             QMessageBox.information(self, "Sucesso", "Informações dos hosts atualizadas.")
 
     def _set_window_icon(self):

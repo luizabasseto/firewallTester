@@ -41,9 +41,22 @@ class TestWorker(QObject):
                 item.text(c) for c in range(item.columnCount())
             ]
             
-            destination_ip = self.hosts_map.get(dst_hostname, {}).get('ip', dst_hostname)
+            destination_ip = dst_hostname
+            clean_name = dst_hostname.split(' (')[0].strip()
             
-            _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, dst_port)
+            found = False
+            for data in self.hosts_map.values():
+                if data['hostname'] == clean_name:
+                    destination_ip = data['ip']
+                    found = True
+                    break
+            if not found and dst_hostname in self.hosts_map:
+                destination_ip = self.hosts_map[dst_hostname]['ip']
+
+            effective_port = "1" if proto.upper() == "ICMP" else dst_port
+
+            _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, effective_port)
+            
             if self.is_cancelled:
                 break
             
@@ -204,9 +217,11 @@ class FirewallTestsTab(QWidget):
             item.text(c) for c in range(item.columnCount())
         ]
         
-        destination_ip = self.hosts_map.get(dst_hostname, {}).get('ip', dst_hostname)
+        destination_ip = self._find_ip_by_hostname(dst_hostname)
         
-        _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, dst_port)
+        effective_port = "1" if proto.upper() == "ICMP" else dst_port
+        
+        _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, effective_port)
         analysis, tag = self.test_runner.analyze_test_result(expected, result_dict)
 
         self._update_tree_item(item, analysis, tag)
@@ -704,3 +719,15 @@ class FirewallTestsTab(QWidget):
         
         dialog.exec_()
         return result_state["id"], result_state["name"], result_state["action"]
+    
+    def _find_ip_by_hostname(self, hostname):
+        if hostname in self.hosts_map:
+            return self.hosts_map[hostname]['ip']
+            
+        clean_hostname = hostname.split(' (')[0].strip()
+        
+        for data in self.hosts_map.values():
+            if data['hostname'] == clean_hostname:
+                return data['ip']
+
+        return clean_hostname

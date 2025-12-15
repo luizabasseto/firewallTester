@@ -33,23 +33,26 @@ class HostCardWidget(QGroupBox):
         main_layout.addLayout(info_layout)
         main_layout.addLayout(status_layout)
 
-        info_layout.addRow("Container:", QLabel(f"{self.host_id} - {host_data.get('full_name', '')}"))
-        
-        info_layout.addRow("Interfaces:", QLabel("Nenhuma ou Desligada"))
-        
+        info_layout.addRow(
+            "Container:",
+            QLabel(f"{self.host_id} - {host_data.get('full_name', '')}")
+        )
+
+        info_layout.addRow("Interfaces:", QLabel("None or Disabled"))
+
         if interfaces := host_data.get('interfaces', []):
             for interface in interfaces:
                 if_name = interface.get('nome', 'N/A')
-                ips = ", ".join(interface.get('ips', [])) or "Sem IP"
+                ips = ", ".join(interface.get('ips', [])) or "No IP"
                 info_layout.addRow(f"Interface {if_name}:", QLabel(ips))
         else:
-            info_layout.addRow("Interfaces:", QLabel("Nenhuma ou Desligada"))
+            info_layout.addRow("Interfaces:", QLabel("None or Disabled"))
 
         self.lbl_status = QLabel()
         self.btn_toggle = QPushButton()
         self.btn_toggle.setFixedSize(32, 32)
 
-        self.btn_edit_ports = QPushButton("Editar Portas")
+        self.btn_edit_ports = QPushButton("Edit Ports")
 
         status_layout.addWidget(self.lbl_status)
         status_layout.addStretch(1)

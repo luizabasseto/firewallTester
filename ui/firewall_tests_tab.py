@@ -34,7 +34,7 @@ class TestWorker(QObject):
             if self.is_cancelled:
                 break
             
-            progress_msg = f"Testando {i+1}/{total}: {item.text(2)} -> {item.text(3)}"
+            progress_msg = f"Testing {i+1}/{total}: {item.text(2)} -> {item.text(3)}"
             self.progress.emit(int(((i + 1) / total) * 100), progress_msg)
 
             _, container_id, _, dst_hostname, proto, _, dst_port, expected, _, _, _ = [
@@ -101,7 +101,7 @@ class FirewallTestsTab(QWidget):
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
 
-        input_box = QGroupBox("Novo Teste")
+        input_box = QGroupBox("New test")
         input_layout = QGridLayout(input_box)
         main_layout.addWidget(input_box)
 
@@ -116,32 +116,32 @@ class FirewallTestsTab(QWidget):
         self.src_port_entry.setEnabled(False)
         self.dst_port_entry = QLineEdit("80")
         self.dst_port_entry.setMaximumWidth(50)
-        self.expected_yes_radio = QRadioButton("Permitido")
-        self.expected_no_radio = QRadioButton("Bloqueado")
+        self.expected_yes_radio = QRadioButton("Allowed")
+        self.expected_no_radio = QRadioButton("Blocked")
         self.expected_yes_radio.setChecked(True)
         expected_layout = QHBoxLayout()
         expected_layout.addWidget(self.expected_yes_radio)
         expected_layout.addWidget(self.expected_no_radio)
 
-        input_layout.addWidget(QLabel("Origem:"), 0, 0)
+        input_layout.addWidget(QLabel("Source:"), 0, 0)
         input_layout.addWidget(self.src_ip_combo, 1, 0)
-        input_layout.addWidget(QLabel("Destino:"), 0, 1)
+        input_layout.addWidget(QLabel("Destination:"), 0, 1)
         input_layout.addWidget(self.dst_ip_combo, 1, 1)
-        input_layout.addWidget(QLabel("Protocolo:"), 0, 2)
+        input_layout.addWidget(QLabel("Protocol:"), 0, 2)
         input_layout.addWidget(self.protocol_combo, 1, 2)
-        input_layout.addWidget(QLabel("Porta Dst:"), 0, 3)
+        input_layout.addWidget(QLabel("Dst Port:"), 0, 3)
         input_layout.addWidget(self.dst_port_entry, 1, 3)
-        input_layout.addWidget(QLabel("Resultado Esperado:"), 0, 4)
+        input_layout.addWidget(QLabel("Expected result:"), 0, 4)
         input_layout.addLayout(expected_layout, 1, 4)
 
         buttons_layout = QHBoxLayout()
         main_layout.addLayout(buttons_layout)
-        self.btn_add = QPushButton("Adicionar")
-        self.btn_edit = QPushButton("Editar")
-        self.btn_del = QPushButton("Deletar")
-        self.btn_del_all = QPushButton("Deletar Todos")
-        self.btn_test = QPushButton("Testar Linha")
-        self.btn_test_all = QPushButton("Testar Todos")
+        self.btn_add = QPushButton("Add")
+        self.btn_edit = QPushButton("Edit")
+        self.btn_del = QPushButton("Delete")
+        self.btn_del_all = QPushButton("Delete all")
+        self.btn_test = QPushButton("Test selected")
+        self.btn_test_all = QPushButton("Test all")
 
         buttons_layout.addStretch(1)
         buttons_layout.addWidget(self.btn_add)
@@ -154,10 +154,10 @@ class FirewallTestsTab(QWidget):
 
         self.tree = QTreeWidget()
         self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.header_labels = [
-            "#", "ID Container", "Origem", "Destino", "Protocolo", "P. Origem",
-            "P. Destino", "Esperado", "Resultado", "Fluxo", "Dados"
+        self.header_labels = ["#","Container ID","Source","Destination","Protocol","Src Port","Dst Port",
+            "Expected","Result","Flow","Data"
         ]
+
         self.tree.setHeaderLabels(self.header_labels)
         main_layout.addWidget(self.tree)
         self.tree.setColumnWidth(0, 40)
@@ -165,7 +165,7 @@ class FirewallTestsTab(QWidget):
         self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tree.viewport().installEventFilter(self)
 
-        legend_box = QGroupBox("Legenda")
+        legend_box = QGroupBox("Legend")
         legend_layout = QHBoxLayout(legend_box)
         main_layout.addWidget(legend_box)
         def add_legend_item(color, text):
@@ -176,17 +176,17 @@ class FirewallTestsTab(QWidget):
             legend_layout.addWidget(QLabel(text))
             legend_layout.addSpacing(15)
 
-        add_legend_item("lightgreen", "Passou (Permitido)")
-        add_legend_item("lightblue", "Passou (Bloqueado)")
-        add_legend_item("salmon", "Falhou")
-        add_legend_item("yellow", "Erro")
+        add_legend_item("lightgreen", "Passed (Allowed)")
+        add_legend_item("lightblue", "Passed (Blocked)")
+        add_legend_item("salmon", "Failed")
+        add_legend_item("yellow", "Error")
         legend_layout.addStretch(1)
 
         file_buttons_layout = QHBoxLayout()
         main_layout.addLayout(file_buttons_layout)
-        self.btn_save = QPushButton("Salvar Testes")
-        self.btn_save_as = QPushButton("Salvar Como...")
-        self.btn_load = QPushButton("Abrir Testes")
+        self.btn_save = QPushButton("Save tests")
+        self.btn_save_as = QPushButton("Save as...")
+        self.btn_load = QPushButton("Open tests")
 
         file_buttons_layout.addStretch(1)
         file_buttons_layout.addWidget(self.btn_save)
@@ -231,10 +231,11 @@ class FirewallTestsTab(QWidget):
         if self.progress_dialog and not self.progress_dialog.isVisible():
             return
         
-        print("\n Resultados dos testes completos executados:")
-        print(f"ID Container: {item.text(1)}")
-        print(f"Origem: {item.text(2)} -> Destino: {item.text(3)}")
-        print(f"Informações de envio completas: {analysis_dict['data']}")
+        print("\n Test execution results:")
+        print(f"Container ID: {item.text(1)}")
+        print(f"Source: {item.text(2)} -> Destination: {item.text(3)}")
+        print(f"Transmission details: {analysis_dict['data']}")
+
 
         item.setText(8, analysis_dict['result'])
         item.setText(9, analysis_dict['flow'])
@@ -252,12 +253,12 @@ class FirewallTestsTab(QWidget):
     def _run_all_tests(self):
         tests_to_run = [self.tree.topLevelItem(i) for i in range(self.tree.topLevelItemCount())]
         if not tests_to_run:
-            print("Nenhum teste para rodar.")
+            print("No tests to run.")
             return
         
         self.tree.clearSelection()
-        self.progress_dialog = QProgressDialog("Executando testes", "Cancelar", 0, 100, self)
-        self.progress_dialog.setWindowTitle("Processando Testes")
+        self.progress_dialog = QProgressDialog("Running tests", "Cancel", 0, 100, self)
+        self.progress_dialog.setWindowTitle("Processing tests")
         self.progress_dialog.setWindowModality(Qt.WindowModal)
         self.progress_dialog.setMinimumDuration(0)
         self.progress_dialog.setAutoClose(False) 
@@ -303,7 +304,7 @@ class FirewallTestsTab(QWidget):
             self.protocol_combo.currentText(),
             self.src_port_entry.text(),
             self.dst_port_entry.text(),
-            "Permitido" if self.expected_yes_radio.isChecked() else "Bloqueado",
+            "Allowed" if self.expected_yes_radio.isChecked() else "Blocked",
             "-", "", ""
         ]
 
@@ -317,7 +318,7 @@ class FirewallTestsTab(QWidget):
             if not selected_items:
                 return
             self.is_editing = True
-            self.btn_edit.setText("Salvar Edição")
+            self.btn_edit.setText("Save edit")
             self.btn_add.setEnabled(False)
             self.btn_del.setEnabled(False)
             self.btn_del_all.setEnabled(False)
@@ -340,14 +341,14 @@ class FirewallTestsTab(QWidget):
             item.setText(3, self.dst_ip_combo.currentText())
             item.setText(4, self.protocol_combo.currentText())
             item.setText(6, self.dst_port_entry.text())
-            item.setText(7, "Permitido" if self.expected_yes_radio.isChecked() else "Bloqueado")
+            item.setText(7, "Allowed" if self.expected_yes_radio.isChecked() else "Blocked")
             
             for i in range(8, 11):
                 item.setText(i, "" if i > 8 else "-")
                 item.setBackground(i, QBrush(QColor("transparent")))
             
             self.is_editing = False
-            self.btn_edit.setText("Editar")
+            self.btn_edit.setText("Edit")
             self.tree.setEnabled(True)           
             self._clear_selection_and_reset_buttons()
             
@@ -355,8 +356,8 @@ class FirewallTestsTab(QWidget):
         if self.tree.topLevelItemCount() == 0:
             return
 
-        reply = QMessageBox.question(self, "Deletar Todos os Testes", 
-            "Tem certeza que deseja deletar TODOS os testes da lista?",
+        reply = QMessageBox.question(self, "Delete all tests", 
+            "Are you sure you want to delete ALL tests from the list?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         
         if reply == QMessageBox.Yes:
@@ -368,8 +369,8 @@ class FirewallTestsTab(QWidget):
         if not selected_items:
             return
 
-        reply = QMessageBox.question(self, "Deletar Teste", 
-            "Tem certeza que deseja deletar o teste selecionado?",
+        reply = QMessageBox.question(self, "Delete test", 
+            "Are you sure you want to delete the selected test?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             item = selected_items[0]
@@ -401,7 +402,7 @@ class FirewallTestsTab(QWidget):
         else:
             self.expected_no_radio.setChecked(True)
 
-        self.btn_edit.setText("Editar")
+        self.btn_edit.setText("Edit")
         self.btn_edit.setEnabled(True)
         self.btn_del_all.setEnabled(True)
         self.btn_del.setEnabled(True)
@@ -411,12 +412,11 @@ class FirewallTestsTab(QWidget):
         try:
             port = int(self.dst_port_entry.text())
             if not (1 <= port <= 65535):
-                QMessageBox.warning(self, "Entrada Inválida", "A porta de destino deve ser "
-                                    "um número entre 1 e 65535.")
+                QMessageBox.warning(self, "Invalid input", "The destination port must be a number between 1 and 65535.")
                 return False
         except ValueError:
             if self.protocol_combo.currentText() != "ICMP":
-                QMessageBox.warning(self, "Entrada Inválida", "A porta de destino deve ser um número.")
+                QMessageBox.warning(self, "Invalid input", "The destination port must be a number.")
                 return False
 
         destination = self.dst_ip_combo.currentText()
@@ -425,15 +425,12 @@ class FirewallTestsTab(QWidget):
         if destination not in known_hosts:
             # pylint: disable=protected-access
             if not self.test_runner._extract_destination_host(destination):
-                QMessageBox.warning(self, "Destino Inválido",
-                                    "O destino deve ser um host da lista, um IP válido "
-                                    "ou um domínio.")
+                QMessageBox.warning(self, "Invalid destination",
+                                    "The destination must be a host from the list, a valid IP address, or a domain.")
                 return False
 
             if self.protocol_combo.currentText() != "ICMP":
-                QMessageBox.warning(self, "Protocolo Inválido para Destino Externo", "Apenas "
-                                    "o protocolo ICMP (ping) pode ser usado para destinos "
-                                    "externos.")
+                QMessageBox.warning(self, "Invalid Protocol for external destination", "Only the ICMP protocol (ping) can be used for external destinations.")
                 return False
 
         return True
@@ -449,7 +446,7 @@ class FirewallTestsTab(QWidget):
         self.btn_test_all.setEnabled(self.tree.topLevelItemCount() > 0)
         
         self.is_editing = False
-        self.btn_edit.setText("Editar")
+        self.btn_edit.setText("Edit")
         self.tree.setEnabled(True)
 
     def update_hosts_list(self, hosts_data_tuples):
@@ -506,7 +503,7 @@ class FirewallTestsTab(QWidget):
     def _save_tests_as(self):
         file_path, _ = QFileDialog.getSaveFileName(
             self, 
-            "Salvar Arquivo de Testes", 
+            "Save test file", 
             "",  
             "JSON Files (*.json);;All Files (*)"
         )
@@ -540,14 +537,14 @@ class FirewallTestsTab(QWidget):
         try:
             with open(self.save_file_path, "w", encoding="utf-8") as f:
                 json.dump(tests_data, f, indent=4, ensure_ascii=False)
-            QMessageBox.information(self, "Sucesso", f"Testes salvos em:\n{self.save_file_path}")
+            QMessageBox.information(self, "Sucess", f"Tests saved at:\n{self.save_file_path}")
         except (IOError, TypeError) as e:
-            QMessageBox.critical(self, "Erro", f"Não foi possível salvar o arquivo:\n{e}")
+            QMessageBox.critical(self, "Error", f"Could not save the file:\n{e}")
 
     def _open_tests(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self, 
-            "Abrir Arquivo de Testes", 
+            "Open test files", 
             "", 
             "JSON Files (*.json);;All Files (*)"
         )
@@ -557,11 +554,11 @@ class FirewallTestsTab(QWidget):
 
     def _load_from_file(self):
         if not self.save_file_path or not os.path.exists(self.save_file_path):
-            QMessageBox.warning(self, "Erro", "Arquivo de testes não encontrado.")
+            QMessageBox.warning(self, "Error", "Could not find load file.")
             return
 
-        reply = QMessageBox.question(self, "Carregar Testes", 
-            "Isso irá limpar todos os testes atuais na tabela. Deseja continuar?",
+        reply = QMessageBox.question(self, "Load testd", 
+            "This action will clear all current tests in the table. Do you want to continue?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.No:
             return
@@ -605,7 +602,7 @@ class FirewallTestsTab(QWidget):
                     if not src_hostname:
                         src_hostname = self._extract_hostname_from_combo_text(test.get("Origem", ""))
                     
-                    dst_orig_text = test.get("Destino", "")
+                    dst_orig_text = test.get("Dst", "")
                     dst_hostname = self._extract_hostname_from_combo_text(dst_orig_text)
 
                     final_src_id, final_src_text = resolve_host(src_hostname, i+1)
@@ -621,9 +618,9 @@ class FirewallTestsTab(QWidget):
                         final_src_id,
                         final_src_text,
                         final_dst_text,
-                        test.get("Protocolo", ""),
-                        test.get("P. Origem", ""),
-                        test.get("P. Destino", ""),
+                        test.get("Protocol", ""),
+                        test.get("Origin Port", ""),
+                        test.get("Dst Port", ""),
                         test.get("Esperado", ""),
                         "-", "", ""
                     ]
@@ -634,14 +631,14 @@ class FirewallTestsTab(QWidget):
                     break
 
             if was_aborted:
-                QMessageBox.information(self, "Cancelado", "Importação interrompida pelo usuário.")
+                QMessageBox.information(self, "Canceled", "Import canceled by the user.")
             else:
                 self._renumber_tests()
                 self._set_buttons_normal_state()
-                QMessageBox.information(self, "Sucesso", "Testes carregados e sincronizados.")
+                QMessageBox.information(self, "Success", "Tests loaded and synchronized.")
 
         except (IOError, json.JSONDecodeError) as e:
-            QMessageBox.critical(self, "Erro", f"Não foi possível carregar o arquivo:\n{e}")
+            QMessageBox.critical(self, "Error", f"Could not load the file:\n{e}")
             
     def _clear_selection_and_reset_buttons(self):
         self.tree.clearSelection()
@@ -671,14 +668,15 @@ class FirewallTestsTab(QWidget):
 
     def _ask_user_for_source_host(self, source_hostname, current_idx=1, total_count=1):
         dialog = QDialog(self)
-        dialog.setWindowTitle(f"Resolvendo conflitos de Host ({current_idx} de {total_count})")
+        dialog.setWindowTitle(f"Resolving Host Conflicts ({current_idx} of {total_count})")
         dialog.setMinimumWidth(400)
         layout = QVBoxLayout(dialog)
 
-        msg = (f"Atenção: O host de origem '{source_hostname}' salvo no arquivo "
-               f"não foi encontrado no cenário atual.\n\n"
-               f"Por favor, selecione um host correspondente na lista abaixo"
-               f"para atualizar o teste, \n ou clique em 'Ignorar' para pular este teste.")
+        msg = (f"Warning: The source host '{source_hostname}' saved in the file"
+                f"was not found in the current environment."
+                f"Please select a corresponding host from the list below"
+                f"to update the test,"
+                f"or click 'Ignore' to skip this test.")
         layout.addWidget(QLabel(msg))
 
         combo = QComboBox()
@@ -689,9 +687,9 @@ class FirewallTestsTab(QWidget):
         result_state = {"id": None, "name": None, "action": "abort"}
 
         btn_layout = QHBoxLayout()
-        btn_select = QPushButton("Selecionar e atualizar")
-        btn_ignore = QPushButton("Ignorar Teste")
-        btn_canceled = QPushButton("Cancelar todos os testes")
+        btn_select = QPushButton("Select and update")
+        btn_ignore = QPushButton("Ignore test")
+        btn_canceled = QPushButton("Cancel all tests")
         btn_layout.addWidget(btn_select)
         btn_layout.addWidget(btn_ignore)
         btn_layout.addWidget(btn_canceled)

@@ -35,7 +35,7 @@ class FirewallRulesTab(QWidget):
         main_layout = QVBoxLayout(self)
 
         top_layout = QHBoxLayout()
-        top_layout.addWidget(QLabel("Editar regras de firewall no host:"))
+        top_layout.addWidget(QLabel("Edit firewall rules on host:"))
         self.combo_hosts = QComboBox()
         self.combo_hosts.addItems([hostname for hostname, _ in self.hosts_data])
         self.combo_hosts.setCurrentIndex(-1)
@@ -44,13 +44,13 @@ class FirewallRulesTab(QWidget):
         top_layout.addStretch(1)
         main_layout.addLayout(top_layout)
 
-        rules_box = QGroupBox("Regras a serem aplicadas no firewall")
+        rules_box = QGroupBox("Rules to be applied to the firewall")
         rules_layout = QVBoxLayout(rules_box)
         self.text_editor_rules = QTextEdit()
         self.text_editor_rules.setFont(QFont("Monospace", 10))
         rules_layout.addWidget(self.text_editor_rules)
         editor_buttons_layout = QHBoxLayout()
-        self.check_reset_rules = QCheckBox("Resetar regras antes de aplicar")
+        self.check_reset_rules = QCheckBox("Reset rules before applying")
 
         editor_buttons_layout.addWidget(self.check_reset_rules)
         editor_buttons_layout.addStretch(1)
@@ -59,9 +59,9 @@ class FirewallRulesTab(QWidget):
         
         file_buttons_layout = QHBoxLayout()
         main_layout.addLayout(file_buttons_layout)
-        self.btn_save = QPushButton("Salvar Regras")
-        self.btn_save_as = QPushButton("Salvar Como...")
-        self.btn_load = QPushButton("Abrir Regras")
+        self.btn_save = QPushButton("Save Rules")
+        self.btn_save_as = QPushButton("Save As...")
+        self.btn_load = QPushButton("Open Rules")
 
         file_buttons_layout.addStretch(1)
         file_buttons_layout.addWidget(self.btn_save)
@@ -74,23 +74,24 @@ class FirewallRulesTab(QWidget):
         self.btn_load.clicked.connect(self._open_rules)
         
         
-        self.output_box = QGroupBox("Saída e Regras Ativas")
+        self.output_box = QGroupBox("Output and Active Rules")
         output_layout = QVBoxLayout(self.output_box)
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
         self.log_output.setFont(QFont("Monospace", 9))
         output_layout.addWidget(self.log_output)
-        self.btn_list_rules = QPushButton("Listar Regras Ativas no Host")
+        
+        self.btn_list_rules = QPushButton("List Active Rules on Host")
         self.btn_list_rules.clicked.connect(self._list_rules)
         output_layout.addWidget(self.btn_list_rules, alignment=Qt.AlignCenter)
         main_layout.addWidget(self.output_box)
 
         buttons_layout = QHBoxLayout()
-        self.btn_retrieve_rules = QPushButton("Carregar Regras do Host")
+        self.btn_retrieve_rules = QPushButton("Load Rules from Host")
         self.btn_retrieve_rules.clicked.connect(self._load_rules)
-        self.btn_deploy_rules = QPushButton("Aplicar Regras no Host")
+        self.btn_deploy_rules = QPushButton("Load Rules from Host")
         self.btn_deploy_rules.clicked.connect(self._apply_rules)
-        btn_toggle_output = QPushButton("Mostrar/Esconder Saída")
+        btn_toggle_output = QPushButton("Show/Hide Output")
         btn_toggle_output.clicked.connect(lambda: self.output_box.setVisible(not self.output_box.isVisible()))
         
         buttons_layout.addWidget(self.btn_retrieve_rules)
@@ -118,7 +119,7 @@ class FirewallRulesTab(QWidget):
             return
 
         self.log_output.clear()
-        self.log_output.append(f"<i>Listando regras para <b>{self.selected_hostname}</b>...</i>")
+        self.log_output.append(f"<i>Listing rules for <b>{self.selected_hostname}</b>...</i>")
         QApplication.processEvents()
 
         tables_to_check = {
@@ -133,18 +134,18 @@ class FirewallRulesTab(QWidget):
 
         self.log_output.clear()
         if not success:
-            error_html = f"<font color='red'><b>Erro ao listar regras:</b><br><pre>{result}</pre></font>"
+            error_html = f"<font color='red'><b>Error listing rules:</b><br><pre>{result}</pre></font>"
             self.log_output.setHtml(error_html)
             return
 
         if not result:
             self.log_output.setText(
-                "Nenhuma tabela de firewall selecionada nas Configurações."
+                "No firewall tables selected in Settings."
             )
             return
 
         html_output = "".join(
-            f"<b>&bull; Tabela {table.capitalize()}:</b><br><pre>{content}</pre><br>"
+            f"<b>&bull; Table  {table.capitalize()}:</b><br><pre>{content}</pre><br>"
             for table, content in result.items()
         )
         self.log_output.setHtml(html_output)
@@ -154,8 +155,8 @@ class FirewallRulesTab(QWidget):
             return
 
         reply = QMessageBox.question(
-            self, "Confirmação",
-            "Isso irá sobrescrever o editor com as regras atuais do host. Continuar?",
+            self, "Confirmation",
+            "This will overwrite the editor with the current rules from the host. Continue?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         )
         if reply == QMessageBox.No:
@@ -166,17 +167,19 @@ class FirewallRulesTab(QWidget):
 
         if success:
             self.text_editor_rules.setPlainText(content)
-            log_msg = f"<i>Regras carregadas de '{container_path}' do host {self.selected_hostname}.</i>"
+            log_msg = f"<i>Rules loaded from '{container_path}' on host {self.selected_hostname}.</i>"
+
             self.log_output.append(log_msg)
         else:
-            QMessageBox.warning(self, "Erro",
-                                f"Não foi possível carregar as regras: {content}")
+            QMessageBox.warning(self, "Error",
+                f"Unable to load rules: {content}"
+            )
 
     def _apply_rules(self):
         if not self.selected_container_id:
             return
 
-        self.log_output.append(f"<i>Aplicando regras no host <b>{self.selected_hostname}</b>...</i>")
+        self.log_output.append(f"<i>Applying rules on host <b>{self.selected_hostname}</b>...</i>")
         QApplication.processEvents()
         rules_text = self.text_editor_rules.toPlainText()
         success, message = self.container_manager.apply_firewall_rules(
@@ -191,11 +194,13 @@ class FirewallRulesTab(QWidget):
             self._list_rules()
         else:
             error_msg = (
-                f"<font color='red'><b>&gt; Erro ao aplicar regras:</b>"
+                f"<font color='red'><b>&gt; Error applying rules:</b>"
                 f"<br><pre>{message}</pre></font>"
             )
             self.log_output.append(error_msg)
-            QMessageBox.warning(self, "Erro", "Falha ao executar as regras. Verifique a saída.")
+            QMessageBox.warning(self, "Error",
+                "Failed to apply the rules. Check the output."
+            )
 
     def update_hosts_list(self, hosts_data_tuples):
         """Updates the dropdown list of hosts."""
@@ -213,9 +218,9 @@ class FirewallRulesTab(QWidget):
     def _save_rules_as(self):
         file_path, _ = QFileDialog.getSaveFileName(
             self, 
-            "Salvar Arquivo de Regras", 
-            "", 
-            "Arquivos Shell (*.sh);;Arquivos de Texto (*.txt);;Todos os Arquivos (*)"
+            "Save Rules File",
+            "",
+            "Shell Scripts (*.sh);;Text Files (*.txt);;All Files (*)"
         )
         
         if file_path:
@@ -232,16 +237,20 @@ class FirewallRulesTab(QWidget):
         try:
             with open(self.save_file_path, "w", encoding="utf-8") as f:
                 f.write(rules_data)
-            QMessageBox.information(self, "Sucesso", f"Regras salvas em:\n{self.save_file_path}")
+            QMessageBox.information(
+                self,"Success",f"Rules saved to:\n{self.save_file_path}"
+            )
         except (IOError, TypeError) as e:
-            QMessageBox.critical(self, "Erro", f"Não foi possível salvar o arquivo:\n{e}")
+            QMessageBox.critical(
+                self,"Error",f"Unable to save the file:\n{e}"
+            )
 
     def _open_rules(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self, 
-            "Abrir Arquivo de Regras", 
-            "", 
-            "Arquivos Shell (*.sh);;Arquivos de Texto (*.txt);;Todos os Arquivos (*)"
+            "Open Rules File",
+            "",
+            "Shell Scripts (*.sh);;Text Files (*.txt);;All Files (*)"
         )
         if file_path:
             self.save_file_path = file_path
@@ -249,12 +258,14 @@ class FirewallRulesTab(QWidget):
 
     def _load_from_file(self):
         if not self.save_file_path or not os.path.exists(self.save_file_path):
-            QMessageBox.warning(self, "Erro", "Arquivo de regras não encontrado.")
+            QMessageBox.warning(self, "Error","Rules file not found.")
             return
 
-        reply = QMessageBox.question(self, "Carregar Regras", 
-                                     "Isso irá sobrescrever o conteúdo atual do editor. Deseja continuar?",
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = QMessageBox.question(self, "Load Rules",
+            "This will overwrite the current editor content. Do you want to continue?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
         if reply == QMessageBox.No:
             return
 
@@ -263,7 +274,9 @@ class FirewallRulesTab(QWidget):
                 rules_data = f.read()
 
             self.text_editor_rules.setPlainText(rules_data)
-            QMessageBox.information(self, "Sucesso", "Regras carregadas com sucesso.")
+            QMessageBox.information(self, "Success",
+                "Rules loaded successfully.")
 
-        except (IOError) as e:
-            QMessageBox.critical(self, "Erro", f"Não foi possível carregar o arquivo:\n{e}")
+        except IOError as e:
+            QMessageBox.critical(
+                self,"Error",f"Unable to load the file:\n{e}")

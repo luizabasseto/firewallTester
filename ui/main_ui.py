@@ -133,9 +133,9 @@ class MainWindow(QMainWindow):
         self._create_tabs()
 
         bottom_layout = QHBoxLayout()
-        btn_update_hosts = QPushButton("Atualizar Hosts")
+        btn_update_hosts = QPushButton("Refresh Hosts")
         btn_update_hosts.clicked.connect(self._update_all_hosts)
-        btn_exit = QPushButton("Sair")
+        btn_exit = QPushButton("Exit")
         btn_exit.clicked.connect(self.close)
 
         bottom_layout.addWidget(btn_update_hosts)
@@ -157,7 +157,7 @@ class MainWindow(QMainWindow):
         hosts_for_combobox = self.container_manager.get_hosts_for_combobox()
 
         all_hosts_data = self.container_manager.get_all_containers_data()
-        print(f"Dados dos hosts encontrados: {all_hosts_data}", file=sys.stderr)
+        print(f"Detected host data: {all_hosts_data}", file=sys.stderr)
         sys.stderr.flush()
         
         self.hosts_tab = HostsTab(self.container_manager, self.config)
@@ -169,12 +169,12 @@ class MainWindow(QMainWindow):
         self.help_tab = HelpTab()
         self.about_tab = AboutTab()
 
-        self.tab_widget.addTab(self.tests_tab, "Testes de Firewall")
-        self.tab_widget.addTab(self.firewall_rules_tab, "Regras de Firewall")
+        self.tab_widget.addTab(self.tests_tab, "Firewall Tests")
+        self.tab_widget.addTab(self.firewall_rules_tab, "Firewall Rules")
         self.tab_widget.addTab(self.hosts_tab, "Hosts")
-        self.tab_widget.addTab(self.settings_tab, "Configurações")
-        self.tab_widget.addTab(self.help_tab, "Ajuda")
-        self.tab_widget.addTab(self.about_tab, "Sobre")
+        self.tab_widget.addTab(self.settings_tab, "Settings")
+        self.tab_widget.addTab(self.help_tab, "Help")
+        self.tab_widget.addTab(self.about_tab, "About")
 
     def _update_all_hosts(self, is_initial_load=False):
         all_hosts_data = self.container_manager.get_all_containers_data()
@@ -186,10 +186,13 @@ class MainWindow(QMainWindow):
 
         if is_initial_load:
             if not all_hosts_data:
-                QMessageBox.warning(self, "Nenhum Host detectado", 
-                                    "O software não encontrou nenhum host ativo.\n\n"
-                                    "Verifique se o projeto no GNS3 está rodando (Play).\n"
-                                    "Verifique se a imagem Docker na aba 'Configurações' está correta.")
+                QMessageBox.warning(
+                    self,
+                    "No Hosts Detected",
+                    "The software did not detect any active hosts.\n\n"
+                    "Make sure the GNS3 project is running (Play).\n"
+                    "Also verify that the Docker image name in the 'Settings' tab is correct."
+                )
             else:
                 servidores_ligados = 0
                 
@@ -206,11 +209,23 @@ class MainWindow(QMainWindow):
 
                 if servidores_ligados > 0:
                     self.hosts_tab.update_hosts_display(all_hosts_data)
-                    self.statusBar().showMessage(f"{len(all_hosts_data)} hosts detectados. {servidores_ligados} servidores iniciados.", 5000)
+                    self.statusBar().showMessage(
+                        f"{len(all_hosts_data)} hosts detected. "
+                        f"{servidores_ligados} servers started.",
+                        5000
+                    )
                 else:
-                    self.statusBar().showMessage(f"{len(all_hosts_data)} hosts detectados e prontos.", 5000)
+                    self.statusBar().showMessage(
+                        f"{len(all_hosts_data)} hosts detected and ready.",
+                        5000
+                    )
         elif not is_initial_load:
-            QMessageBox.information(self, "Sucesso", "Informações dos hosts atualizadas.")
+            QMessageBox.information(
+                self,
+                "Success",
+                "Host information has been successfully updated."
+            )
+
 
     def _set_window_icon(self):
         try:
@@ -219,7 +234,7 @@ class MainWindow(QMainWindow):
             if icon_path.exists():
                 self.setWindowIcon(QIcon(str(icon_path)))
         except FileNotFoundError as e:
-            print(f"Erro ao carregar o ícone: {e}")
+            print(f"Error loading icon: {e}")
 
     def closeEvent(self, event):
         """
@@ -227,7 +242,8 @@ class MainWindow(QMainWindow):
         The name 'closeEvent' is a PyQt convention and must be kept.
         """
         reply = QMessageBox.question(
-            self, 'Confirmação', 'Deseja realmente sair do programa?',
+            self, "Confirmation",
+            "Do you really want to exit the application?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             event.accept()

@@ -31,7 +31,7 @@ class HelpTab(QWidget):
             help_text_browser.setHtml(help_content)
 
         except FileNotFoundError:
-            error_html = "<h1>Erro</h1><p>Arquivo de ajuda 'help_frame.html' não encontrado.</p>"
+            error_html = "<h1>Error</h1><p>Help file 'help_frame.html' not found.</p>"
             help_text_browser.setHtml(error_html)
 
         main_layout.addWidget(help_text_browser)

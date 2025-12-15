@@ -11,48 +11,48 @@
     </style>
 </head>
 <body>
-    <h1>Como Usar o Firewall Tester</h1>
+    <h1>How to Use Firewall Tester</h1>
     <p>
-        Esta ferramenta foi projetada para automatizar e simplificar a criação e validação de regras de firewall em um ambiente de laboratório, utilizando GNS3 e Docker. Siga os passos abaixo para realizar seus testes de forma eficiente.
+        This tool was designed to automate and simplify the creation and validation of firewall rules in a laboratory environment, using GNS3 and Docker. Follow the steps below to perform your tests efficiently.
     </p>
 
-    <h2>Guia de Início Rápido</h2>
+    <h2>Quick Start Guide</h2>
     <ul>
         <li>
-            <span class="step-number">Passo 1: Prepare o ambiente</span><br>
-            Certifique-se de que sua topologia no GNS3 está totalmente iniciada, com todos os contêineres Docker (hosts) em execução e com suas configurações de rede já aplicadas.
+            <span class="step-number">Step 1: Prepare the environment</span><br>
+            Make sure your GNS3 topology is fully started, with all Docker containers (hosts) running and their network configurations already applied.
         </li>
         <li>
-            <span class="step-number">Passo 2: Carregue os Hosts na ferramenta</span><br>
-            Com o ambiente GNS3 pronto, clique no botão <b>"Atualizar Hosts"</b> no canto inferior esquerdo da aplicação. Isso fará com que o software detecte todos os contêineres ativos.
+            <span class="step-number">Step 2: Load Hosts into the tool</span><br>
+            With the GNS3 environment ready, click the <b>"Refresh Hosts"</b> button in the lower-left corner of the application. This will cause the software to detect all active containers.
         </li>
         <li>
-            <span class="step-number">Passo 3: Verifique os Hosts e Servidores</span><br>
-            Vá para a aba <b>"Hosts"</b>. Verifique se todos os seus contêineres estão listados. Para que os testes de conectividade funcionem (exceto ICMP), o processo <code>server.py</code> deve estar rodando no host de destino. Use o botão de ligar/desligar em cada card de host para iniciar os servidores necessários.
+            <span class="step-number">Step 3: Verify Hosts and Servers</span><br>
+            Go to the <b>"Hosts"</b> tab. Check whether all your containers are listed. For connectivity tests to work (except ICMP), the <code>server.py</code> process must be running on the destination host. Use the on/off button on each host card to start the required servers.
         </li>
         <li>
-            <span class="step-number">Passo 4: Configure o Firewall</span><br>
-            Navegue para a aba <b>"Regras de Firewall"</b>. Selecione o host que atuará como firewall no menu suspenso. Você pode escrever as regras de <code>iptables</code> diretamente no editor, ou clicar em <b>"Carregar Regras do Host"</b> para ver o que já está configurado. Após editar, clique em <b>"Aplicar Regras no Host"</b> para enviá-las ao contêiner.
+            <span class="step-number">Step 4: Configure the Firewall</span><br>
+            Navigate to the <b>"Firewall Rules"</b> tab. Select the host that will act as the firewall from the dropdown menu. You can write <code>iptables</code> rules directly in the editor or click <b>"Load Rules from Host"</b> to view the current configuration. After editing, click <b>"Apply Rules to Host"</b> to send them to the container.
         </li>
         <li>
-            <span class="step-number">Passo 5: Crie sua lista de testes</span><br>
-            Vá para a aba <b>"Testes de Firewall"</b>. Use o formulário "Novo Teste" para definir as condições de cada teste: origem, destino, protocolo, porta e o resultado esperado (se a conexão deve ser "Permitida" ou "Bloqueada"). Clique em <b>"Adicionar"</b> para inserir cada teste na tabela.
+            <span class="step-number">Step 5: Create your test list</span><br>
+            Go to the <b>"Firewall Tests"</b> tab. Use the "New Test" form to define the conditions of each test: source, destination, protocol, port, and the expected result (whether the connection should be "Allowed" or "Blocked"). Click <b>"Add"</b> to insert each test into the table.
         </li>
         <li>
-            <span class="step-number">Passo 6: Execute e analise os resultados</span><br>
-            Com sua lista de testes pronta, clique em <b>"Testar todos"</b>. Uma barra de progresso aparecerá. Ao final, cada linha da tabela será colorida de acordo com o resultado, permitindo que você valide rapidamente se suas regras de firewall estão funcionando conforme o esperado.
+            <span class="step-number">Step 6: Run and analyze the results</span><br>
+            Once your test list is ready, click <b>"Test All"</b>. A progress bar will appear. At the end, each row in the table will be colored according to the result, allowing you to quickly validate whether your firewall rules are working as expected.
         </li>
     </ul>
 
-    <h2>Solução de Problemas Comuns </h2>
+    <h2>Common Troubleshooting</h2>
     <ul>
         <li>
-            <b>Nenhum host aparece na lista após clicar em "Atualizar Hosts"?</b><br>
-            Verifique se sua topologia no GNS3 está realmente ativa. Em seguida, vá para a aba <b>"Configurações"</b> e confirme se o "Nome da Imagem Docker Padrão" corresponde exatamente ao nome da imagem que você está usando nos seus contêineres.
+            <b>No hosts appear in the list after clicking "Refresh Hosts"?</b><br>
+            Check whether your GNS3 topology is actually running. Then go to the <b>"Settings"</b> tab and confirm that the "Default Docker Image Name" exactly matches the image name you are using in your containers.
         </li>
         <li>
-            <b>Testes TCP/UDP retornam 'ERROR' ou falham inesperadamente?</b><br>
-            Isso geralmente significa que o <code>server.py</code> não está rodando no contêiner de destino. Vá para a aba <b>"Hosts"</b> e verifique se o "Server Status" do host de destino está como <b>on</b>. Se não estiver, clique no botão para ligá-lo.
+            <b>TCP/UDP tests return 'ERROR' or fail unexpectedly?</b><br>
+            This usually means that <code>server.py</code> is not running on the destination container. Go to the <b>"Hosts"</b> tab and check whether the destination host's "Server Status" is set to <b>on</b>. If it is not, click the button to turn it on.
         </li>
     </ul>
 </body>

@@ -1,10 +1,8 @@
 """Manages interactions with Docker containers for the Firewall Tester."""
 
 import subprocess
-import os
 import json
 from .docker_host import DockerHost
-import tempfile
 
 class ContainerManager:
     """
@@ -24,7 +22,7 @@ class ContainerManager:
             return subprocess.run(command_list, capture_output=True, text=True, encoding='utf-8', check=check)
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             # Se 'check=True' falhar, a exceção é capturada aqui.
-            print(f"Erro ao executar comando {' '.join(command_list)}: {e}")
+            print(f"Error executing command. {' '.join(command_list)}: {e}")
             # Retorna um objeto de processo com o erro para consistência
             return subprocess.CompletedProcess(command_list, 1, stderr=str(e), stdout="")
     
@@ -70,7 +68,7 @@ class ContainerManager:
         return host_obj
 
     def get_all_containers_data(self):
-        print(f"\nBuscando containers com a imagem contendo: '{self.docker_image_name}'")
+        print(f"\nSearching for containers with the image containing: '{self.docker_image_name}'")
         
         matching_containers_info = self._get_container_info_by_image_filter()
         if not matching_containers_info:
@@ -88,7 +86,7 @@ class ContainerManager:
                 interfaces_json = self._get_ip_info_from_docker(container_info['id'])
                 host = self._process_ip_info(interfaces_json, host)
             except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
-                print(f"Aviso: Não foi possível obter IPs para o host {host.hostname}: {e}")
+                print(f"Warning: Could not obtain IP addresses for the host. {host.hostname}: {e}")
 
             host_dict = host.to_dict()
             
@@ -161,7 +159,7 @@ class ContainerManager:
         result = self._run_command(cmd)
         if result.returncode != 0:
             return (False, result.stderr)
-        return (True, "Servidor iniciado.")
+        return (True, "Server started.")
 
     def stop_server(self, host_id):
         """Stops the server.py script inside a container."""
@@ -169,7 +167,7 @@ class ContainerManager:
         result = self._run_command(cmd)
         if result.returncode > 1:
             return (False, result.stderr)
-        return (True, "Servidor parado.")
+        return (True, "Server stopped.")
 
     def get_firewall_rules(self, host_id, tables_to_check):
         """
@@ -191,7 +189,7 @@ class ContainerManager:
         cmd = ["docker", "exec", host_id, "cat", container_file_path]
         result = self._run_command(cmd)
         if result.returncode != 0:
-            return (False, result.stderr or "Arquivo não encontrado no container.")
+            return (False, result.stderr or "File not found in container.")
         return (True, result.stdout)
 
     def save_rules_to_local_file(self, rules_string, local_path):
@@ -199,9 +197,9 @@ class ContainerManager:
         try:
             with open(local_path, "w", encoding="utf-8") as f:
                 f.write(rules_string)
-            return (True, "Arquivo salvo localmente.")
+            return (True, "File saved locally.")
         except IOError as e:
-            return (False, f"Erro ao salvar arquivo local: {e}")
+            return (False, f"Error saving local file: {e}")
 
     def apply_firewall_rules(self, host_id, hostname, rules_string,reset_first):
         """
@@ -237,11 +235,11 @@ class ContainerManager:
             result = self._run_command(cmd_list)
             
             if result.returncode != 0:
-                error_message = (f"Falha ao executar o comando:\n'{cmd_str}'\n\n"
-                                 f"Erro:\n{result.stderr}")
+                error_message = (f"Failed to execute the command:\n'{cmd_str}'\n\n"
+                                 f"Error:\n{result.stderr}")
                 return (False, error_message)
 
-        return (True, f"Regras aplicadas com sucesso no host {hostname}.")
+        return (True, f"Rules successfully applied to the host. {hostname}.")
 
     def _copy_and_execute_script(self, host_id, local_path, container_path):
         result_copy = self._run_command(["docker", "cp", local_path, f"{host_id}:{container_path}"])
@@ -252,10 +250,9 @@ class ContainerManager:
         if result_exec.returncode != 0:
             return (False, result_exec.stderr)
 
-        return (True, "Script executado com sucesso.")
+        return (True, "Script executed successfully.")
     
     def get_host_ports(self, host_id):
-        """Lê o arquivo de configuração de portas de dentro de um contêiner."""
         container_path = "/firewallTester/src/conf/ports.conf"
         cmd = ["docker", "exec", host_id, "cat", container_path]
         result = self._run_command(cmd)
@@ -273,24 +270,23 @@ class ContainerManager:
         return ports
 
     def update_host_ports(self, host_id, ports_list, local_ports_file_path):
-        """Atualiza o arquivo de portas local E o arquivo dentro do contêiner."""
         content = "\n".join([f"{port}/{protocol.upper()}" for protocol, port in ports_list])
         
         try:
             with open(local_ports_file_path, "w", encoding="utf-8") as f:
                 f.write(content)
         except IOError as e:
-            return (False, f"Falha ao salvar arquivo local: {e}")
+            return (False, f"Failed to save local file: {e}")
 
         container_path = "/firewallTester/src/conf/ports.conf"
         copy_result = self._run_command(["docker", "cp", local_ports_file_path, f"{host_id}:{container_path}"])
         if copy_result.returncode != 0:
-            return (False, f"Falha ao copiar arquivo de portas:\n{copy_result.stderr}")
+            return (False, f"Failed to copy port file:\n{copy_result.stderr}")
 
-        print(f"Reiniciando servidor em {host_id} para aplicar novas portas...")
+        print(f"Restarting server in {host_id} to install new doors...")
         self.stop_server(host_id)
         start_success, msg = self.start_server(host_id)
         if not start_success:
-            return (False, f"Falha ao reiniciar o servidor:\n{msg}")
+            return (False, f"Server restart failed:\n{msg}")
         
-        return (True, "Portas atualizadas e servidor reiniciado.")
+        return (True, "Ports updated and server restarted.")

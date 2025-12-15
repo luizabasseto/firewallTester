@@ -38,7 +38,7 @@ class SettingsTab(QWidget):
     def _create_ui(self):
         main_layout = QVBoxLayout(self)
 
-        title = QLabel("Configurações do Software")
+        title = QLabel("Software settings")
         title.setFont(QFont("Arial", 14, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title)
@@ -51,22 +51,22 @@ class SettingsTab(QWidget):
         self.config_server_ports_entry = QLineEdit()
         self.config_docker_image_entry = QLineEdit()
 
-        form_layout.addRow("Diretório do Firewall (no container):", self.config_firewall_dir_entry)
-        form_layout.addRow("Arquivo de Reset de Regras (local):",
+        form_layout.addRow("Firewall directory (inside container):", self.config_firewall_dir_entry)
+        form_layout.addRow("Firewall rules reset file (local):",
                            self.config_firewall_reset_rules_entry)
-        form_layout.addRow("Arquivo de Regras de Firewall (local):",
+        form_layout.addRow("Firewall rules file (local):",
                            self.config_firewall_rules_entry)
-        form_layout.addRow("Arquivo de Portas do Servidor (local):", self.config_server_ports_entry)
-        form_layout.addRow("Nome da Imagem Docker Padrão:", self.config_docker_image_entry)
+        form_layout.addRow("Server Ports file (local):", self.config_server_ports_entry)
+        form_layout.addRow("Default Docker image name:", self.config_docker_image_entry)
         main_layout.addLayout(form_layout)
 
-        checkbox_group = QGroupBox("Opções de Interface e Listagem")
+        checkbox_group = QGroupBox("Interface and listing options")
         checkbox_layout = QVBoxLayout(checkbox_group)
 
-        self.config_show_container_id_check = QCheckBox("Exibir ID do Container na aba Hosts")
-        self.config_include_filter_check = QCheckBox("Incluir tabela 'Filter' na listagem")
-        self.config_include_nat_check = QCheckBox("Incluir tabela 'NAT' na listagem")
-        self.config_include_mangle_check = QCheckBox("Incluir tabela 'Mangle' na listagem")
+        self.config_show_container_id_check = QCheckBox("Show Container ID in the Hosts tab")
+        self.config_include_filter_check = QCheckBox("Include 'Filter' table in the listing")
+        self.config_include_nat_check = QCheckBox("Include 'Filter' table in the listing")
+        self.config_include_mangle_check = QCheckBox("Include 'Mangle' table in the listing")
 
         checkbox_layout.addWidget(self.config_show_container_id_check)
         checkbox_layout.addWidget(self.config_include_filter_check)
@@ -77,9 +77,9 @@ class SettingsTab(QWidget):
         main_layout.addStretch(1)
 
         buttons_layout = QHBoxLayout()
-        save_button = QPushButton("Salvar Configurações")
+        save_button = QPushButton("Save Settings")
         save_button.clicked.connect(self._save_settings)
-        restore_button = QPushButton("Restaurar Padrões")
+        restore_button = QPushButton("Restore Defaults")
         restore_button.clicked.connect(self._restore_defaults)
 
         buttons_layout.addStretch(1)
@@ -114,13 +114,13 @@ class SettingsTab(QWidget):
         self.config["include_nat_table"] = self.config_include_nat_check.isChecked()
         self.config["include_mangle_table"] = self.config_include_mangle_check.isChecked()
 
-        QMessageBox.information(self, "Sucesso", "Configurações salvas com sucesso!")
+        QMessageBox.information(self,  "Success","Settings saved successfully!")
 
     def _restore_defaults(self):
         reply = QMessageBox.question(
             self,
-            "Confirmação",
-            "Tem certeza que deseja restaurar as configurações padrão?",
+            "Confirmation",
+            "Are you sure you want to restore the default settings?",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )

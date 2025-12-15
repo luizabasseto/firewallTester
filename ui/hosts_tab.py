@@ -35,7 +35,7 @@ class HostsTab(QWidget):
         power_off_path = assets_path / "power_off.png"
 
         if not power_on_path.exists() or not power_off_path.exists():
-            print(f"AVISO: Arquivos de ícone não encontrados em '{assets_path}'. Os botões ficarão em branco.")
+            f"WARNING: Icon files not found in '{assets_path}'. Buttons will appear blank."
             self.icons = {"on": QIcon(), "off": QIcon()}
         else:
             self.icons = {
@@ -47,13 +47,13 @@ class HostsTab(QWidget):
         main_layout = QVBoxLayout(self)
 
         top_layout = QHBoxLayout()
-        top_layout.addWidget(QLabel("Hosts (Containers de Rede):", font=QFont("Arial", 12)))
+        top_layout.addWidget(QLabel("Hosts (Network Containers):", font=QFont("Arial", 12)))
         top_layout.addStretch(1)
         
-        btn_start_all = QPushButton("Ligar Todos")
+        btn_start_all = QPushButton("Start all")
         btn_start_all.clicked.connect(self._start_all_servers)
         
-        btn_stop_all = QPushButton("Desligar Todos")
+        btn_stop_all = QPushButton("Stop all")
         btn_stop_all.clicked.connect(self._stop_all_servers)
         
         top_layout.addWidget(btn_stop_all)
@@ -103,14 +103,14 @@ class HostsTab(QWidget):
             self.hosts_cards[host_id].update_status(new_status)
 
     def _start_all_servers(self):
-        print("Tentando ligar todos os servidores que estão desligados...")
+        print("Attempting to start all servers that are currently stopped...")
         for host_id in self.hosts_cards:
             success, status = self.container_manager.check_server_status(host_id)
             if success and status == 'off':
                 self._toggle_server(host_id)
 
     def _stop_all_servers(self):
-        print("Tentando desligar todos os servidores que estão ligados...")
+        print("Attempting to stop all servers that are currently running...")
         for host_id in self.hosts_cards:
             success, status = self.container_manager.check_server_status(host_id)
             if success and status == 'on':
@@ -122,7 +122,7 @@ class HostsTab(QWidget):
         result = dialog.exec_()
 
         if result == QDialog.Accepted:
-            print(f"Portas atualizadas para {hostname}. Atualizando status.")
+            print(f"Ports updated for {hostname}. Updating status.")
             if container_id in self.hosts_cards:
                 success, status = self.container_manager.check_server_status(container_id)
                 if success:

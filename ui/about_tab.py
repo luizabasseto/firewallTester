@@ -53,7 +53,7 @@ class AboutTab(QWidget):
         lbl_email.setOpenExternalLinks(True)
         info_layout.addRow("<b>Email:</b>", lbl_email)
         
-        lbl_developer_name2 = QLabel("Student: Luiza Batista Basseto")
+        lbl_developer_name2 = QLabel("Student Luiza Batista Basseto")
         lbl_developer_name2.setFont(QFont("Arial", 12, QFont.Bold))
         info_layout.addRow("<b>Developer:</b>", lbl_developer_name2)
 

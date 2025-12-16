@@ -16,7 +16,7 @@ class Header(QWidget):
 
         logo_label = QLabel()
         pixmap = QPixmap(logo_path)
-        logo_label.setPixmap(pixmap.scaledToHeight(40, Qt.SmoothTransformation))
+        logo_label.setPixmap(pixmap.scaledToHeight(60, Qt.SmoothTransformation))
         layout.addWidget(logo_label)
 
         layout.addSpacing(15)

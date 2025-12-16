@@ -9,9 +9,10 @@ to analyze and explain firewall rules.
 import os
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                             QComboBox, QGroupBox, QTextEdit, QCheckBox, QMessageBox,
-                            QApplication, QMessageBox, QFileDialog)
-from PyQt5.QtGui import QFont
+                            QApplication, QMessageBox, QFileDialog, QPlainTextEdit, QLineEdit, QToolButton)
+from PyQt5.QtGui import QFont, QTextCursor, QIcon
 from PyQt5.QtCore import Qt
+import pathlib
 
 class FirewallRulesTab(QWidget):
     """A QWidget for managing firewall rules on selected container hosts."""
@@ -46,11 +47,85 @@ class FirewallRulesTab(QWidget):
 
         rules_box = QGroupBox("Rules to be applied to the firewall")
         rules_layout = QVBoxLayout(rules_box)
-        self.text_editor_rules = QTextEdit()
-        self.text_editor_rules.setFont(QFont("Monospace", 10))
+        editor_toolbar = QHBoxLayout()
+        toolbar_title = QLabel("Editor tools")
+        toolbar_title.setStyleSheet("""
+            QLabel {
+                font-size: 11px;
+                font-weight: bold;
+                color: #555;
+                padding: 2px;
+            }
+        """)
+
+        rules_layout.addWidget(toolbar_title)
+
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Search text...")
+        
+        ##Toolbar for the editor
+        
+        base_path = pathlib.Path(__file__).parent.parent.resolve()
+        assets_path = base_path / "assets"
+        
+        undo_path = assets_path / "undo.svg"
+        redo_path = assets_path / "redo.svg"
+        all_path = assets_path / "select-all.svg"
+        zoom_in_path = assets_path / "zoom-in-area.svg"
+        zoom_out_path = assets_path / "zoom-out-area.svg"
+        search_path = assets_path / "search.svg"
+        
+        btn_undo = QToolButton()
+        btn_undo.setIcon(QIcon(str(undo_path)))
+        btn_undo.setToolTip("Undo")
+
+        btn_redo = QToolButton()
+        btn_redo.setIcon(QIcon(str(redo_path)))
+        btn_redo.setToolTip("Redo")
+
+        btn_select_all = QToolButton()
+        btn_select_all.setIcon(QIcon(str(all_path)))
+        btn_select_all.setToolTip("Select All")
+
+        btn_zoom_in = QToolButton()
+        btn_zoom_in.setIcon(QIcon(str(zoom_in_path)))
+        btn_zoom_in.setToolTip("Increase font size")
+
+        btn_zoom_out = QToolButton()
+        btn_zoom_out.setIcon(QIcon(str(zoom_out_path)))
+        btn_zoom_out.setToolTip("Decrease font size")
+
+        btn_find = QToolButton()
+        btn_find.setIcon(QIcon(str(search_path)))
+        btn_find.setToolTip("Find")
+
+
+        editor_toolbar.addWidget(btn_undo)
+        editor_toolbar.addWidget(btn_redo)
+        editor_toolbar.addWidget(btn_select_all)
+        editor_toolbar.addWidget(btn_zoom_in)
+        editor_toolbar.addWidget(btn_zoom_out)
+        
+        editor_toolbar.addStretch(1)
+        
+        editor_toolbar.addWidget(self.search_input)
+        editor_toolbar.addWidget(btn_find)
+
+        rules_layout.addLayout(editor_toolbar)
+        
+        self.text_editor_rules = QPlainTextEdit()
+        self.text_editor_rules.setFont(QFont("Consolas", 11))
         rules_layout.addWidget(self.text_editor_rules)
         editor_buttons_layout = QHBoxLayout()
         self.check_reset_rules = QCheckBox("Reset rules before applying")
+
+        btn_undo.clicked.connect(self.text_editor_rules.undo)
+        btn_redo.clicked.connect(self.text_editor_rules.redo)
+        btn_select_all.clicked.connect(self.text_editor_rules.selectAll)
+        btn_find.clicked.connect(self._find_text_in_editor)
+        btn_zoom_in.clicked.connect(lambda: self._zoom_editor_font(+1))
+        btn_zoom_out.clicked.connect(lambda: self._zoom_editor_font(-1))
+
 
         editor_buttons_layout.addWidget(self.check_reset_rules)
         editor_buttons_layout.addStretch(1)
@@ -89,7 +164,7 @@ class FirewallRulesTab(QWidget):
         buttons_layout = QHBoxLayout()
         self.btn_retrieve_rules = QPushButton("Load Rules from Host")
         self.btn_retrieve_rules.clicked.connect(self._load_rules)
-        self.btn_deploy_rules = QPushButton("Load Rules from Host")
+        self.btn_deploy_rules = QPushButton("Apply Rules from Host")
         self.btn_deploy_rules.clicked.connect(self._apply_rules)
         btn_toggle_output = QPushButton("Show/Hide Output")
         btn_toggle_output.clicked.connect(lambda: self.output_box.setVisible(not self.output_box.isVisible()))
@@ -280,3 +355,21 @@ class FirewallRulesTab(QWidget):
         except IOError as e:
             QMessageBox.critical(
                 self,"Error",f"Unable to load the file:\n{e}")
+    
+    def _find_text_in_editor(self):
+        text = self.search_input.text()
+        if not text:
+            return
+
+        found = self.text_editor_rules.find(text)
+        if not found:
+            cursor = self.text_editor_rules.textCursor()
+            cursor.movePosition(QTextCursor.Start)
+            self.text_editor_rules.setTextCursor(cursor)
+            self.text_editor_rules.find(text)
+
+    def _zoom_editor_font(self, delta):
+        font = self.text_editor_rules.font()
+        new_size = max(7, font.pointSize() + delta)
+        font.setPointSize(new_size)
+        self.text_editor_rules.setFont(font)

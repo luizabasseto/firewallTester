@@ -60,7 +60,9 @@ class TestWorker(QObject):
             if self.is_cancelled:
                 break
             
-            analysis, tag = self.test_runner.analyze_test_result(expected, result_dict)
+            expected_back= "yes" if expected == "Allowed" else "no"
+            
+            analysis, tag = self.test_runner.analyze_test_result(expected_back, result_dict)
             self.item_tested.emit(item, analysis, tag)
             
             
@@ -222,7 +224,9 @@ class FirewallTestsTab(QWidget):
         effective_port = "1" if proto.upper() == "ICMP" else dst_port
         
         _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, effective_port)
-        analysis, tag = self.test_runner.analyze_test_result(expected, result_dict)
+        
+        expected_back = "yes" if expected == "Allowed" else "no"
+        analysis, tag = self.test_runner.analyze_test_result(expected_back, result_dict)
 
         self._update_tree_item(item, analysis, tag)
         
@@ -397,7 +401,7 @@ class FirewallTestsTab(QWidget):
         self.protocol_combo.setCurrentText(item.text(4))
         self.dst_port_entry.setText(item.text(6))
         
-        if item.text(7).lower() == "yes":
+        if item.text(7).lower() == "Allowed":
             self.expected_yes_radio.setChecked(True)
         else:
             self.expected_no_radio.setChecked(True)

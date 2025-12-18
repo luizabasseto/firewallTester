@@ -261,7 +261,7 @@ class FirewallTestsTab(QWidget):
             return
         
         self.tree.clearSelection()
-        self.progress_dialog = QProgressDialog("Running tests", "Cancel", 0, 100, self)
+        self.progress_dialog = DraggableDialog("Running tests", "Cancel", 0, 100, self)
         self.progress_dialog.setWindowTitle("Processing tests")
         self.progress_dialog.setWindowModality(Qt.WindowModal)
         self.progress_dialog.setMinimumDuration(0)
@@ -287,6 +287,11 @@ class FirewallTestsTab(QWidget):
 
         self.thread.start()
         self.progress_dialog.exec_()
+    
+
+    def mouseReleaseEvent(self, event):
+        self.dragging = False
+        super().mouseReleaseEvent(event)   
         
     def _update_progress_dialog(self, value, text):
         """Updates the progress dialog's value and label text."""
@@ -733,3 +738,20 @@ class FirewallTestsTab(QWidget):
                 return data['ip']
 
         return clean_hostname
+    
+class DraggableDialog(QProgressDialog):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dragging = False
+        self.offset = None
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.dragging = True
+            self.offset = event.pos()
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self.dragging and self.offset:
+            self.move(self.pos() + event.pos() - self.offset)
+        super().mouseMoveEvent(event)

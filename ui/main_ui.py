@@ -92,7 +92,7 @@ class MainWindow(QMainWindow):
     """
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Firewall Tester")
+        self.setWindowTitle("FirewallTester")
         self.setGeometry(100, 100, 1200, 800)
         self._set_window_icon()
 
@@ -119,7 +119,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(main_widget)
         main_layout = QVBoxLayout(main_widget)
 
-        app_header = Header("assets/logo.png", "Firewall Tester")
+        app_header = Header("assets/logo.png", "FirewallTester")
         main_layout.addWidget(app_header)
 
         line = QFrame()

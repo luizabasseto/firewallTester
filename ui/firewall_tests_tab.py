@@ -167,7 +167,7 @@ class FirewallTestsTab(QWidget):
         self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tree.viewport().installEventFilter(self)
 
-        legend_box = QGroupBox("Legend")
+        legend_box = QGroupBox("Test Legend")
         legend_layout = QHBoxLayout(legend_box)
         main_layout.addWidget(legend_box)
         def add_legend_item(color, text):

@@ -40,6 +40,8 @@ And forked by **Luiza Batista Basseto**, student at  **UTFPR (Federal Technologi
 
 ## Tutorial de Configuração
 
+Assista ao vídeo abaixo ou siga ao tutorial disponibilizado após ele.
+
 ### Pré-requisitos do ambiente
 
 Antes de abrir o software, configure seu ambiente virtual.

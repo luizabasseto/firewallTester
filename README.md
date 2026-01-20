@@ -32,89 +32,87 @@ This program is distributed in the hope that it will be useful, but **WITHOUT AN
 
 You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-## Configuration Tutorial
-
-### Environment Prerequisites
-
-Before opening the software, set up your virtual environment.
-
-- Download the VirtualBox virtual machine, available at:  
-  https://www.virtualbox.org/wiki/Downloads
-- Install the GNS3 VM using the file available on the official GNS3 website.
-- After completing the installation, configure the network settings.
-
-### Network Settings
-- Create a project in GNS3.
-- Drag Docker containers into the workspace (e.g., hosts and firewalls).
-- Connect them using virtual network cables.
-
-> **Important:** Configure static IP addresses and routes either through the GNS3 network configuration (Edit Config) or via the terminal.
-
-### Initializing FirewallTester
-
-- With the GNS3 simulation running (Play button pressed), open the VM terminal by pressing ``Alt + Enter``.
-- In the terminal, run the following command to install the required libraries:
-  ```bash
-  pip3 install -r requirements.txt
-- After the installation, run ``python3 main.py`` to start the application.
-- Once launched, the software will scan the container components.
-- Check the bottom status bar or the **Hosts** tab. You should see your containers listed (e.g., `host-1`, `firewall-1`).
-- If the list is empty, click **Refresh Hosts**.
-
-
-### Managing Services (Hosts Tab)
-
-**Check the server status:** ensure it is **On**, as tests will fail if the destination server is turned off.
-
-**Editing ports:** select a host to view open ports, add new ones to simulate services, and note that the server restarts automatically to apply changes.
-
-
-### Applying Security Rules (Firewall Rules Tab)
-
-This is where you define how the firewall should behave.
- 1. At the top, choose the container that will act as the firewall (e.g., `Firewall-1`).
- 2. Write your firewall script (iptables syntax or shell script). Example:  ``iptables -A FORWARD -p tcp --dport 80 -j DROP``.
-
-**Options:**
-- Reset before applying: Check this option if you want to clear old rules before applying new ones.
-- Apply Rules (Deploy): Sends the script to the container and executes it.
-- Check the output box to confirm there are no iptables syntax errors.
-
-### Creating and Running Tests (Firewall Tests Tab)
-
-####  Adding a Test
-
-Configure the fields in the **New Test** box:
-
-- **Source:** Who sends the packet (e.g., `Host-1`).
-- **Destination:** Who receives it (e.g., `Host-2`). The system automatically retrieves the IP address.
-- **Protocol:** TCP, UDP, or ICMP.
-
-  > **Note:** For ICMP (Ping), the port is ignored or treated as a count.
-- **Dst Port:** The target port (e.g., `80`).
-
-#### Expected Result
-
-- **Allowed:** You expect the packet to reach its destination (Success).
-- **Blocked:** You expect the firewall to block the packet (Timeout / Refused).
-
-Click **Add** to place the test in the queue.
-
-**Running Tests**
-
-- **Test Row:** Select a test in the table and click this button to run only that test.
-- **Test All:** Opens a progress window and executes the list sequentially.
-- **Cancel:** If you need to stop execution, click **Cancel** in the progress window. The interruption is immediate.
-
-**Results**
-
-- **Green (Allowed):** Allowed was expected and the connection succeeded. The test passed.
-- **Blue (Blocked):** Blocked was expected and the connection failed. The firewall worked. The test passed.
-- **Red (Failed):** The actual result was different from the expected one (e.g., you expected it to be blocked, but it was allowed).
-- **Yellow (Error):** Technical error (e.g., host powered off, missing route, Python script error).
-
 ## Contact
 
-This software was developed by **Luiz Arthur Feitosa dos Santos**, professor at **UTFPR (Federal Technological University of Paraná) - Campo Mourão, Brazil**.  
-Email: <luiz.arthur.feitosa.santos@gmail.com> | <luizsantos@utfpr.edu.br>
+This software was developed by **Luiz Arthur Feitosa dos Santos**, professor at **UTFPR (Federal Technological University of Paraná) - Campo Mourão, Brazil**. 
+Email: <luiz.arthur.feitosa.santos@gmail.com> | <luizsantos@utfpr.edu.br>.
+And forked by **Luiza Batista Basseto**, student at  **UTFPR (Federal Technological University of Paraná) - Campo Mourão, Brazil**. Email: <luizabasseto.1@gmail.com> | <luizabatista@alunos.utfpr.edu.br>.
+
+## Tutorial de Configuração
+
+### Pré-requisitos do ambiente
+
+Antes de abrir o software, configure seu ambiente virtual.
+
+- Baixe a máquina virtual do VirtualBox, disponível em:  
+  https://www.virtualbox.org/wiki/Downloads
+- Instale a VM do GNS3 usando o arquivo disponível em: https://drive.google.com/file/d/1V0wQ2RBBmz0m5YcJCNw9deKDTzoNbA4m/view?usp=sharing.
+- Após concluir a instalação, configure as configurações de rede.
+
+### Configurações de rede
+- Crie um projeto no GNS3.
+- Arraste contêineres Docker para a área de trabalho (ex.: hosts e firewalls).
+- Conecte-os usando cabos de rede virtual.
+
+> **Importante:** Configure endereços IP estáticos e rotas por meio da configuração de rede do GNS3 (Edit Config) ou via terminal.
+
+### Inicializando o FirewallTester
+
+- Com a simulação do GNS3 em execução (botão Play pressionado), abra o terminal da VM pressionando ``Alt + Enter``.
+- No terminal, execute o seguinte comando para instalar as bibliotecas necessárias:
+  ```bash
+  pip3 install -r requirements.txt
+- Após a instalação, execute ``python3 main.py`` para iniciar a aplicação.
+- Assim que iniciado, o software fará a varredura dos componentes dos contêineres.
+- Verifique a barra de status inferior ou a aba **Hosts**. Você deve ver seus contêineres listados (ex.: `host-1`, `firewall-1`).
+- Se a lista estiver vazia, clique em **Atualizar Hosts**.
+
+### Gerenciando serviços (Aba Hosts)
+
+**Verificar o status do servidor:** certifique-se de que esteja **On**, pois os testes falharão se o servidor de destino estiver desligado.
+
+**Edição de portas:** selecione um host para visualizar as portas abertas, adicione novas para simular serviços e observe que o servidor reinicia automaticamente para aplicar as alterações.
+
+### Aplicando regras de segurança (Aba regras de rirewall)
+
+É aqui que você define como o firewall deve se comportar.
+ 1. No topo, escolha o contêiner que atuará como firewall (ex.: `Firewall-1`).
+ 2. Escreva seu script de firewall (sintaxe iptables ou shell script). Exemplo: ``iptables -A FORWARD -p tcp --dport 80 -j DROP``.
+
+**Opções:**
+- Resetar antes de aplicar: marque esta opção se quiser limpar regras antigas antes de aplicar as novas.
+- Aplicar Regras (Deploy): envia o script para o contêiner e o executa.
+- Verifique a caixa de saída para confirmar que não há erros de sintaxe no iptables.
+
+### Criando e executando testes (Aba testes de firewall)
+
+#### Adicionando um teste
+
+Configure os campos na caixa **Novo teste**:
+
+- **Origem:** quem envia o pacote (ex.: `Host-1`).
+- **Destino:** quem recebe (ex.: `Host-2`). O sistema recupera o endereço IP automaticamente.
+- **Protocolo:** TCP, UDP ou ICMP.
+
+  > **Nota:** Para ICMP (Ping), a porta é ignorada ou tratada como contagem.
+- **Porta Dst:** a porta de destino (ex.: `80`).
+
+#### Resultado Esperado
+
+- **Allowed (Permitido):** você espera que o pacote chegue ao destino (Sucesso).
+- **Blocked (Bloqueado):** você espera que o firewall bloqueie o pacote (Timeout / Recusado).
+
+Clique em **Add** para colocar o teste na fila.
+
+**Executando Testes**
+
+- **Test Row:** selecione um teste na tabela e clique neste botão para executar apenas esse teste.
+- **Test All:** abre uma janela de progresso e executa a lista sequencialmente.
+- **Cancel:** se precisar interromper, clique em **Cancel** na janela de progresso. A interrupção é imediata.
+
+**Resultados**
+
+- **Verde (Allowed):** Permitido era o esperado e a conexão foi bem-sucedida. O teste passou.
+- **Azul (Blocked):** Bloqueado era o esperado e a conexão falhou. O firewall funcionou. O teste passou.
+- **Vermelho (Failed):** O resultado real foi diferente do esperado (ex.: você esperava que fosse bloqueado, mas foi permitido).
+- **Amarelo (Error):** Erro técnico (ex.: host desligado, rota inexistente, erro no script Python).

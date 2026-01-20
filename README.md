@@ -52,11 +52,14 @@ Antes de abrir o software, configure seu ambiente virtual.
 - Após concluir a instalação, configure as configurações de rede.
 
 ### Configurações de rede
+Como exemplo, pode-se utilizar como base a imagem do cenário de rede a seguir: <img width="599" height="257" alt="image" src="https://github.com/user-attachments/assets/c99226d5-a65d-4303-8a38-1d45c52f4523" />
+
 - Crie um projeto no GNS3.
 - Arraste contêineres Docker para a área de trabalho (ex.: hosts e firewalls).
 - Conecte-os usando cabos de rede virtual.
 
 > **Importante:** Configure endereços IP estáticos e rotas por meio da configuração de rede do GNS3 (Edit Config) ou via terminal.
+
 
 ### Inicializando o FirewallTester
 

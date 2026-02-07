@@ -1,0 +1,44 @@
+[
+    {
+        "#": "1",
+        "Container ID": "3669b169f82c",
+        "Source": "Host-1 (10.1.1.1)",
+        "Destination": "Host-2 (192.168.2.2)",
+        "Protocol": "TCP",
+        "Src Port": "*",
+        "Dst Port": "80",
+        "Expected": "Allowed",
+        "Result": "Pass",
+        "Flow": "Sent/Received",
+        "Data": "{'id': 1, 'timestamp_teste': '2025', 'timestamp_send': '2026-02-07T19:02:50.857197', 'timestamp_recv': '2026-02-07T19:02:50.859079', 'client_host': 'Host-1', 'client_ip': '10.1.1.1', 'client_port': 47309, 'server_ip': '192.168.2.2', 'server_port': 80, 'protocol': 'tcp', 'server_response': True, 'status': '0', 'status_msg': 'ok', 'message': 'Test successfully completed'}",
+        "src_hostname_only": "Host-1"
+    },
+    {
+        "#": "2",
+        "Container ID": "3669b169f82c",
+        "Source": "Host-1 (10.1.1.1)",
+        "Destination": "Host-2 (192.168.2.2)",
+        "Protocol": "TCP",
+        "Src Port": "*",
+        "Dst Port": "22",
+        "Expected": "Blocked",
+        "Result": "Pass",
+        "Flow": "Sent",
+        "Data": "{'id': 1, 'timestamp_teste': '2025', 'timestamp_send': '2026-02-07T19:02:51.865789', 'timestamp_recv': '2026-02-07T19:02:51.865789', 'client_host': 'Host-1', 'client_ip': '127.0.1.1', 'client_port': 41387, 'server_ip': '192.168.2.2', 'server_port': 22, 'protocol': 'tcp', 'server_response': False, 'status': '0', 'status_msg': 'Firewall Drop or Network Error', 'message': 'Test successfully completed'}",
+        "src_hostname_only": "Host-1"
+    },
+    {
+        "#": "3",
+        "Container ID": "ff534b7dab5a",
+        "Source": "Host-2 (192.168.2.2)",
+        "Destination": "Host-1 (10.1.1.1)",
+        "Protocol": "TCP",
+        "Src Port": "*",
+        "Dst Port": "22",
+        "Expected": "Allowed",
+        "Result": "Pass",
+        "Flow": "Sent/Received",
+        "Data": "{'id': 1, 'timestamp_teste': '2025', 'timestamp_send': '2026-02-07T19:02:54.881130', 'timestamp_recv': '2026-02-07T19:02:54.884023', 'client_host': 'Host-2', 'client_ip': '192.168.2.2', 'client_port': 47949, 'server_ip': '10.1.1.1', 'server_port': 22, 'protocol': 'tcp', 'server_response': True, 'status': '0', 'status_msg': 'ok', 'message': 'Test successfully completed'}",
+        "src_hostname_only": "Host-2"
+    }
+]

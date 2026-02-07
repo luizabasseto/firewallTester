@@ -231,7 +231,7 @@ class FirewallTestsTab(QWidget):
         self._paint_test_result(item, analysis, tag)
         
     def _paint_test_result(self, item, analysis_dict, tag):
-        print(f"\nUpdating Result: {analysis_dict['result']}")
+        print(f"\nResult: {analysis_dict['result']}")
         print(f"Container ID: {item.text(1)}")
         print(f"Flow: {analysis_dict['data']}")
 

@@ -228,18 +228,12 @@ class FirewallTestsTab(QWidget):
         expected_back = "yes" if expected == "Allowed" else "no"
         analysis, tag = self.test_runner.analyze_test_result(expected_back, result_dict)
 
-        self._update_tree_item(item, analysis, tag)
+        self._paint_test_result(item, analysis, tag)
         
-
-    def _update_tree_item(self, item, analysis_dict, tag):
-        if self.progress_dialog and not self.progress_dialog.isVisible():
-            return
-        
-        print("\n Test execution results:")
+    def _paint_test_result(self, item, analysis_dict, tag):
+        print(f"\nUpdating Result: {analysis_dict['result']}")
         print(f"Container ID: {item.text(1)}")
-        print(f"Source: {item.text(2)} -> Destination: {item.text(3)}")
-        print(f"Transmission details: {analysis_dict['data']}")
-
+        print(f"Flow: {analysis_dict['data']}")
 
         item.setText(8, analysis_dict['result'])
         item.setText(9, analysis_dict['flow'])
@@ -252,7 +246,14 @@ class FirewallTestsTab(QWidget):
         color = QColor(color_map.get(tag, "transparent"))
         for i in range(item.columnCount()):
             item.setBackground(i, QBrush(color))
+        
         self._clear_selection_and_reset_buttons()
+
+    def _update_tree_item(self, item, analysis_dict, tag):
+        if self.progress_dialog and not self.progress_dialog.isVisible():
+            return
+        
+        self._paint_test_result(item, analysis_dict, tag)
 
     def _run_all_tests(self):
         tests_to_run = [self.tree.topLevelItem(i) for i in range(self.tree.topLevelItemCount())]

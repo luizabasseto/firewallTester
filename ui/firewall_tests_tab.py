@@ -607,30 +607,34 @@ class FirewallTestsTab(QWidget):
 
             for i, test in enumerate(tests_data):
                 try:
+                    src_orig_text = test.get("Source", test.get("Origem", ""))
                     src_hostname = test.get("src_hostname_only")
-                    if not src_hostname:
-                        src_hostname = self._extract_hostname_from_combo_text(test.get("Origem", ""))
+                    if not src_hostname: 
+                        src_hostname = self._extract_hostname_from_combo_text(src_orig_text)
                     
-                    dst_orig_text = test.get("Dst", "")
+                    dst_orig_text = test.get("Destination", test.get("Destino", ""))
                     dst_hostname = self._extract_hostname_from_combo_text(dst_orig_text)
 
                     final_src_id, final_src_text = resolve_host(src_hostname, i+1)
-                    if final_src_id is None and src_hostname in replacements:
-                        continue
-                    final_dst_id, final_dst_text = resolve_host(dst_hostname, i+1)
+                    if final_src_id is None and src_hostname in replacements: continue
                     
-                    if not final_dst_text: 
-                        final_dst_text = dst_orig_text
+                    final_dst_id, final_dst_text = resolve_host(dst_hostname, i+1)
+                    if not final_dst_text: final_dst_text = dst_orig_text
+
+                    protocol = test.get("Protocol", test.get("Protocolo", ""))
+                    src_port = test.get("Src Port", test.get("P. Origem", ""))
+                    dst_port = test.get("Dst Port", test.get("P. Destino", ""))
+                    expected = test.get("Expected", test.get("Esperado", ""))
 
                     values = [
-                        test.get("#", ""),
-                        final_src_id,
-                        final_src_text,
+                        test.get("#", ""), 
+                        final_src_id, 
+                        final_src_text, 
                         final_dst_text,
-                        test.get("Protocol", ""),
-                        test.get("Origin Port", ""),
-                        test.get("Dst Port", ""),
-                        test.get("Esperado", ""),
+                        protocol, 
+                        src_port, 
+                        dst_port, 
+                        expected,
                         "-", "", ""
                     ]
                     self.tree.addTopLevelItem(QTreeWidgetItem(values))

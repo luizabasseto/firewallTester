@@ -11,9 +11,9 @@ if not os.path.exists(caminho_do_arquivo):
 print(f"Tentando ler o arquivo: {caminho_do_arquivo}\n")
 
 if not zipfile.is_zipfile(caminho_do_arquivo):
-    print("Resultado: O arquivo NÃO é um arquivo ZIP válido.")
+    print("O arquivo NÃO é um arquivo ZIP válido.")
 else:
-    print("Resultado: SUCESSO! O arquivo é um arquivo ZIP.")
+    print("O arquivo é um arquivo ZIP.")
     
     try:
         with zipfile.ZipFile(caminho_do_arquivo, 'r') as zf:
@@ -29,10 +29,8 @@ else:
                 with zf.open(arquivo_json_principal) as f:
                     conteudo_json_str = io.TextIOWrapper(f, encoding="utf-8").read()
                     
-                    # Converte a string para um dicionário Python
                     dados_da_topologia = json.loads(conteudo_json_str)
                     
-                    # Imprime o JSON formatado para você ver a estrutura
                     print(json.dumps(dados_da_topologia, indent=2))
             else:
                 print("\nNão foi possível encontrar o arquivo 'project.gns3' dentro do ZIP.")

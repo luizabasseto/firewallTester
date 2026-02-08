@@ -48,8 +48,9 @@ Antes de abrir o software, configure seu ambiente virtual.
 
 - Baixe a máquina virtual do VirtualBox, disponível em:  
   https://www.virtualbox.org/wiki/Downloads
-- Instale a VM do GNS3 usando o arquivo disponível em: https://drive.google.com/file/d/1V0wQ2RBBmz0m5YcJCNw9deKDTzoNbA4m/view?usp=sharing.
+- Instale a VM do GNS3 usando o arquivo disponível em: https://drive.google.com/drive/folders/1IWIF4bGQZ7yR9pshSHVH1eTzxMzTgrOu?usp=sharing.
 - Após concluir a instalação, configure as configurações de rede.
+- Para acessar a VM, utilize o usuário: aluno e senha: 123mudar.
 
 ### Configurações de rede
 Como exemplo, pode-se utilizar como base a imagem do cenário de rede a seguir: <img width="599" height="257" alt="image" src="https://github.com/user-attachments/assets/c99226d5-a65d-4303-8a38-1d45c52f4523" />

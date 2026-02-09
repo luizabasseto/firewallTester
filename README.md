@@ -50,25 +50,19 @@ Antes de abrir o software, configure seu ambiente virtual.
   https://www.virtualbox.org/wiki/Downloads
 - Instale a VM do GNS3 usando o arquivo disponível em: https://drive.google.com/drive/folders/1IWIF4bGQZ7yR9pshSHVH1eTzxMzTgrOu?usp=sharing.
 - Após concluir a instalação, configure as configurações de rede.
-- Para acessar a VM, utilize o usuário: aluno e senha: 123mudar.
 
 ### Configurações de rede
-Como exemplo, pode-se utilizar como base a imagem do cenário de rede a seguir: <img width="599" height="257" alt="image" src="https://github.com/user-attachments/assets/c99226d5-a65d-4303-8a38-1d45c52f4523" />
 
-- Crie um projeto no GNS3.
-- Arraste contêineres Docker para a área de trabalho (ex.: hosts e firewalls).
+- Crie um projeto no GNS3 ou utilize do modelo já disponibilizado na VM.
+- Caso opte por criar outro projeto, arraste contêineres Docker para a área de trabalho (ex.: hosts e firewalls).
 - Conecte-os usando cabos de rede virtual.
 
 > **Importante:** Configure endereços IP estáticos e rotas por meio da configuração de rede do GNS3 (Edit Config) ou via terminal.
 
-
 ### Inicializando o FirewallTester
 
-- Com a simulação do GNS3 em execução (botão Play pressionado), abra o terminal da VM pressionando ``Alt + Enter``.
-- No terminal, execute o seguinte comando para instalar as bibliotecas necessárias:
-  ```bash
-  pip3 install -r requirements.txt
-- Após a instalação, execute ``python3 main.py`` para iniciar a aplicação.
+- Com a simulação do GNS3 em execução (botão Play pressionado).
+- Abra o software através da interface gráfica.
 - Assim que iniciado, o software fará a varredura dos componentes dos contêineres.
 - Verifique a barra de status inferior ou a aba **Hosts**. Você deve ver seus contêineres listados (ex.: `host-1`, `firewall-1`).
 - Se a lista estiver vazia, clique em **Atualizar Hosts**.

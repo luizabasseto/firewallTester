@@ -15,13 +15,13 @@ class EditPortsDialog(QDialog):
         self.host_id = host_id
         self.config = config 
         
-        self.setWindowTitle(f"Editar Portas para {hostname}")
+        self.setWindowTitle(f"Edit Ports for {hostname}")
         self.setMinimumSize(400, 300)
         self.setLayout(QVBoxLayout())
 
         self.table = QTableWidget()
         self.table.setColumnCount(2)
-        self.table.setHorizontalHeaderLabels(["Protocolo", "Porta"])
+        self.table.setHorizontalHeaderLabels(["Protocol", "Port"])
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.layout().addWidget(self.table)
@@ -32,11 +32,11 @@ class EditPortsDialog(QDialog):
         self.protocol_combo = QComboBox()
         self.protocol_combo.addItems(["TCP", "UDP"])
         self.port_input = QLineEdit()
-        self.port_input.setPlaceholderText("Porta (1-65535)")
+        self.port_input.setPlaceholderText("Port (1-65535)")
         
-        btn_add = QPushButton("Adicionar")
+        btn_add = QPushButton("Add")
         btn_add.clicked.connect(self._add_port)
-        btn_delete = QPushButton("Remover Selecionada")
+        btn_delete = QPushButton("Remove selected")
         btn_delete.clicked.connect(self._delete_port)
 
         controls_layout.addWidget(self.protocol_combo)
@@ -47,9 +47,9 @@ class EditPortsDialog(QDialog):
         self.layout().addLayout(controls_layout)
 
         buttons_layout = QHBoxLayout()
-        btn_save = QPushButton("Salvar e Reiniciar Servidor")
+        btn_save = QPushButton("Save and restart server")
         btn_save.clicked.connect(self._save_changes)
-        btn_cancel = QPushButton("Cancelar")
+        btn_cancel = QPushButton("Cancel")
         btn_cancel.clicked.connect(self.reject)
 
         buttons_layout.addStretch()
@@ -74,7 +74,7 @@ class EditPortsDialog(QDialog):
             if not (1 <= port <= 65535):
                 raise ValueError
         except ValueError:
-            QMessageBox.warning(self, "Entrada Inválida", "Por favor, insira um número de porta válido (1-65535).")
+            QMessageBox.warning(self, "Invalid entry", "Please enter a valid port number (1-65535).")
             return
 
         row_count = self.table.rowCount()
@@ -88,7 +88,7 @@ class EditPortsDialog(QDialog):
         if selected_row >= 0:
             self.table.removeRow(selected_row)
         else:
-            QMessageBox.warning(self, "Nenhuma Seleção", "Por favor, selecione uma porta na tabela para remover.")
+            QMessageBox.warning(self, "No selection", "Please select a port from the table to remove.")
             
     def _save_changes(self):
         new_ports_list = []
@@ -101,7 +101,7 @@ class EditPortsDialog(QDialog):
         
         local_path = self.config.get("server_ports_file")
         if not local_path:
-            QMessageBox.critical(self, "Erro de Configuração", "O caminho para 'server_ports_file' não está definido no config.json.")
+            QMessageBox.critical(self, "Configuration error", "The path to 'server_ports_file' is not defined in config.json.")
             QApplication.restoreOverrideCursor()
             return
 
@@ -112,7 +112,7 @@ class EditPortsDialog(QDialog):
         QApplication.restoreOverrideCursor()
 
         if success:
-            QMessageBox.information(self, "Sucesso", message)
+            QMessageBox.information(self, "Sucess", message)
             self.accept()
         else:
-            QMessageBox.critical(self, "Erro", message)
+            QMessageBox.critical(self, "Error", message)

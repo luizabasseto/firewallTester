@@ -40,10 +40,9 @@ And forked by **Luiza Batista Basseto**, student at  **UTFPR (Federal Technologi
 
 ## Tutorial de Configuração
 
-Assista ao vídeo abaixo ou siga ao tutorial disponibilizado após ele.
+Assista ao vídeo de tutorial (https://www.youtube.com/watch?v=qyCBiV2q7rA) ou siga ao tutorial disponibilizado após ele.
 
 [![Assista ao vídeo](https://img.youtube.com/vi/qyCBiV2q7rA/0.jpg)](https://www.youtube.com/watch?v=qyCBiV2q7rA)
-
 
 ### Pré-requisitos do ambiente
 

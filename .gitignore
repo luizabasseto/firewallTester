@@ -19,3 +19,9 @@ env/
 
 # Logs
 *.log
+
+# pastas do servidor
+n8n/data/
+n8n/binaryData/
+n8n/nodes/
+n8n/

@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushBut
                             QApplication, QMessageBox, QFileDialog, QPlainTextEdit, QLineEdit, QToolButton)
 from PyQt5.QtGui import QFont, QTextCursor, QIcon
 from PyQt5.QtCore import Qt
+from .widgets.agentIA_modal import AgentIA
 import pathlib
 
 class FirewallRulesTab(QWidget):
@@ -128,6 +129,10 @@ class FirewallRulesTab(QWidget):
 
 
         editor_buttons_layout.addWidget(self.check_reset_rules)
+        
+        # Agent IA
+        
+        
         editor_buttons_layout.addStretch(1)
         rules_layout.addLayout(editor_buttons_layout)
         main_layout.addWidget(rules_box)
@@ -137,16 +142,21 @@ class FirewallRulesTab(QWidget):
         self.btn_save = QPushButton("Save Rules")
         self.btn_save_as = QPushButton("Save As...")
         self.btn_load = QPushButton("Open Rules")
+        self.btn_agent = QPushButton("Chat with IA")
+        
 
         file_buttons_layout.addStretch(1)
         file_buttons_layout.addWidget(self.btn_save)
         file_buttons_layout.addWidget(self.btn_save_as)
         file_buttons_layout.addWidget(self.btn_load)
+        file_buttons_layout.addWidget(self.btn_agent)
         file_buttons_layout.addStretch(1)
 
         self.btn_save.clicked.connect(self._save_rules)
         self.btn_save_as.clicked.connect(self._save_rules_as)
         self.btn_load.clicked.connect(self._open_rules)
+        self.btn_agent.clicked.connect(self._open_AgentIA_Dialog)
+        
         
         
         self.output_box = QGroupBox("Output and Active Rules")
@@ -373,3 +383,8 @@ class FirewallRulesTab(QWidget):
         new_size = max(7, font.pointSize() + delta)
         font.setPointSize(new_size)
         self.text_editor_rules.setFont(font)
+
+    def _open_AgentIA_Dialog(self):
+        dialog = AgentIA(self.container_manager, self.config, parent=self)
+        dialog.exec()
+        

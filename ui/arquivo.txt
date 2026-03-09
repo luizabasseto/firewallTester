@@ -1,0 +1,64 @@
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD ACCEPT
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to 172.16.2.3
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j DNAT --to 172.16.2.3
+iptables -t nat -A PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to 172.16.2.4
+
+# lan1 cliente
+iptables -A FORWARD -o eth1 -m state --state NEW,INVALID -j DROP
+iptables -A OUTPUT -o eth1 -m state  --state NEW,INVALID -j DROP
+
+#lan2
+#host 3 - http https
+iptables -A FORWARD -i eth1 -o eth2 -p tcp --dport 22 -j ACCEPT
+iptables -A FORWARD -o eth2 -d 172.16.2.3 -p tcp --dport 80 -j ACCEPT
+iptables -A FORWARD -o eth2 -d 172.16.2.3 -p tcp --dport 443 -j ACCEPT
+iptables -A FORWARD -o eth2 -d 172.16.2.3 -m state --state NEW,INVALID -j DROP
+
+iptables -A OUTPUT -o eth2 -d 172.16.2.3 -p tcp --dport 80 -j ACCEPT
+iptables -A OUTPUT -o eth2 -d 172.16.2.3 -p tcp --dport 443 -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+iptables -A OUTPUT -o eth2 -d 172.16.2.3 -m state --state NEW,INVALID -j DROP
+
+#host 4 - dns
+iptables -A FORWARD -i eth1 -o eth2 -p tcp --dport 22 -j ACCEPT
+iptables -A FORWARD -o eth2 -d 172.16.2.4 -p udp --dport 53 -j ACCEPT
+iptables -A FORWARD -o eth2 -d 172.16.2.4 -m state --state NEW,INVALID -j DROP
+iptables -A OUTPUT -o eth2 -d 172.16.2.4 -p udp  --dport 53 -j ACCEPT
+iptables -A INPUT -p udp --dport 53 -j ACCEPT
+iptables -A OUTPUT -o eth2 -d 172.16.2.4 -m state --state NEW,INVALID -j DROP
+
+# DMZ cliente
+iptables -A FORWARD -i eth2 -o eth0 -p tcp --dport 80 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth0 -p tcp --dport 443 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth0 -p udp --dport 53 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth0 -m state --state NEW,INVALID -j DROP
+
+# firewall
+
+# servidor
+iptables -A INPUT -i eth1 -s 10.1.0.1 -p tcp --dport 23 -j ACCEPT
+iptables -A INPUT -i eth1 -s 10.1.0.1 -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT ! -i eth0 -p icmp -j ACCEPT
+iptables -A INPUT -m state --state NEW,INVALID -j DROP
+iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+
+# cliente
+iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT
+iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
+iptables -A INPUT ! -i eth0 -p icmp -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# entre as redes
+iptables -A FORWARD -p tcp --dport 23 -j DROP
+iptables -A FORWARD -p udp --dport 161 -j DROP
+
+
+
+

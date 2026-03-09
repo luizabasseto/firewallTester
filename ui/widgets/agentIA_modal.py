@@ -28,12 +28,10 @@ class AgentIA(QDialog):
         self.setMinimumSize(500, 500)
         self.setLayout(QVBoxLayout())
 
-        # === Message Area ===
         self.msg_area = QTextEdit()
         self.msg_area.setReadOnly(True)
         self.layout().addWidget(self.msg_area)
 
-        # === Input Area ===
         input_layout = QHBoxLayout()
 
         self.entry = QLineEdit()
@@ -48,7 +46,6 @@ class AgentIA(QDialog):
 
         self.layout().addLayout(input_layout)
 
-        # === Bottom Buttons ===
         buttons_layout = QHBoxLayout()
 
         btn_clear = QPushButton("Clear chat")

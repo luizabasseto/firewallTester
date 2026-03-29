@@ -9,11 +9,12 @@ to analyze and explain firewall rules.
 import os
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                             QComboBox, QGroupBox, QTextEdit, QCheckBox, QMessageBox,
-                            QApplication, QMessageBox, QFileDialog, QPlainTextEdit, QLineEdit, QToolButton)
+                            QApplication, QMessageBox, QFileDialog, QDockWidget, QTextBrowser, QLineEdit, QToolButton)
 from PyQt5.QtGui import QFont, QTextCursor, QIcon
 from PyQt5.QtCore import Qt
 from .widgets.agentIA_modal import AgentIA
 import pathlib
+from .widgets.line_editor_with_agent import CodeEditor
 
 class FirewallRulesTab(QWidget):
     """A QWidget for managing firewall rules on selected container hosts."""
@@ -114,9 +115,20 @@ class FirewallRulesTab(QWidget):
 
         rules_layout.addLayout(editor_toolbar)
         
-        self.text_editor_rules = QPlainTextEdit()
+        self.text_editor_rules = CodeEditor()
         self.text_editor_rules.setFont(QFont("Consolas", 11))
-        rules_layout.addWidget(self.text_editor_rules)
+        
+        editor_ai_layout = QHBoxLayout()
+        self.ai_output = QTextBrowser()
+        self.ai_output.setMinimumWidth(200)
+
+        editor_ai_layout.addWidget(self.text_editor_rules, 3)
+        editor_ai_layout.addWidget(self.ai_output, 2)
+        
+        self.text_editor_rules.line_number_area.setOutputWidget(self.ai_output)
+
+        rules_layout.addLayout(editor_ai_layout)
+        
         editor_buttons_layout = QHBoxLayout()
         self.check_reset_rules = QCheckBox("Reset rules before applying")
 
@@ -127,11 +139,7 @@ class FirewallRulesTab(QWidget):
         btn_zoom_in.clicked.connect(lambda: self._zoom_editor_font(+1))
         btn_zoom_out.clicked.connect(lambda: self._zoom_editor_font(-1))
 
-
         editor_buttons_layout.addWidget(self.check_reset_rules)
-        
-        # Agent IA
-        
         
         editor_buttons_layout.addStretch(1)
         rules_layout.addLayout(editor_buttons_layout)
@@ -156,8 +164,6 @@ class FirewallRulesTab(QWidget):
         self.btn_save_as.clicked.connect(self._save_rules_as)
         self.btn_load.clicked.connect(self._open_rules)
         self.btn_agent.clicked.connect(self._open_AgentIA_Dialog)
-        
-        
         
         self.output_box = QGroupBox("Output and Active Rules")
         output_layout = QVBoxLayout(self.output_box)

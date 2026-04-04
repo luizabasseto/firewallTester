@@ -7,7 +7,7 @@ load_dotenv()
 
 API_URL = os.getenv("AGENT_API_URL")
 
-def ask_to_agent(ask):
+def ask_to_agent(ask, file_path=None):
     
     payload = {
         "chatInput": ask,
@@ -17,7 +17,13 @@ def ask_to_agent(ask):
     print(f"Trying to talk with the servidor...")
 
     try:
-        response = requests.post(API_URL, json=payload, timeout=60)
+        if file_path and os.path.exists(file_path):
+            with open(file_path, 'rb') as f:
+                files = {'arquivo_enviado': (os.path.basename(file_path), f)}
+                
+                response = requests.post(API_URL, data=payload, files=files, timeout=60)
+        else:
+            response = requests.post(API_URL, json=payload, timeout=60)
         
         if response.status_code == 200:
             dados = response.json()
@@ -42,8 +48,14 @@ def ask_to_agent(ask):
 
 if __name__ == "__main__":
     pergunta = input("What is your doubt? \n")
+    
+    caminho_arquivo = input("Digite o caminho do arquivo (PDF, JSON, etc) ou aperte ENTER para enviar sem arquivo: \n").strip()
+    
     retorno = ""
-    if(pergunta):
-        retorno = ask_to_agent(pergunta)
-        
-    print(f"\n Answer: \n{retorno}" )
+    if pergunta:
+        if caminho_arquivo:
+            retorno = ask_to_agent(pergunta, file_path=caminho_arquivo)
+        else:
+            retorno = ask_to_agent(pergunta)
+            
+    print(f"\n Answer: \n{retorno}")

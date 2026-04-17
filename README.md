@@ -1,46 +1,140 @@
 # Firewall Tester
 
-This software was developed to enhance network security through practical and efficient firewall testing. More than just a testing tool, it serves as a valuable educational resource, designed to simplify and improve the learning process about firewalls. With an intuitive and interactive interface, students can visualize and experiment with firewall rule creation and application, making complex concepts easier to understand and fostering deeper, more effective learning.
+Este software foi desenvolvido para aprimorar a segurança de redes por meio de testes de firewall práticos e eficientes. Mais do que uma simples ferramenta de teste, ele também atua como um valioso recurso educacional, projetado para simplificar e melhorar o processo de aprendizagem sobre firewalls. Com uma interface intuitiva e interativa, os estudantes podem visualizar e experimentar a criação e aplicação de regras de firewall, tornando conceitos complexos mais fáceis de compreender e promovendo um aprendizado mais profundo e eficaz.
 
-The software enables the creation of network scenarios using [GNS3](https://www.gns3.com/). Hosts within the scenario should utilize Docker images to create containers for firewall testing (this version of the software supports only containers). Once the network scenario is set up in GNS3 and all hosts are powered on, you can launch the firewall rule testing software on the host running the containers. This software provides a graphical interface that allows you to:
+O software permite a criação de cenários de rede utilizando o GNS3. Os hosts dentro do cenário devem utilizar imagens Docker para a criação de contêineres destinados aos testes de firewall (esta versão do software suporta apenas contêineres). Após a configuração do cenário de rede no GNS3 e a inicialização de todos os hosts, é possível executar o software de testes de regras de firewall na máquina que está rodando os contêineres. O sistema oferece uma interface gráfica que permite:
 
-- Create firewall tests;  
-- Define and edit firewall rules on the scenario's hosts;  
-- Add and remove ports that represent network services to be tested;  
+* Criar testes de firewall;
+* Definir e editar regras de firewall nos hosts do cenário;
+* Adicionar e remover portas que representam serviços de rede a serem testados;
 
-Additionally, the software allows you to save test results and rerun them later, for example, on another computer.
+Além disso, o software permite salvar os resultados dos testes e executá-los novamente posteriormente, por exemplo, em outro computador.
 
-## Project Organization
+
+## Estrutura do Repositório
+
+O repositório está organizado da seguinte forma:
 
 ```
 firewallTester/
-├── assets/
-├── core/
-├── docker/
-├── gns3_projects/
-├── ui/
-├── main.py
-├── requirements.txt
-
+├── assets/            # Imagens e arquivos auxiliares
+├── core/              # Lógica principal da aplicação
+├── docker/            # Configurações relacionadas aos contêineres
+├── gns3_projects/     # Projetos de exemplo para uso no GNS3
+├── ui/                # Interface gráfica do usuário
+├── main.py            # Arquivo principal para execução
+├── requirements.txt   # Dependências do projeto
 ```
 
-## License
 
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License or (at your option) any later version.
+## Selos Considerados
 
-This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**. See the GNU General Public License for more details.
+Os selos considerados para avaliação deste artefato são:
 
-You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+* Disponível
+* Funcional
+* Reprodutível
 
-## Contact
+## Informações Básicas
 
-This software was developed by **Luiz Arthur Feitosa dos Santos**, professor at **UTFPR (Federal Technological University of Paraná) - Campo Mourão, Brazil**. 
-Email: <luiz.arthur.feitosa.santos@gmail.com> | <luizsantos@utfpr.edu.br>.
-And forked by **Luiza Batista Basseto**, student at  **UTFPR (Federal Technological University of Paraná) - Campo Mourão, Brazil**. Email: <luizabasseto.1@gmail.com> | <luizabatista@alunos.utfpr.edu.br>.
+Para execução do artefato, recomenda-se o seguinte ambiente:
 
-## Tutorial de Configuração
+### Requisitos de Hardware
 
-Assista ao vídeo de tutorial (https://www.youtube.com/watch?v=qyCBiV2q7rA) ou siga ao tutorial disponibilizado após ele.
+Este projeto depende da execução simultânea de:
+
+* Topologias de rede no GNS3;
+* Containers Docker;
+* Possivelmente múltiplos hosts simulados;
+* Aplicação desenvolvida em Python.
+
+Assim, para garantir o funcionamento adequado do FirewallTester, especialmente durante a execução de topologias de rede no GNS3 com múltiplos nós em Docker, recomenda-se que a máquina host atenda aos seguintes requisitos que estão divididos em mínimo/recomendado:
+
+* CPU: 4 núcleos / 8 núcleos;
+* Memória RAM: 8 GB / 16 GB ou mais;
+* Armazenamento: 20 GB / 50 GB+ livre (SSD recomendável);
+* Virtualização: Suporte a VT-x/AMD-V habilitado na BIOS.
+
+### Requisitos de Software
+
+* Python 3.10 ou superior
+* Docker
+* GNS3
+* VirtualBox (para execução da VM do GNS3)
+
+
+### Dependências
+
+As dependências do projeto estão listadas no arquivo `requirements.txt`.
+
+Para instalá-las, execute:
+
+```bash
+pip3 install -r requirements.txt
+```
+Caso ocorra erro na instalação, será necessário instalar e ativar um ambiente virtual Python, executando os seguintes comandos:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+Além disso, é necessário:
+
+* Utilizar o GNS3 para criação dos cenários de rede
+* Utilizar contêineres Docker como hosts e firewalls
+
+Caso utilize a máquina virtual fornecida, ela já contém parte das dependências configuradas.
+
+
+### Preocupações com Segurança
+
+Este software executa comandos de firewall (como regras `iptables`) dentro de contêineres Docker.
+
+Para garantir a segurança durante a execução:
+
+* Utilize ambientes isolados (como máquinas virtuais);
+* Evite executar o software diretamente no sistema host com privilégios elevados;
+* Não exponha portas desnecessárias para redes externas;
+* Utilize apenas cenários controlados para testes.
+
+
+## Instalação
+
+Siga os passos abaixo para instalar e executar o projeto:
+
+1. Clone o repositório:
+
+```bash
+git clone https://github.com/luizabasseto/firewallTester.git
+cd firewallTester
+```
+
+2. Crie um ambiente virtual (opcional, mas recomendado):
+
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+3. Instale as dependências:
+
+```bash
+pip3 install -r requirements.txt
+```
+
+4. Execute a aplicação:
+
+```bash
+python3 main.py
+```
+
+
+## Teste Mínimo e Experimentação
+
+Este tutorial tem como objetivo evidenciar um teste minímo da ferramenta.
+
+Assista ao vídeo de tutorial (https://www.youtube.com/watch?v=qyCBiV2q7rA) ou siga os passos disponibilizado após ele.
 
 [![Assista ao vídeo](https://img.youtube.com/vi/qyCBiV2q7rA/0.jpg)](https://www.youtube.com/watch?v=qyCBiV2q7rA)
 
@@ -48,7 +142,7 @@ Assista ao vídeo de tutorial (https://www.youtube.com/watch?v=qyCBiV2q7rA) ou s
 
 Antes de abrir o software, configure seu ambiente virtual.
 
-- Baixe a máquina virtual do VirtualBox, disponível em:  
+- Baixe o VirtualBox, disponível em:  
   https://www.virtualbox.org/wiki/Downloads
 - Instale a VM do GNS3 usando o arquivo disponível em: https://drive.google.com/drive/folders/1IWIF4bGQZ7yR9pshSHVH1eTzxMzTgrOu?usp=sharing.
 - Após concluir a instalação, configure as configurações de rede.
@@ -118,3 +212,27 @@ Clique em **Add** para colocar o teste na fila.
 - **Azul (Blocked):** Bloqueado era o esperado e a conexão falhou. O firewall funcionou. O teste passou.
 - **Vermelho (Failed):** O resultado real foi diferente do esperado (ex.: você esperava que fosse bloqueado, mas foi permitido).
 - **Amarelo (Error):** Erro técnico (ex.: host desligado, rota inexistente, erro no script Python).
+
+
+## Licença
+
+Este programa é um software livre: você pode redistribuí-lo e/ou modificá-lo sob os termos da Licença Pública Geral GNU (GNU General Public License), conforme publicada pela Free Software Foundation, seja na versão 3 da licença ou (a seu critério) qualquer versão posterior.
+
+Este programa é distribuído na esperança de que seja útil, mas **SEM QUALQUER GARANTIA**; sem mesmo a garantia implícita de **COMERCIALIZAÇÃO** ou **ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA**. Consulte a Licença Pública Geral GNU para mais detalhes.
+
+Você deve ter recebido uma cópia da Licença Pública Geral GNU junto com este programa. Caso contrário, consulte: [https://www.gnu.org/licenses/](https://www.gnu.org/licenses/)
+
+
+## Contato
+
+Desenvolvido por:
+
+**Luiz Arthur Feitosa dos Santos**
+Professor na UTFPR – Campo Mourão
+
+Email: [luiz.arthur.feitosa.santos@gmail.com](mailto:luiz.arthur.feitosa.santos@gmail.com)
+
+**Luiza Batista Basseto**
+Estudante na UTFPR – Campo Mourão
+
+Email: [luizabasseto.1@gmail.com](mailto:luizabasseto.1@gmail.com)

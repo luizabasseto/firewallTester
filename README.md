@@ -63,7 +63,7 @@ O ecossistema do FirewallTester depende da integração de diversas ferramentas.
 
 * Python 3.10 ou superior;
 * Docker;
-* GNS: para o pleno funcionamento do simulador, pode ser necessária a instalação de dependências como o [ubridge](https://github.com/GNS3/ubridge) e o [libvirt](https://libvirt.org/). Além disso, é preciso instalar e configurar os _appliances_ que representarão os _hosts_ na topologia — a escolha destes depende dos cenários e elementos de rede que se deseja emular;
+* GNS3: para o pleno funcionamento do simulador, pode ser necessária a instalação de dependências como o [ubridge](https://github.com/GNS3/ubridge) e o [libvirt](https://libvirt.org/). Além disso, é preciso instalar e configurar os _appliances_ que representarão os _hosts_ na topologia — a escolha destes depende dos cenários e elementos de rede que se deseja emular;
 * [VirtualBox](https://www.virtualbox.org/) (opcional): recomendado para a execução da VM do FirewallTester devidamente instalado e configurado (GNS3, Docker, _appliances_, etc), proporcionando uma experiência de uso mais simplificada e amigável.
 
 

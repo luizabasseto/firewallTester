@@ -24,13 +24,13 @@ from scapy.all import IP, ICMP, sr1
 def validar_host(host):
     """Checks if a hostname can be resolved."""
     try:
-        socket.gethostbyname(host)  # Tenta resolver o nome do host
-        return True  # Host válido
+        socket.gethostbyname(host)  # Try to resolve the hostname.
+        return True  # Valid Host
     except socket.gaierror:
-        return False  # Host inválido
+        return False  # Invalid Host
 
 def ping(host, count):
-    """Envia pacotes ICMP Echo Request e verifica a resposta."""
+    """It sends ICMP Echo Request packets and checks for the response."""
     received = 0
     # The count is ignored; only one ping is sent per test run.
     count = 1
@@ -38,13 +38,12 @@ def ping(host, count):
         print(f"\nPING {host}:")
     for seq in range(1, count + 1):
         if not validar_host(host):
-            #print(f"Erro: O host {host} não é valido no cliente no módulo scapy")
             return -1 # TODO - colocar o valor -1 para caso de erro e colocar uma msg no status
 
         packet = IP(dst=host) / ICMP()
         start_time = time.time()
 
-        reply = sr1(packet, timeout=1, verbose=False)  # Envia o pacote e aguarda resposta
+        reply = sr1(packet, timeout=1, verbose=False)  # Send the package and wait for a response.
 
         if reply:
             elapsed_time = (time.time() - start_time) * 1000
@@ -59,10 +58,10 @@ def ping(host, count):
     return received
 
 def calcular_diferenca_timestamp(timestamp_envio, timestamp_recebido):
-    """Calcula a diferença entre dois timestamps no formato ISO 8601 em milissegundos."""
+    """Calculates the difference between two timestamps in ISO 8601 format in milliseconds."""
     t1 = datetime.fromisoformat(timestamp_envio)
     t2 = datetime.fromisoformat(timestamp_recebido)
-    diferenca = (t2 - t1).total_seconds() * 1000  # Converter para milissegundos
+    diferenca = (t2 - t1).total_seconds() * 1000  # Convert to milliseconds
     return diferenca
 
 # Configuração dos argumentos de linha de comando

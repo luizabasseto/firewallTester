@@ -1,0 +1,65 @@
+services:
+  firewall:
+    image: luizarthur/cyberinfra:firewall_tester
+    container_name: firewall-1
+    hostname: firewall-1
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      internal:
+        ipv4_address: 10.0.10.254
+      external:
+        ipv4_address: 10.0.20.254
+    command: >
+      sh -c "
+      ip route add 10.0.10.0/24 dev eth0 || true;
+      ip route add 10.0.20.0/24 dev eth1 || true;
+      tail -f /dev/null
+      "
+
+  client:
+    image: luizarthur/cyberinfra:firewall_tester
+    container_name: host-1
+    hostname: host-1
+    cap_add:
+      - NET_ADMIN
+    networks:
+      internal:
+        ipv4_address: 10.0.10.10
+    command: >
+      sh -c "
+      ip route del default || true;
+      ip route add default via 10.0.10.254;
+      tail -f /dev/null
+      "
+
+  server:
+    image: luizarthur/cyberinfra:firewall_tester
+    container_name: host-2
+    hostname: host-2
+    cap_add:
+      - NET_ADMIN
+    networks:
+      external:
+        ipv4_address: 10.0.20.10
+    command: >
+      sh -c "
+      ip route del default || true;
+      ip route add default via 10.0.20.254;
+      tail -f /dev/null
+      "
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.10.0/24
+
+  external:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.20.0/24

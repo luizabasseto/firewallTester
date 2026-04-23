@@ -29,7 +29,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY etc/firewall.sh /etc/
-COPY etc/reset_firewall.sh /etc/
+COPY docker_infra/etc/firewall.sh /etc/
+COPY docker_infra/etc/reset_firewall.sh /etc/
 
 CMD ["tail", "-f", "/dev/null"]

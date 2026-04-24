@@ -212,6 +212,28 @@ pip3 install -r requirements.txt
 
 Concluída a instalação, o **FirewallTester** estará pronto para uso. Para executá-lo, utilize o comando `python3 main.py` dentro do diretório do projeto.
 
+#### Execução mínima
+
+> Nota: Para este processo, não há necessidade da VM e nem do GNS3, apenas do Docker.
+
+ 1.  Execute os containers que simulam cliente, _firewall_ e servidor:
+
+		    cd docker_infra/
+		    
+		    docker compose up -d --build
+
+		Observação: Esse processo pode levar alguns minutos na primeira execução.
+
+  2. Volte para a raiz do projeto e execute o software:
+
+		    cd ..
+		    
+		    source venv/bin/activate # opcional, apenas se estiver com o ambiente virtual ativo
+		    
+		    python3 main.py
+
+3. Siga o passo a passo, a partir da etapa 3, do [teste mínimo](#passo-a-passo-do-teste-mínimo) para execução dos testes.
+
 
 ### Utilizando o FirewallTester
 

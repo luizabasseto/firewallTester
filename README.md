@@ -374,7 +374,7 @@ Em suma, a organização do FirewallTester em abas especializadas oferece um flu
 
 ### Passo a passo do teste mínimo
 
-Com o intuito de ilustrar a operabilidade do **FirewallTester**, descreve-se a seguir um cenário de teste minimalista. Este exemplo foca na validação de uma regra de bloqueio SSH e na identificação de efeitos colaterais em outras rotas.
+Com o intuito de ilustrar a operabilidade do **FirewallTester**, descreve-se a seguir um cenário de teste minimalista. Este exemplo foca na validação de uma regra de bloqueio SSH e na identificação de efeitos colaterais em outros serviços.
 
 Você pode acompanhar este procedimento via **[tutorial em vídeo](https://www.youtube.com/watch?v=qyCBiV2q7rA)** ou pelas diretrizes do texto a seguir.
 

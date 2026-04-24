@@ -450,7 +450,6 @@ Você deve ter recebido uma cópia da Licença Pública Geral GNU junto com este
 
 ## Contato
 
-
 ### **Prof. Dr. Luiz Arthur Feitosa dos Santos**
 * **Instituição:** UTFPR – Campo Mourão
 * **Email:** [luiz.arthur.feitosa.santos@gmail.com](mailto:luiz.arthur.feitosa.santos@gmail.com)

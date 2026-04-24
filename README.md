@@ -384,11 +384,11 @@ Você pode acompanhar este procedimento via **[tutorial em vídeo](https://www.y
 
 A forma mais rápida de experimentar pela primeira vez o FirewallTester é utilizando a máquina virtual pré-configurada, sendo assim:
 
-* Importe o arquivo `.ova` no VirtualBox e inicie a VM.
+* Importe o arquivo [`.ova`](https://drive.google.com/drive/folders/1IWIF4bGQZ7yR9pshSHVH1eTzxMzTgrOu?usp=sharing) no VirtualBox e inicie a VM.
 
 * O **GNS3** abrirá automaticamente com o cenário base carregado.
 
-* **Importante:** Clique no botão de triângulo verde (*Start*) no GNS3 para ligar todos os nós. O **FirewallTester** só consegue interagir com _hosts_ (contêineres) do cenário de rede do GNS3, que estejam ativos.
+* **Importante:** Clique no botão de triângulo verde (*Start*) no GNS3 para ligar todos os nós. O FirewallTester só consegue interagir com _hosts_ (contêineres) do cenário de rede do GNS3, que estejam ativos.
 
 #### 2. Inicialização do Software
 
@@ -453,9 +453,13 @@ Você deve ter recebido uma cópia da Licença Pública Geral GNU junto com este
 Desenvolvido por:
 
 **Luiz Arthur Feitosa dos Santos**
+
 Professor na UTFPR – Campo Mourão
+
 Email: [luiz.arthur.feitosa.santos@gmail.com](mailto:luiz.arthur.feitosa.santos@gmail.com)
 
 **Luiza Batista Basseto**
+
 Estudante na UTFPR – Campo Mourão
+
 Email: [luizabasseto.1@gmail.com](mailto:luizabasseto.1@gmail.com)

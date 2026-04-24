@@ -1,5 +1,5 @@
 
-# Firewall Tester
+# FirewallTester
 
 Este repositório acompanha o artigo submetido ao SBRC 2026 intitulado:
 
@@ -209,23 +209,13 @@ source venv/bin/activate
 ```bash
 pip3 install -r requirements.txt
 ```
-4. Execute a aplicação:
 
-```bash
-python3 main.py
-```
+Concluída a instalação, o **FirewallTester** estará pronto para uso. Para executá-lo, utilize o comando `python3 main.py` dentro do diretório do projeto.
 
-A seguir, apresenta-se um exemplo de uso do FirewallTester utilizando a máquina virtual pré-configurada do projeto.
-  
 
-## Execução do software FirewallTester
+### Utilizando o FirewallTester
 
-Este tutorial tem como objetivo apresentar um teste mínimo da ferramenta.
-
-Assim, para isso, assista ao vídeo de tutorial (https://www.youtube.com/watch?v=qyCBiV2q7rA) ou siga os passos disponibilizado no texto a seguir.
-
-[![Assista ao vídeo](https://img.youtube.com/vi/qyCBiV2q7rA/0.jpg)](https://www.youtube.com/watch?v=qyCBiV2q7rA)
-
+Com o ecossistema composto por Docker, GNS3 e FirewallTester devidamente instalado e configurado, a ferramenta está pronta para a validação de regras de segurança. Nas seções a seguir, detalhamos a interface do software, descrevendo as funcionalidades de cada aba e suas respectivas aplicações nos cenários de teste.
 
 ### Criação e Configuração do Cenário de Rede no GNS3
 
@@ -246,270 +236,226 @@ Após abrir o projeto de rede GNS3 já existente e configurado, basta abrir o pr
 Se desejar criar sua própria topologia, siga estes passos fundamentais:
 
 1. **Criação do Projeto:** No GNS3, crie um novo projeto em branco (`File -> New blank project`) e atribua um nome a ele.
+
 2. **Montagem da Topologia:** Arraste os elementos de rede para a área de trabalho e conecte-os utilizando os cabos virtuais.
     * **Uso de Imagens Docker do FirewallTester (Obrigatório):** Para que o FirewallTester consiga controlar o envio e recebimento de pacotes, todos os nós (clientes e *firewalls*) devem obrigatoriamente utilizar a imagem Docker específica do projeto FirewallTester (conforme detalhado na seção anterior). 
     * **Nota sobre compatibilidade:** É possível incluir *firewalls* ou elementos de rede que utilizem outras imagens; todavia, a ferramenta não terá controle sobre eles para a geração ou captura de tráfego de rede para os testes.
+
 3. **Endereçamento e Roteamento:** Configure os endereços IP e as tabelas de roteamento diretamente no GNS3, seja via terminal ou pelo menu *Edit Config* de cada nó. 
     > **Importante:** O FirewallTester **não gerencia configurações de rede** (IPs, rotas, NAT, etc); sua função limita-se exclusivamente à validação das regras de _firewall_.
 
 
 ### Inicializando o FirewallTester
 
-- Com a simulação do GNS3 em execução (botão _Play_ pressionado).
+Após a preparação da topologia e do ambiente de execução, o próximo passo é estabelecer a comunicação entre o FirewallTester e o ecossistema do GNS3. Este processo permite que a ferramenta identifique os ativos da rede e mapeie os pontos de origem e destino para a geração de tráfego, permitindo validar se o _firewall_ está operando em conformidade com as políticas de segurança estabelecidas.
 
-- Abra o software através da interface gráfica.
+Para inicializar a ferramenta corretamente, siga as etapas a seguir:
 
-- Assim que iniciado, o software fará a varredura dos componentes dos contêineres.
+1.  **Ative a Simulação:** Certifique-se de que a simulação no GNS3 esteja em execução (botão *Start/Play* pressionado e nós com indicadores verdes).
 
-- Verifique a barra de status inferior ou a aba **Hosts**. Você deve ver seus contêineres listados (ex.: `host-1`, `firewall-1`).
+2.  **Abra a Interface Gráfica:** Inicie o software FirewallTester. Ao abrir, a interface principal será exibida, conforme ilustrado na **Figura 1**.
 
-- Se a lista estiver vazia, clique em **Refresh Hosts**.
+3. **Execução e Varredura Automática:** Ao iniciar o software, ele realizará automaticamente a identificação dos contêineres ativos no GNS3. O método de inicialização depende do seu ambiente:
+    * Execute o comando `python3 main.py` dentro do diretório do projeto via terminal.
+    * Clique no ícone do **FirewallTester** disponível na barra de tarefas (inicialização rápida) ou no menu principal do sistema, se estiver utilizando a VM do FirewallTester.
+
+4.  **Verificação de Dispositivos:** Verifique a barra de status inferior ou acesse a aba **Hosts**. Você deverá visualizar a listagem de todos os seus contêineres (ex.: `host-1`, `firewall-1`).
+
+5.  **Sincronização Manual:** Caso a lista de dispositivos apareça vazia, clique no botão **Refresh Hosts** para forçar uma nova detecção dos componentes da rede.
+
+<img width="1209" height="694" alt="image" src="[https://github.com/user-attachments/assets/adbc60d9-dad9-452f-ae91-178c4a0d2347](https://github.com/user-attachments/assets/adbc60d9-dad9-452f-ae91-178c4a0d2347)" />
+
+**Figura 1:** Interface gráfica do FirewallTester exibindo a aba de gerenciamento de Hosts.
+
+
+A seguir, detalham-se as principais funcionalidades de cada aba da interface do FirewallTester.
+
+### Aba _Hosts_
+
+A aba **Hosts**, ver Figura 1, é a interface responsável pelo gerenciamento e visualização de todos os ativos de rede detectados no ambiente do GNS3. É através dela que o usuário estabelece a base para os testes de conectividade e segurança.
+
+As principais funcionalidades desta aba incluem:
+
+* **Inventário de Dispositivos:** Lista todos os contêineres Docker ativos na topologia (clientes, servidores e *firewalls*). Cada dispositivo é identificado pelo nome definido no projeto do GNS3 (ex: `host-1`, `firewall-01`).
+
+* **Sincronização de Ambiente (_Refresh Hosts_):** Permite forçar uma nova varredura no GNS3 para detectar nós que foram iniciados após a abertura do **FirewallTester**, garantindo que a lista de alvos esteja sempre atualizada.
+
+* **Definição de Serviços de Rede:** Permite determinar quais serviços estarão disponíveis para teste em cada host. No contexto da ferramenta, esses serviços são representados por **portas TCP/UDP**, que podem ser adicionadas ou removidas para simular aplicações reais (como HTTP na porta 80 ou SSH na porta 22).
+
+* **Configuração de Alvos:** Ao definir as portas em cada host, o usuário mapeia os pontos de escuta que o **FirewallTester** utilizará para verificar se o tráfego está sendo corretamente permitido ou bloqueado pelo *firewall*.
+
+Em resumo, a aba **Hosts** não apenas identifica "quem" está na rede, mas também estabelece "quais portas" serão testadas, servindo como a base de configuração essencial para o motor de testes da aplicação.
+
+### Aba *Firewall Rules*
+
+A aba ***Firewall Rules*** funciona como a central de gerência de políticas de segurança do projeto. Como ilustrado na **Figura 2**, esta interface fornece um ambiente completo para a redação, instalação e manutenção de regras de filtragem (como as do *iptables*) diretamente nos nós de *firewall* ativos no GNS3.
+
+<img width="1279" height="775" alt="image" src="[https://github.com/user-attachments/assets/c10090a2-2ce7-46e7-8bda-6079341f2644](https://github.com/user-attachments/assets/c10090a2-2ce7-46e7-8bda-6079341f2644)" />
+
+**Figura 2:** Interface de gerenciamento e edição de regras de *firewall*.
+
+As principais funcionalidades desta interface incluem:
+
+* **Editor de Regras Integrado:** Oferece um editor de texto dedicado que torna o trabalho de redigir políticas de segurança mais amigável e organizado do que o terminal padrão do GNS3.
+
+* **Implantação de Regras:** Permite enviar as regras redigidas diretamente para o _host_ selecionado como *firewall* no cenário. Por padrão, a ferramenta oferece a opção de **limpar as regras anteriores** antes de aplicar o novo conjunto, garantindo que não haja conflitos de políticas.
+
+* **Consulta em Tempo Real:** Fornece a funcionalidade de **listar as regras atuais**, permitindo que o usuário visualize o que está efetivamente instalado e rodando no _host_ remoto sem sair da aplicação.
+
+* **Persistência e Portabilidade:** Inclui recursos para **salvar** o conjunto de regras redigido no _host_ hospedeiro ou **carregar** arquivos com regras de firewall previamente salvas, facilitando a reutilização de cenários de teste.
+
+Dessa forma, o **FirewallTester** atua não apenas como um testador, mas como uma interface de controle, eliminando a necessidade de interação direta via linha de comando nos terminais individuais dos contêineres para a configuração das regras de _firewall_.
+
+### Aba *Firewall Tests*
+
+A aba ***Firewall Tests*** é o ambiente onde o usuário planeja e configura os procedimentos de validação de regras de Firewall. Como ilustrado na **Figura 3**, esta interface permite criar, editar e gerenciar uma lista de casos de teste que verificarão se a política de segurança do *firewall* está sendo efetivamente aplicada.
+
+<img width="947" height="470" alt="image" src="[https://github.com/user-attachments/assets/5ecc1b3f-7f52-4128-8109-49c93df17fb3](https://github.com/user-attachments/assets/5ecc1b3f-7f52-4128-8109-49c93df17fb3)" />
+
+**Figura 3:** Interface de configuração e planejamento dos casos de teste.
+
+Nesta aba, o usuário define os parâmetros fundamentais para a execução das validações:
+
+* **Definição do Escopo do Teste:** Especificam-se os *hosts* de origem e destino, o protocolo utilizado (**TCP**, **UDP** ou **ICMP**) e a porta de destino. 
+
+* **Suporte a Testes Externos:** No caso do protocolo ICMP, a ferramenta permite validar a conectividade via *ping* com nós externos. Isso possibilita testar inclusive a comunicação direta com *hosts* da Internet, expandindo a validação para além da rede local.
+
+* **Ação Esperada (*Expected Result*):** Para cada teste, o usuário define se o resultado esperado é **Liberado** ou **Bloqueado**. Essa definição é essencial para que o software determine automaticamente se a regra de *firewall* está cumprindo o seu propósito.
+
+* **Gerenciamento e Repetibilidade:** As regras configuradas compõem uma tabela interativa que suporta operações de **edição**, **exclusão** e **exportação**. Essas funcionalidades garantem a organização dos cenários e permitem que as validações sejam repetidas com precisão em diferentes momentos ou ambientes.
+
+Em resumo, a aba **Firewall Tests** organiza a inteligência dos testes, permitindo que o usuário mapeie fluxos internos e externos para auditar rigorosamente o comportamento do *firewall*.
+
+#### Execução e Análise de Resultados
+
+Após a definição dos casos de teste, o FirewallTester permite validar a política de segurança de forma dinâmica e intuitiva. A execução pode ser realizada de duas maneiras, oferecendo flexibilidade ao administrador de rede:
+
+1.  **Execução Unitária:** Permite disparar um único teste específico (uma linha da tabela). Esta função é ideal para validar correções pontuais em regras de *firewall* sem a necessidade de reprocessar todo o cenário.
+
+2.  **Execução em Lote (Todos os Testes):** O software percorre toda a lista de testes sequencialmente. Esta funcionalidade é fundamental para garantir a **não regressão** da segurança, ou seja, para verificar se uma nova regra inserida para liberar um serviço não acabou bloqueando indevidamente outro fluxo que já estava funcionando.
+
+#### Feedback Visual e Diagnóstico
+
+A interface utiliza um sistema de cores e termos padronizados para fornecer um diagnóstico imediato sobre o estado de cada regra (conforme exemplificado na **Figura 3**):
+
+* **Verde ou Azul (`Pass`):** Indica que o comportamento do tráfego está em conformidade com o planejado. Por exemplo, um teste marcado em verde confirma que um acesso permitido (ex. HTTP) foi realizado com sucesso, enquanto o azul valida que um bloqueio pretendido (ex. SSH) foi efetivamente executado pelo *firewall*.
+
+* **Vermelho (`Fail`):** Sinaliza uma falha de conformidade. Ocorre quando o resultado real é oposto ao esperado (ex. um fluxo que deveria estar livre foi bloqueado por uma regra genérica).
+
+* **Amarelo (`Error`):** Indica que ocorreu um erro técnico na execução do teste, como a impossibilidade de alcançar um *host* ou uma falha de configuração na interface de rede, impedindo a conclusão da análise.
+
+> **Ciclo de Teste Contínuo:** Com esse *feedback* visual, o administrador pode refinar as regras no *firewall* e reexecutar as validações instantaneamente. Esse processo substitui a complexidade do terminal por um ciclo ágil de correção e verificação, garantindo que a implementação final atinja plena conformidade com o planejamento lógico de segurança.
+
+### Aba _Settings_ (Configurações)
+
+Esta é uma aba técnica fundamental para a correta integração entre o software e o sistema de arquivos dos contêineres Docker e do _host_ hospedeiro. Nela, o usuário define os caminhos e diretórios que regem o comportamento da ferramenta, tais como:
+
+* **Caminhos de Binários:** Onde estão localizados os _scripts_ e softwares de cliente/servidor (usados para gerar e receber tráfego) dentro dos contêineres.
+
+* **Repositório de Regras:** O diretório padrão para salvar e carregar os conjuntos de regras de *firewall* redigidos na aplicação.
+
+* **Logs e Exportação:** Definição de onde serão armazenados os relatórios de testes e capturas de pacotes.
+
+Essa centralização permite que o FirewallTester seja facilmente adaptado para novos cenários ou versões de imagens Docker sem a necessidade de alterar o código-fonte da aplicação.
+
+> Nota: Por padrão, as definições de diretórios atendem a todos os requisitos do projeto. A edição desses campos é opcional e voltada apenas para casos onde o usuário deseje adaptar o software a uma estrutura de arquivos personalizada.
+
+### Aba _Help_ (Ajuda)
+
+A aba _Help_ atua como um guia de suporte rápido para o usuário, fornecendo informações sobre atalhos de teclado que agilizam a operação da ferramenta, orientações sobre o fluxo de trabalho e _links_ diretos para a página oficial e repositório do projeto.
+
+### Aba _About_ (Sobre)
+
+Nesta aba, são apresentadas as informações institucionais do projeto. Nela constam a versão atual do software, os créditos de desenvolvimento, informações de licença e o contato dos autores. Além disso, fornece o _link_ para o repositório oficial, permitindo que a comunidade acadêmica e técnica acompanhe a evolução da ferramenta e contribua com o seu desenvolvimento.
+
+
+Em suma, a organização do FirewallTester em abas especializadas oferece um fluxo de trabalho estruturado que integra, em uma única interface, todas as etapas críticas da gestão de segurança de redes. Ao unir o inventário dinâmico de ativos, a edição direta de políticas de filtragem e um motor de testes com feedback visual imediato, a ferramenta elimina a fragmentação de tarefas entre múltiplos terminais. Essa abordagem não apenas simplifica a operação técnica, mas estabelece um ciclo de auditoria contínua e preciso, garantindo que a implementação prática das regras de firewall esteja sempre em estrita conformidade com o planejamento lógico de segurança.
 
 
 ### Passo a passo do teste mínimo
 
-**1. Subir o ambiente**
+Com o intuito de ilustrar a operabilidade do **FirewallTester**, descreve-se a seguir um cenário de teste minimalista. Este exemplo foca na validação de uma regra de bloqueio SSH e na identificação de efeitos colaterais em outras rotas.
 
-Execute os containers que simulam cliente, _firewall_ e servidor:
+Você pode acompanhar este procedimento via **[tutorial em vídeo](https://www.youtube.com/watch?v=qyCBiV2q7rA)** ou pelas diretrizes do texto a seguir.
+
+[![Assista ao vídeo](https://img.youtube.com/vi/qyCBiV2q7rA/0.jpg)](https://www.youtube.com/watch?v=qyCBiV2q7rA)
+
+#### 1. Preparação do Ambiente (Via VM)
+
+A forma mais rápida de experimentar pela primeira vez o FirewallTester é utilizando a máquina virtual pré-configurada, sendo assim:
+
+* Importe o arquivo `.ova` no VirtualBox e inicie a VM.
+
+* O **GNS3** abrirá automaticamente com o cenário base carregado.
+
+* **Importante:** Clique no botão de triângulo verde (*Start*) no GNS3 para ligar todos os nós. O **FirewallTester** só consegue interagir com _hosts_ (contêineres) do cenário de rede do GNS3, que estejam ativos.
+
+#### 2. Inicialização do Software
+
+Abra o **FirewallTester** pelo ícone na área de trabalho ou via terminal:
 
 ```bash
-    cd docker_infra/
-    
-    docker compose up -d --build
+python3 main.py
 ```
 
-Observação: Esse processo pode levar alguns minutos na primeira execução.
+> No caso de executar via terminal, lembre-se de estar dentro da parta do projeto (`~/firewalltester/`).
 
-  **2. Iniciar a aplicação**
+#### 3. Verificação de Conectividade (Aba _Hosts_)
 
-Volte para a raiz do projeto e execute:
+Acesse a aba **Hosts** e confirme se os dispositivos `host-1`, `host-2` e `firewall-1` exibem o status **On** (indicador verde). Isso garante que os serviços de teste estão prontos para responder.
 
-```bash
-    cd ..
-    
-    source venv/bin/activate # opcional, apenas se estiver com o ambiente virtual ativo
-    
-    python3 main.py
-```
+#### 4. Configuração da Bateria de Testes (Aba _Firewall Tests_)
 
-**3. Verificar os hosts**
+Crie ou carregue os seguintes testes para validar a política de segurança:
 
-Na aba "Hosts", confirme se aparecem:
+1.  **HTTP (Porta TCP/80):** Origem `host-1` → Destino `host-2`. Esperado: **Allowed**.
 
- - host-1 (cliente);
- - host-2 (servidor);
- - firewall-1.
+2.  **SSH (Porta TCP/22):** Origem `host-1` → Destino `host-2`. Esperado: **Blocked**.
 
-Se não aparecerem, clique em "Refresh Hosts".
+3.  **SSH Reverso (Porta TCP/22):** Origem `host-2` → Destino `host-1`. Esperado: **Allowed**.
 
-A tela exibida, deverá ser semelhante a esta:
+#### 5. Implementação da Regra (Aba _Firewall Rules_)
 
-<img width="1209" height="694" alt="image" src="https://github.com/user-attachments/assets/adbc60d9-dad9-452f-ae91-178c4a0d2347" />
+Selecione o `firewall-1` e aplique a política que deseja testar:
 
-Certifique-se de que os hosts estejam ativos também, olhando no botão de switch ou no label 'Server Status', no canto direito de cada card de cada host, ou clique em "Start all" para confirmar que estão todos ligados. 
+1.  Defina a política padrão: `iptables -P FORWARD ACCEPT`.
 
-**4. Criar testes de conectividade**
-Na aba "Firewall Tests", crie os seguintes testes:
+2.  Adicione a restrição: `iptables -A FORWARD -p tcp --dport 22 -j DROP`.
 
- - Teste 1 — HTTP permitido:
+3.  Clique em **Apply rules from hosts**. O campo de saída confirmará a execução do comando no contêiner.
 
-	- Origem (Source): host-1
+#### 6. Execução e Análise Visual
 
-	- Destino (Destination): host-2
+Retorne à aba **Firewall Tests** e utilize o botão **Test All**. O software fornecerá o diagnóstico visual imediato:
 
-	- Porta (Port): 80
+* **Teste 1 (Verde - Pass):** O tráfego HTTP fluiu como esperado, pois não há regras bloqueando a porta TCP/80.
 
-	- Esperado (Expected Result): Permitido (Allowed)
+* **Teste 2 (Azul - Pass):** O bloqueio SSH foi bem-sucedido. O _firewall_ barrou o pacote conforme a regra inserida.
 
-- Teste 2 — SSH bloqueado
+* **Teste 3 (Vermelho - Fail):** **Atenção aqui.** O teste falhou porque a regra escrita foi muito genérica (`--dport 22`). Ela acabou bloqueando o SSH em ambos os sentidos, impedindo que o `host-2` acessasse o `host-1`.
 
-	- Origem (Source): host-1
+Assim, este resultado demonstra a utilidade da ferramenta: o administrador percebe visualmente (cor vermelha) que sua regra de _firewall_ causou um bloqueio indevido em um fluxo que deveria estar liberado, permitindo o ajuste imediato da sintaxe para especificar as interfaces ou IPs de origem/destino corretos.
 
-	- Destino (Destination): host-2
 
-	- Porta (Port): 22
+> **Nota:** Neste exemplo, para que todos os testes atinjam a conformidade (status *Pass*), é necessário aumentar a especificidade da regra de filtragem. Ao substituir o comando anterior por `iptables -A FORWARD -d 192.168.2.2 -p tcp --dport 22 -j DROP`, o bloqueio deixa de ser genérico e passa a ser aplicado exclusivamente aos pacotes destinados ao `host-2` (192.168.2.2). Essa alteração permite que o fluxo reverso (do `host-2` para o `host-1`) seja liberado pela política padrão do *firewall*, uma vez que o destino não coincide mais com a regra de restrição, corrigindo o erro de conformidade identificado anteriormente pelo FirewallTester e garantindo que o planejamento lógico seja respeitado integralmente.
 
-	- Esperado (Expected Result): Bloqueado (Blocked)
-
-- Teste 3 — Comunicação reversa
-
-	- Origem (Source): host-2
-
-	- Destino (Destination): host-1
-
-	- Porta (Port): 22
-
-	- Esperado (Expected Result): Permitido (Allowed)
-
- Conforme os testes vão sendo criadas, eles serão exibidos conforme a tabela listada na imagem abaixo:
- <img width="1209" height="693" alt="image" src="https://github.com/user-attachments/assets/3827436b-0cc1-4c57-8b16-59c936258334" />
-
-
-**5. Aplicar regras de firewall**
-Na aba "Firewall Rules":
-- Selecione o container do firewall (firewall-1);
-- Insira as seguintes regras:
-
-		    iptables -P FORWARD ACCEPT
-		    iptables -A FORWARD -p tcp --dport 22 -j DROP
-
-- Clique em "Apply rules from hosts". Deverá estar dessa forma configurado:
-  <img width="1279" height="775" alt="image" src="https://github.com/user-attachments/assets/c10090a2-2ce7-46e7-8bda-6079341f2644" />
-
-
-**6. Executar os testes**
-
-Volte para "Firewall Tests" e clique em "Test all".
-
-  **7. Interpretar os resultados**
-
-Após a execução, os testes serão exibidos com cores:
-
-- Teste 1 (porta 80) Permitido: Verde
-
-- Teste 2 (porta 22 client→server) Bloqueado: Azul
-
-- Teste 3 (server→client) Falha: Vermelho
-
-Sendo exibidos da seguinte forma: <img width="947" height="470" alt="image" src="https://github.com/user-attachments/assets/5ecc1b3f-7f52-4128-8109-49c93df17fb3" />
-
-
-A regra aplicada:
-
-    iptables -A FORWARD -p tcp --dport 22 -j DROP
-
-bloqueia todo tráfego TCP destinado à porta 22, independentemente da origem. Ou seja, ela bloqueia:
-host-1 → host-2 e do host-2 → host-1. Por isso o Teste 3 falha, mesmo esperando sucesso.
-
-
-### Gerenciando serviços (Aba Hosts)
-
-**Verificar o status do servidor:** certifique-se de que esteja **On**, pois os testes falharão se o servidor de destino estiver desligado.
-
-**Edição de portas:** selecione um _host_ para visualizar as portas abertas, adicione novas para simular serviços e observe que o servidor reinicia automaticamente para aplicar as alterações.
-
-
-### Aplicando regras de segurança (Aba regras de _firewall_)
-
-É aqui que você define como o _firewall_ deve se comportar.
-
-1. No topo, escolha o contêiner que atuará como _firewall_ (ex.: `Firewall-1`).
-
-2. Escreva seu _script_ de _firewall_ (sintaxe `iptables` ou _shell script_). Exemplo: ``iptables -A FORWARD -p tcp --dport 80 -j DROP``.
-
-**Opções:**
-
-- "Resetar" antes de aplicar: marque esta opção se quiser limpar regras antigas antes de aplicar as novas.
-
-- Aplicar Regras (_Deploy_): envia o _script_ para o contêiner e o executa.
-
-- Verifique a caixa de saída para confirmar que não há erros de sintaxe no `iptables`.
-
-
-### Criando e executando testes (Aba testes de _firewall_)
-
-
-#### Adicionando um teste
-
-
-Configure os campos na caixa **Novo teste**:
-
-  
-
-- **Origem:** quem envia o pacote (ex.: `Host-1`).
-
-- **Destino:** quem recebe (ex.: `Host-2`). O sistema recupera o endereço IP automaticamente.
-
-- **Protocolo:** TCP, UDP ou ICMP.
-
-  
-
-> **Nota:** Para ICMP (Ping), a porta é ignorada ou tratada como contagem.
-
-- **_Porta Dst_:** a porta de destino (ex.: `80`).
-
-  
-
-#### Resultado Esperado
-
-  
-
-- **_Allowed_ (Permitido):** você espera que o pacote chegue ao destino (Sucesso).
-
-- **_Blocked_ (Bloqueado):** você espera que o _firewall_ bloqueie o pacote (_Timeout_ / Recusado).
-
-  
-
-Clique em **_Add_** para colocar o teste na fila.
-
-  
-
-**Executando Testes**
-
-  
-
-- **_Test Row_:** selecione um teste na tabela e clique neste botão para executar apenas esse teste.
-
-- **_Test All_:** abre uma janela de progresso e executa a lista sequencialmente.
-
-- **_Cancel_:** se precisar interromper, clique em **_Cancel_** na janela de progresso. A interrupção é imediata.
-
-  
-
-**Resultados**
-
-  
-
-- **Verde (_Allowed_):** Permitido era o esperado e a conexão foi bem-sucedida. O teste passou.
-
-- **Azul (_Blocked_):** Bloqueado era o esperado e a conexão falhou. O _firewall_ funcionou. O teste passou.
-
-- **Vermelho (_Failed_):** O resultado real foi diferente do esperado (ex.: você esperava que fosse bloqueado, mas foi permitido).
-
-- **Amarelo (Error):** Erro técnico (ex.: _host_ desligado, rota inexistente, erro no _script_ Python).
-
-  
-  
 
 ## Licença
 
-  
-
 Este programa é um software livre: você pode redistribuí-lo e/ou modificá-lo sob os termos da Licença Pública Geral GNU (GNU General Public License), conforme publicada pela Free Software Foundation, seja na versão 3 da licença ou (a seu critério) qualquer versão posterior.
-
-  
 
 Este programa é distribuído na esperança de que seja útil, mas **SEM QUALQUER GARANTIA**; sem mesmo a garantia implícita de **COMERCIALIZAÇÃO** ou **ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA**. Consulte a Licença Pública Geral GNU para mais detalhes.
 
-  
-
 Você deve ter recebido uma cópia da Licença Pública Geral GNU junto com este programa. Caso contrário, consulte: [https://www.gnu.org/licenses/](https://www.gnu.org/licenses/)
-
-  
-  
 
 ## Contato
 
-  
-
 Desenvolvido por:
 
-  
-
 **Luiz Arthur Feitosa dos Santos**
-
 Professor na UTFPR – Campo Mourão
-
-  
-
 Email: [luiz.arthur.feitosa.santos@gmail.com](mailto:luiz.arthur.feitosa.santos@gmail.com)
 
-  
-
 **Luiza Batista Basseto**
-
 Estudante na UTFPR – Campo Mourão
-
-  
-
 Email: [luizabasseto.1@gmail.com](mailto:luizabasseto.1@gmail.com)

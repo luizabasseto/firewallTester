@@ -450,16 +450,31 @@ Você deve ter recebido uma cópia da Licença Pública Geral GNU junto com este
 
 ## Contato
 
-Desenvolvido por:
+## 🤝 Contribuidores
 
-**Luiz Arthur Feitosa dos Santos**
+## 🤝 Equipe de Desenvolvimento
 
-Professor na UTFPR – Campo Mourão
-
-Email: [luiz.arthur.feitosa.santos@gmail.com](mailto:luiz.arthur.feitosa.santos@gmail.com)
-
-**Luiza Batista Basseto**
-
-Estudante na UTFPR – Campo Mourão
-
-Email: [luizabasseto.1@gmail.com](mailto:luizabasseto.1@gmail.com)
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/luizsantos">
+        <img src="https://github.com/luizsantos.png" width="100px;" alt="Luiz Arthur"/><br />
+        <sub><b>Prof. Dr. Luiz Arthur F. dos Santos</b></sub>
+      </a><br />
+      UTFPR – Campo Mourão<br />
+      <a href="mailto:luiz.arthur.feitosa.santos@gmail.com">
+        <img src="https://img.shields.io/badge/-Email-c14438?style=flat-square&logo=Gmail&logoColor=white" alt="Email Luiz"/>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/luizabasseto">
+        <img src="https://github.com/luizabasseto.png" width="100px;" alt="Luiza Basseto"/><br />
+        <sub><b>Luiza Batista Basseto</b></sub>
+      </a><br />
+      UTFPR – Campo Mourão<br />
+      <a href="mailto:luizabasseto.1@gmail.com">
+        <img src="https://img.shields.io/badge/-Email-c14438?style=flat-square&logo=Gmail&logoColor=white" alt="Email Luiza"/>
+      </a>
+    </td>
+  </tr>
+</table>

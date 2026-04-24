@@ -264,6 +264,7 @@ Para inicializar a ferramenta corretamente, siga as etapas a seguir:
 5.  **Sincronização Manual:** Caso a lista de dispositivos apareça vazia, clique no botão **Refresh Hosts** para forçar uma nova detecção dos componentes da rede.
 
 <img width="1209" height="694" alt="image" src="https://github.com/user-attachments/assets/adbc60d9-dad9-452f-ae91-178c4a0d2347" />
+
 **Figura 1:** Interface gráfica do FirewallTester exibindo a aba de gerenciamento de Hosts.
 
 
@@ -290,6 +291,7 @@ Em resumo, a aba **Hosts** não apenas identifica "quem" está na rede, mas tamb
 A aba ***Firewall Rules*** funciona como a central de gerência de políticas de segurança do projeto. Como ilustrado na **Figura 2**, esta interface fornece um ambiente completo para a redação, instalação e manutenção de regras de filtragem (como as do *iptables*) diretamente nos nós de *firewall* ativos no GNS3.
 
 <img width="1279" height="775" alt="image" src="https://github.com/user-attachments/assets/c10090a2-2ce7-46e7-8bda-6079341f2644" />
+
 **Figura 2:** Interface de gerenciamento e edição de regras de *firewall*.
 
 As principais funcionalidades desta interface incluem:
@@ -309,6 +311,7 @@ Dessa forma, o **FirewallTester** atua não apenas como um testador, mas como um
 A aba ***Firewall Tests*** é o ambiente onde o usuário planeja e configura os procedimentos de validação de regras de Firewall. Como ilustrado na **Figura 3**, esta interface permite criar, editar e gerenciar uma lista de casos de teste que verificarão se a política de segurança do *firewall* está sendo efetivamente aplicada.
 
 <img width="947" height="470" alt="image" src="https://github.com/user-attachments/assets/5ecc1b3f-7f52-4128-8109-49c93df17fb3" />
+
 **Figura 3:** Interface de configuração e planejamento dos casos de teste.
 
 Nesta aba, o usuário define os parâmetros fundamentais para a execução das validações:

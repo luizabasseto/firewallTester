@@ -450,28 +450,29 @@ Você deve ter recebido uma cópia da Licença Pública Geral GNU junto com este
 
 ## Contato
 
-<h2 align="center">👨‍💻 Equipe do Projeto</h2>
 
 <div align="center">
 
-  <a href="https://github.com/luizsantos">
-    <img src="https://github.com/luizsantos.png" width="120px" style="border-radius:50%" alt="Luiz Arthur"/><br>
-    <strong>Prof. Dr. Luiz Arthur F. dos Santos</strong>
-  </a><br>
-  <sub>UTFPR – Campo Mourão</sub><br><br>
-  <a href="mailto:luiz.arthur.feitosa.santos@gmail.com">
-    <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white">
-  </a>
+  <div style="display: inline-block; width: 200px; margin: 20px; vertical-align: top;">
+    <a href="https://github.com/luizsantos">
+      <img src="https://github.com/luizsantos.png" width="120px" style="border-radius:50%" alt="Luiz Arthur"><br>
+      <strong>Prof. Dr. Luiz Arthur F. dos Santos</strong>
+    </a><br>
+    <sub>UTFPR – Campo Mourão</sub><br><br>
+    <a href="mailto:luiz.arthur.feitosa.santos@gmail.com">
+      <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white">
+    </a>
+  </div>
 
-  <br><br><br>
-
-  <a href="https://github.com/luizabasseto">
-    <img src="https://github.com/luizabasseto.png" width="120px" style="border-radius:50%" alt="Luiza Basseto"/><br>
-    <strong>Luiza Batista Basseto</strong>
-  </a><br>
-  <sub>UTFPR – Campo Mourão</sub><br><br>
-  <a href="mailto:luizabasseto.1@gmail.com">
-    <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white">
-  </a>
+  <div style="display: inline-block; width: 200px; margin: 20px; vertical-align: top;">
+    <a href="https://github.com/luizabasseto">
+      <img src="https://github.com/luizabasseto.png" width="120px" style="border-radius:50%" alt="Luiza Basseto"><br>
+      <strong>Luiza Batista Basseto</strong>
+    </a><br>
+    <sub>UTFPR – Campo Mourão</sub><br><br>
+    <a href="mailto:luizabasseto.1@gmail.com">
+      <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white">
+    </a>
+  </div>
 
 </div>

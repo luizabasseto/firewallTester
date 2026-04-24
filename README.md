@@ -450,31 +450,26 @@ Você deve ter recebido uma cópia da Licença Pública Geral GNU junto com este
 
 ## Contato
 
-## 🤝 Contribuidores
+<h2 align="center">👨‍💻 Equipe do Projeto</h2>
 
-## 🤝 Equipe de Desenvolvimento
+<p align="center">
+  <a href="https://github.com/luizsantos">
+    <img src="https://github.com/luizsantos.png" width="120px" style="border-radius:50%" alt="Luiz Arthur"/><br>
+    <strong>Prof. Dr. Luiz Arthur F. dos Santos</strong>
+  </a><br>
+  <sub>UTFPR – Campo Mourão</sub><br>
+  <a href="mailto:luiz.arthur.feitosa.santos@gmail.com">
+    <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white">
+  </a>
+</p>
 
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/luizsantos">
-        <img src="https://github.com/luizsantos.png" width="100px;" alt="Luiz Arthur"/><br />
-        <sub><b>Prof. Dr. Luiz Arthur F. dos Santos</b></sub>
-      </a><br />
-      UTFPR – Campo Mourão<br />
-      <a href="mailto:luiz.arthur.feitosa.santos@gmail.com">
-        <img src="https://img.shields.io/badge/-Email-c14438?style=flat-square&logo=Gmail&logoColor=white" alt="Email Luiz"/>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/luizabasseto">
-        <img src="https://github.com/luizabasseto.png" width="100px;" alt="Luiza Basseto"/><br />
-        <sub><b>Luiza Batista Basseto</b></sub>
-      </a><br />
-      UTFPR – Campo Mourão<br />
-      <a href="mailto:luizabasseto.1@gmail.com">
-        <img src="https://img.shields.io/badge/-Email-c14438?style=flat-square&logo=Gmail&logoColor=white" alt="Email Luiza"/>
-      </a>
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <a href="https://github.com/luizabasseto">
+    <img src="https://github.com/luizabasseto.png" width="120px" style="border-radius:50%" alt="Luiza Basseto"/><br>
+    <strong>Luiza Batista Basseto</strong>
+  </a><br>
+  <sub>UTFPR – Campo Mourão</sub><br>
+  <a href="mailto:luizabasseto.1@gmail.com">
+    <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white">
+  </a>
+</p>

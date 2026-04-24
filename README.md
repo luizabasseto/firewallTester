@@ -61,8 +61,7 @@ firewallTester/
 
 ```
 
-  
-  
+
 
 ## Selos Considerados
 
@@ -191,7 +190,7 @@ Caso o arquivo não carregue, é necessário a instalação dos seguintes biblio
 
 ```bash
 
-pip install PyQt5==5.15.11 docker==7.1.0 scapy==2.7.0 python-dotenv==1.2.2
+pip3 install PyQt5==5.15.11 docker==7.1.0 scapy==2.7.0 python-dotenv==1.2.2
 
 ```
 
@@ -248,119 +247,65 @@ Ainda assim, para reforçar a segurança durante a execução, recomenda-se:
 
 ## Instalação do FirewallTester
 
-  
+O FirewallTester depende de um ecossistema complexo que inclui GNS3, Docker e diversas dependências de sistema (como `ubridge` e `libvirt`). Devido a essa complexidade, oferecemos duas formas de configurar o ambiente:
 
-Siga os passos a seguir para instalar e executar o projeto:
+### 1. Opção Recomendada: Máquina Virtual (Pronta para Uso)
 
-  
+Para uma experiência fluida, recomendamos fortemente o uso da **VM pré-configurada**. Ela já contém todo o ambiente (GNS3, dependências e cenários de teste) pronto para execução imediata, sendo a escolha ideal para o primeiro contato com a ferramenta. Para utilizar tal VM os passos são:
+
+1.  **Instale o VirtualBox:** Baixe a versão compatível com seu sistema em [virtualbox.org](https://www.virtualbox.org/wiki/Downloads).
+
+2.  **Baixe a VM:** Acesse o arquivo `.ova` (ex. `FirewallTester-v2.0.ova`) no Google Drive: [Pasta da VM FirewallTester](https://drive.google.com/drive/folders/1IWIF4bGQZ7yR9pshSHVH1eTzxMzTgrOu?usp=sharing).
+
+3.  **Importe o arquivo:** Dê um clique duplo no arquivo `.ova` baixado e siga as instruções padrão do assistente de importação do VirtualBox.
+
+4. **Inicie o Ambiente:** Selecione a VM e clique em "Iniciar". O sistema carregará a interface gráfica do Linux e o login será realizado automaticamente. Ao iniciar, o GNS3 também deverá abrir de forma padrão. Para começar os testes, basta clicar no **ícone do FirewallTester**, que está disponível no menu de inicialização rápida (_taskbar_) ou no menu principal do sistema.
+   >  *Nota: Caso o acesso seja solicitado em algum momento, as credenciais do sistema Linux são:* **Usuário:** `aluno` | **Senha:** `123mudar`
+
+### 2. Instalação Manual (Avançado)
+
+Esta opção é destinada a usuários que já possuem o **Python, GNS3 e Docker configurados** em sua distribuição Linux. Certifique-se de que o GNS3 e seus componentes (`libvirt`, `ubridge`) estejam operacionais antes de prosseguir.
+
+#### A. Configuração dos Nós de Rede (Docker/GNS3)
+
+Antes de executar o software, você deve garantir que o GNS3 possua a imagem Docker necessária para os _hosts_ do cenário (_hosts_ comuns e _firewall_). Essa configuração é feita apenas uma vez através de uma destas opções:
+
+* **Appliance (Recomendado):** Importe os arquivos de *appliance* via interface gráfica do GNS3 (`File -> Import appliance`). No primeiro uso, o GNS3 baixará automaticamente a imagem do Docker Hub e configurará os modelos de nós. Há dois arquivos, sendo esses:
+    * [host-docker-firewallTester.gns3a](https://github.com/luizabasseto/firewallTester/blob/main/gns3_projects/old/host-docker-firewallTester.gns3a): Configura os _hosts_ comuns do cenário (clientes/servidores).
+    * [firewall-docker-firewallTester.gns3a](https://github.com/luizabasseto/firewallTester/blob/main/gns3_projects/old/firewall-docker-firewallTester.gns3a): Configura o nó de firewall com suporte a múltiplas interfaces de rede.
+    > **Observação:** Embora ambos utilizem a mesma imagem base do Docker Hub, cada *appliance* já define a quantidade adequada de placas de rede e ícones específicos para facilitar a montagem da topologia.
+
+* **Docker Hub (Manual):** Caso prefira configurar os nós manualmente no GNS3, utilize a imagem [luizarthur/cyberinfra:firewall_tester](https://hub.docker.com/r/luizarthur/cyberinfra). Após o *pull* da imagem, você deverá criar os modelos de _host_ comum e _firewall_ dentro das preferências do GNS3. Note que a imagem utilizada tanto para os _hosts_ comuns quanto para o firewall é a mesma. A distinção entre eles reside apenas no número de interfaces: enquanto _hosts_ comuns operam com uma única placa de rede, o _firewall_ normalmente deve ser configurado com múltiplas placas para interligar os diferentes segmentos da topologia.
+
+
+#### B. Instalação do FirewallTester
+
+Com o ecossistema GNS3/Docker pronto, siga os passos para instalar a aplicação:
 
 1. Clone o repositório:
 
-  
-
 ```bash
-
 git clone https://github.com/luizabasseto/firewallTester.git
-
 cd firewallTester
-
 ```
-
-  
-
 2. Crie um ambiente virtual (opcional, mas recomendado):
-
-  
-
 ```bash
-
 python -m venv venv
-
 source venv/bin/activate
-
 ```
-
-  
 
 3. Instale as dependências:
 
-  
-
 ```bash
-
 pip3 install -r requirements.txt
-
 ```
-
-  
-
 4. Execute a aplicação:
 
-  
-
 ```bash
-
 python3 main.py
-
 ```
 
-  
-
-Os passos descritos anteriormente abrangem apenas a instalação do software FirewallTester. Para a sua execução, é obrigatório possuir o GNS3 devidamente instalado e configurado, juntamente com suas dependências de sistema (como `ubridge` e `libvirt`).
-
-  
-
-Este guia não aborda a instalação do GNS3, visto que o procedimento varia conforme a distribuição Linux e a versão do sistema utilizada. Adicionalmente, o usuário deve realizar a configuração prévia dos _appliances_ necessários para os cenários de rede — uma tarefa que pode apresentar certa complexidade, especialmente para usuários iniciantes.
-
-  
-
-Desta forma, para uma experiência mais fluida e pronta para uso, **recomenda-se fortemente a utilização da VM do FirewallTester**. Ela já conta com todo o ecossistema (GNS3, dependências e o próprio FirewallTester) instalado e configurado, incluindo cenários de testes preparados para execução imediata.
-
-  
-
-### Instalação da VM do FirewallTester
-
-  
-
-Conforme destacado anteriormente, o ecossistema do FirewallTester é composto por diversas camadas e integrações com softwares de terceiros (como GNS3 e Docker). Devido a essa complexidade de configuração individual, recomenda-se fortemente que o primeiro contato e a experimentação da ferramenta sejam realizados através da **VM (Máquina Virtual) pré-configurada** do FirewallTester. Ela já contém todo o ambiente preparado, garantindo que você possa iniciar os testes de _firewall_ imediatamente.
-
-  
-
-Para utilizar a VM, siga os passos a seguir:
-
-  
-
-1. **Instale o VirtualBox:**
-
-Baixe e instale o VirtualBox de acordo com o seu sistema operacional. O instalador está disponível em: [virtualbox.org/wiki/Downloads](https://www.virtualbox.org/wiki/Downloads).
-
-  
-
-2. **Baixe a VM do FirewallTester:**
-
-O arquivo da imagem está disponível no Google Drive: [Acessar Pasta da VM FirewallTester](https://drive.google.com/drive/folders/1IWIF4bGQZ7yR9pshSHVH1eTzxMzTgrOu?usp=sharing).
-
-  
-
-3. **Importe a Máquina Virtual:**
-
-Após o download, localize o arquivo com extensão `.ova` (exemplo: `FirewallTester-v2.0.ova`) e dê um clique duplo sobre ele. O VirtualBox será aberto automaticamente. Siga as instruções de importação clicando em "Próximo" (Next) e mantendo as opções padrão sugeridas pelo assistente.
-
-  
-
-4. **Inicie o Ambiente:**
-
-Ao final da importação, selecione a VM na lista do VirtualBox e clique em "Iniciar". O sistema carregará um ambiente Linux já autenticado. Caso o acesso seja solicitado, utilize as credenciais padrão:
-
-* **Usuário:**  `aluno`
-
-* **Senha:**  `123mudar`
-
-  
-
 A seguir, apresenta-se um exemplo de uso do FirewallTester utilizando a máquina virtual pré-configurada do projeto.
-
-  
   
 
 ## Teste Mínimo
@@ -371,18 +316,18 @@ Este tutorial tem como objetivo apresentar um teste mínimo da ferramenta.
 
   
 
-Assim, para isso, assista ao vídeo de tutorial (https://www.youtube.com/watch?v=qyCBiV2q7rA) ou siga os passos disponibilizado após ele.
+Assim, para isso, assista ao vídeo de tutorial (https://www.youtube.com/watch?v=qyCBiV2q7rA) ou siga os passos disponibilizado no texto a seguir.
 
   
 
 [![Assista ao vídeo](https://img.youtube.com/vi/qyCBiV2q7rA/0.jpg)](https://www.youtube.com/watch?v=qyCBiV2q7rA)
 
   
-  ### Passo a passo do teste mínimo
+### Passo a passo do teste mínimo
 
 **1. Subir o ambiente**
 
-Execute os containers que simulam cliente, firewall e servidor:
+Execute os containers que simulam cliente, _firewall_ e servidor:
 
     cd docker_infra/
     
@@ -410,38 +355,48 @@ Na aba "Hosts", confirme se aparecem:
 
 Se não aparecerem, clique em "Refresh Hosts".
 
+A tela exibida, deverá ser semelhante a esta:
+
+<img width="1209" height="694" alt="image" src="https://github.com/user-attachments/assets/adbc60d9-dad9-452f-ae91-178c4a0d2347" />
+
+Certifique-se de que os hosts estejam ativos também, olhando no botão de switch ou no label 'Server Status', no canto direito de cada card de cada host, ou clique em "Start all" para confirmar que estão todos ligados. 
+
 **4. Criar testes de conectividade**
 Na aba "Firewall Tests", crie os seguintes testes:
 
  - Teste 1 — HTTP permitido:
 
-	- Origem: host-1
+	- Origem (Source): host-1
 
-	- Destino: host-2
+	- Destino (Destination): host-2
 
-	- Porta: 80
+	- Porta (Port): 80
 
-	- Esperado: Allowed
+	- Esperado (Expected Result): Permitido (Allowed)
 
 - Teste 2 — SSH bloqueado
 
-	- Origem: host-1
+	- Origem (Source): host-1
 
-	- Destino: host-2
+	- Destino (Destination): host-2
 
-	- Porta: 22
+	- Porta (Port): 22
 
-	- Esperado: Blocked
+	- Esperado (Expected Result): Bloqueado (Blocked)
 
 - Teste 3 — Comunicação reversa
 
-	- Origem: host-2
+	- Origem (Source): host-2
 
-	- Destino: host-1
+	- Destino (Destination): host-1
 
-	- Porta: 22
+	- Porta (Port): 22
 
-	- Esperado: Allowed
+	- Esperado (Expected Result): Permitido (Allowed)
+
+ Conforme os testes vão sendo criadas, eles serão exibidos conforme a tabela listada na imagem abaixo:
+ <img width="1209" height="693" alt="image" src="https://github.com/user-attachments/assets/3827436b-0cc1-4c57-8b16-59c936258334" />
+
 
 **5. Aplicar regras de firewall**
 Na aba "Firewall Rules":
@@ -451,9 +406,12 @@ Na aba "Firewall Rules":
 		    iptables -P FORWARD ACCEPT
 		    iptables -A FORWARD -p tcp --dport 22 -j DROP
 
-- Clique em "Apply rules from hosts".
+- Clique em "Apply rules from hosts". Deverá estar dessa forma configurado:
+  <img width="1279" height="775" alt="image" src="https://github.com/user-attachments/assets/c10090a2-2ce7-46e7-8bda-6079341f2644" />
+
 
 **6. Executar os testes**
+
 Volte para "Firewall Tests" e clique em "Test all".
 
   **7. Interpretar os resultados**
@@ -466,6 +424,9 @@ Após a execução, os testes serão exibidos com cores:
 
 - Teste 3 (server→client) Falha: Vermelho
 
+Sendo exibidos da seguinte forma: <img width="947" height="470" alt="image" src="https://github.com/user-attachments/assets/5ecc1b3f-7f52-4128-8109-49c93df17fb3" />
+
+
 A regra aplicada:
 
     iptables -A FORWARD -p tcp --dport 22 -j DROP
@@ -473,32 +434,26 @@ A regra aplicada:
 bloqueia todo tráfego TCP destinado à porta 22, independentemente da origem. Ou seja, ela bloqueia:
 host-1 → host-2 e do host-2 → host-1. Por isso o Teste 3 falha, mesmo esperando sucesso.
 
+
 ### Criação e Configuração do Cenário de Rede no GNS3
 
   
 
 Para realizar os testes, siga as diretrizes a seguir para preparar o ambiente no GNS3:
 
-  
+
 
 1. **Criação do Projeto:** Crie um novo projeto no GNS3 ou utilize o modelo já disponibilizado na VM.
 
-2. **Uso de Imagens Docker:** Os *hosts* do cenário devem, obrigatoriamente, utilizar a imagem Docker específica do projeto. Há duas opções para isso:
-
-* **Appliance (Recomendado):** Utilize o arquivo de *appliance* [host-docker-firewallTester.gns3a](https://github.com/luizabasseto/firewallTester/blob/main/gns3_projects/old/host-docker-firewallTester.gns3a), que já está pré-configurado na VM do FirewallTester.
-
-* **Docker Hub:** Caso prefira configurar manualmente, utilize a imagem [luizarthur/cyberinfra:firewall\_tester](https://www.google.com/search?q=https://hub.docker.com/repository/docker/luizarthur/cyberinfra/tags).
+2. **Uso de Imagens Docker dentro do GNS3:** Os *hosts* do cenário de rede no GNS3 devem, obrigatoriamente, utilizar a imagem Docker específica do projeto, tal como descrito na seção Configuração dos Nós de Rede (Docker/GNS3), anteriormente.
 
 3. **Configuração da Topologia:** Arraste os contêineres para a área de trabalho e conecte-os utilizando os cabos de rede virtual.
 
 4. **Endereçamento e Roteamento:** Configure os endereços IP e as rotas nos dispositivos diretamente no GNS3. Isso pode ser feito através do menu _Edit Config_ (nos _hosts_ do cenário) ou via terminal, acessível ao clicar nos elementos da rede enquanto estiverem em execução. É importante ressaltar que **o FirewallTester não gerencia configurações de rede; sua função limita-se à validação das regras de _firewall_**.
-
   
+> **Atenção: É obrigatório iniciar o cenário de rede no GNS3 antes de abrir o FirewallTester**. Caso o cenário não esteja em execução, o software não conseguirá localizar os contêineres e apresentará erros de conexão.
 
-**Atenção: É obrigatório iniciar o cenário de rede no GNS3 antes de abrir o FirewallTester**. Caso o cenário não esteja em execução, o software não conseguirá localizar os contêineres e apresentará erros de conexão.
-
-  
-  
+ 
 
 ### Inicializando o FirewallTester
 

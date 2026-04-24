@@ -451,28 +451,10 @@ Você deve ter recebido uma cópia da Licença Pública Geral GNU junto com este
 ## Contato
 
 
-<table align="center" style="border: none;">
-  <tr>
-    <td align="center" style="border: none; padding: 20px;">
-      <a href="https://github.com/luizsantos">
-        <img src="https://github.com/luizsantos.png" width="120px" style="border-radius:50%" alt="Luiz Arthur"><br>
-        <strong>Prof. Dr. Luiz Arthur F. dos Santos</strong>
-      </a><br>
-      <sub>UTFPR – Campo Mourão</sub><br><br>
-      <a href="mailto:luiz.arthur.feitosa.santos@gmail.com">
-        luiz.arthur.feitosa.santos@gmail.com
-      </a>
-    </td>
+### **Prof. Dr. Luiz Arthur Feitosa dos Santos**
+* **Instituição:** UTFPR – Campo Mourão
+* **Email:** [luiz.arthur.feitosa.santos@gmail.com](mailto:luiz.arthur.feitosa.santos@gmail.com)
 
-    <td align="center" style="border: none; padding: 20px;">
-      <a href="https://github.com/luizabasseto">
-        <img src="https://github.com/luizabasseto.png" width="120px" style="border-radius:50%" alt="Luiza Basseto"><br>
-        <strong>Luiza Batista Basseto</strong>
-      </a><br>
-      <sub>UTFPR – Campo Mourão</sub><br><br>
-      <a href="mailto:luizabasseto.1@gmail.com">
-        luizabasseto.1@gmail.com
-      </a>
-    </td>
-  </tr>
-</table>
+### **Luiza Batista Basseto**
+* **Instituição:** UTFPR – Campo Mourão
+* **Email:** [luizabasseto.1@gmail.com](mailto:luizabasseto.1@gmail.com)

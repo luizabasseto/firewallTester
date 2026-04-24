@@ -450,7 +450,6 @@ Você deve ter recebido uma cópia da Licença Pública Geral GNU junto com este
 
 ## Contato
 
-
 <div align="center">
 
   <div style="display: inline-block; width: 200px; margin: 20px; vertical-align: top;">

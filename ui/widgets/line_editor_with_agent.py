@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QApplication, QPlainTextEdit, QWidget, QTextEdit,
-    QMenu, QAction, QDialog, QTextBrowser, QVBoxLayout,QDockWidget,
+    QMenu, QAction
 )
 from PyQt5.QtGui import QPainter, QColor, QTextFormat
 from PyQt5.QtCore import Qt, QRect
@@ -37,7 +37,7 @@ class Conversation:
         print("Call for agent...")
 
         try:
-            response = requests.post(API_URL, json=payload, timeout=60)
+            response = requests.post(API_URL, json=payload, timeout=500)
 
             if response.status_code == 200:
                 dados = response.json()
@@ -113,10 +113,16 @@ class LineNumberArea(QWidget):
         block = self.code_editor.document().findBlockByNumber(line - 1)
         return block.text()
 
+    def getAllText(self):
+        return self.code_editor.document().toPlainText()   
+
     def askAboutLine(self, line):
         text = self.getLineText(line)
+        text_all = self.getAllText()
         answer = self.conversation.ask_to_agent(
-            f"Explain what this line of code does:\n{text}"
+            f"Explain what this line of code does:\n{text} considering "
+            + f"that this: \n{text_all} are all the conjunction of the rules that I"
+            + "will apply on the firewall, remember to read if that is no conflict between the lines"
         )
         html = self.buildHtml(answer, text)
         self.output_widget.setHtml(html)
@@ -278,8 +284,6 @@ if __name__ == '__main__':
     editor = CodeEditor()
     editor.setWindowTitle("Editor com IA por linha")
     editor.resize(700, 500)
-
-    editor.setPlainText("\n".join([f"iptables -A INPUT ! -i eth0 -p icmp -j ACCEPT" for i in range(30)]))
 
     editor.show()
     sys.exit(app.exec_())

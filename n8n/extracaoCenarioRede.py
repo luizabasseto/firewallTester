@@ -3,7 +3,7 @@ import os
 import json
 import io
 
-caminho_do_arquivo = r"/home/gns3/firewallTesterLuiza/gns3_projects/network1.gns3project"
+caminho_do_arquivo = r"/home/aluizabatista/firewallTester/gns3_projects/redeArtigoSBRC2026.gns3project"
 if not os.path.exists(caminho_do_arquivo):
     print(f"Erro: Arquivo não encontrado em {caminho_do_arquivo}")
     exit()
@@ -24,14 +24,19 @@ else:
                 arquivo_json_principal = 'project.gns3'
             
             if arquivo_json_principal:
-                print(f"\nConteúdo do JSON da Topologia ({arquivo_json_principal}) ---")
+                print(f"\nExtraindo o JSON da Topologia ({arquivo_json_principal})...")
                 
                 with zf.open(arquivo_json_principal) as f:
                     conteudo_json_str = io.TextIOWrapper(f, encoding="utf-8").read()
                     
                     dados_da_topologia = json.loads(conteudo_json_str)
                     
-                    print(json.dumps(dados_da_topologia, indent=2))
+                    caminho_salvar_json = "../topologia_extraida.json" 
+                    with open(caminho_salvar_json, 'w', encoding='utf-8') as arquivo_saida:
+                        json.dump(dados_da_topologia, arquivo_saida, indent=4, ensure_ascii=False)
+                        
+                    print(f"\nArquivo JSON salvo com sucesso em: {caminho_salvar_json}")
+                    
             else:
                 print("\nNão foi possível encontrar o arquivo 'project.gns3' dentro do ZIP.")
 

@@ -328,7 +328,7 @@ Dessa forma, o FirewallTester atua não apenas como um testador, mas como uma in
 
 ### Aba *Firewall Tests*
 
-A aba ***Firewall Tests*** é o ambiente onde o usuário planeja e configura os procedimentos de validação de regras de Firewall. Como ilustrado na **Figura 3**, esta interface permite criar, editar e gerenciar uma lista de casos de teste que verificarão se a política de segurança do *firewall* está sendo efetivamente aplicada.
+A aba ***Firewall Tests*** é o ambiente onde o usuário planeja e configura os procedimentos de validação de regras de _firewall_. Como ilustrado na **Figura 3**, esta interface permite criar, editar e gerenciar uma lista de casos de teste que verificarão se a política de segurança do *firewall* está sendo efetivamente aplicada.
 
 <img width="947" height="470" alt="image" src="https://github.com/user-attachments/assets/5ecc1b3f-7f52-4128-8109-49c93df17fb3" />
 
@@ -336,13 +336,13 @@ A aba ***Firewall Tests*** é o ambiente onde o usuário planeja e configura os 
 
 Nesta aba, o usuário define os parâmetros fundamentais para a execução das validações:
 
-* **Definição do Escopo do Teste:** Especificam-se os *hosts* de origem e destino, o protocolo utilizado (**TCP**, **UDP** ou **ICMP**) e a porta de destino. 
+* **Definição do Escopo do Teste:** O usuário especifica os *hosts* de origem e destino, o protocolo (**TCP**, **UDP** ou **ICMP**), a porta de destino e o resultado esperado. Essas definições são realizadas na seção *New Test* através dos campos *Source*, *Destination*, *Protocol*, *Dst Port* e *Expected Result*. Para confirmar a inclusão, utiliza-se o botão *Add*, que insere a configuração na **Tabela de Testes** (localizada ao centro da Figura 3).
 
-* **Suporte a Testes Externos:** No caso do protocolo ICMP, a ferramenta permite validar a conectividade via *ping* com nós externos. Isso possibilita testar inclusive a comunicação direta com *hosts* da Internet, expandindo a validação para além da rede local.
+* **Suporte a Testes Externos:** No caso do protocolo ICMP, a ferramenta permite validar a conectividade via *ping* com nós externos. Isso possibilita testar inclusive a comunicação direta com *hosts* da Internet, expandindo a validação para além da topologia local do GNS3.
 
-* **Ação Esperada (*Expected Result*):** Para cada teste, o usuário define se o resultado esperado é **Liberado** ou **Bloqueado**. Essa definição é essencial para que o software determine automaticamente se a regra de *firewall* está cumprindo o seu propósito.
+* **Ação Esperada (*Expected Result*):** Para cada teste, deve-se definir se o comportamento previsto é **Liberado** ou **Bloqueado** (opções *Allowed* ou *Blocked*). Essa parametrização é essencial para que o software realize a análise lógica automática e determine se a regra de *firewall* está sendo efetiva.
 
-* **Gerenciamento e Repetibilidade:** As regras configuradas compõem uma tabela interativa que suporta operações de **edição**, **exclusão** e **exportação**. Essas funcionalidades garantem a organização dos cenários e permitem que as validações sejam repetidas com precisão em diferentes momentos ou ambientes.
+* **Gerenciamento e Repetibilidade:** Os testes configurados compõem uma tabela interativa que suporta operações de **edição** (botão *Edit*), **exclusão** (botões *Delete* ou *Delete All*) e **exportação** (botões *Save Tests* ou *Save As...*). Além disso, é possível **importar** baterias de testes previamente salvas utilizando o botão *Open Tests*, garantindo que as validações possam ser repetidas com precisão em diferentes momentos ou cenários.
 
 Em resumo, a aba **Firewall Tests** organiza a inteligência dos testes, permitindo que o usuário mapeie fluxos internos e externos para auditar rigorosamente o comportamento do *firewall*.
 
@@ -350,19 +350,19 @@ Em resumo, a aba **Firewall Tests** organiza a inteligência dos testes, permiti
 
 Após a definição dos casos de teste, o FirewallTester permite validar a política de segurança de forma dinâmica e intuitiva. A execução pode ser realizada de duas maneiras, oferecendo flexibilidade ao administrador de rede:
 
-1.  **Execução Unitária:** Permite disparar um único teste específico (uma linha da tabela). Esta função é ideal para validar correções pontuais em regras de *firewall* sem a necessidade de reprocessar todo o cenário.
+1.  **Execução Unitária:** Permite disparar um único teste específico. Para isso, o usuário deve selecionar com o mouse a linha desejada na tabela de testes e clicar no botão *Test selected* (ver Figura 3). Esta funcionalidade é ideal para validar correções pontuais em regras de *firewall* sem a necessidade de reprocessar todo o cenário configurado.
 
-2.  **Execução em Lote (Todos os Testes):** O software percorre toda a lista de testes sequencialmente. Esta funcionalidade é fundamental para garantir a **não regressão** da segurança, ou seja, para verificar se uma nova regra inserida para liberar um serviço não acabou bloqueando indevidamente outro fluxo que já estava funcionando.
+2.  **Execução em Lote (Todos os Testes):** O software percorre toda a lista de testes sequencialmente ao se acionar o botão *Test all*, na aba *Firewall Tests*. Esta função é fundamental para garantir a **não regressão** da segurança, permitindo verificar se uma nova regra inserida para liberar um serviço não causou efeitos colaterais, como o bloqueio indevido de fluxos que já estavam operacionais.
 
 #### Feedback Visual e Diagnóstico
 
-A interface utiliza um sistema de cores e termos padronizados para fornecer um diagnóstico imediato sobre o estado de cada regra (conforme exemplificado na **Figura 3**):
+A interface utiliza um sistema de cores e termos padronizados para fornecer um diagnóstico imediato sobre o estado de cada regra, conforme exemplificado na **Figura 3**, que apresenta a legenda para cada cor na seção *Test Legend*:
 
-* **Verde ou Azul (`Pass`):** Indica que o comportamento do tráfego está em conformidade com o planejado. Por exemplo, um teste marcado em verde confirma que um acesso permitido (ex. HTTP) foi realizado com sucesso, enquanto o azul valida que um bloqueio pretendido (ex. SSH) foi efetivamente executado pelo *firewall*.
+* **Verde ou Azul (`Pass`):** Indica que o comportamento do tráfego está em conformidade com o planejado. Um teste marcado em verde confirma que um acesso permitido (ex. HTTP) foi realizado com sucesso, enquanto a cor azul valida que um bloqueio pretendido (ex. SSH) foi efetivamente executado pelo *firewall*.
+* **Vermelho (`Fail`):** Sinaliza uma falha de conformidade. Este estado ocorre quando o resultado real é oposto ao esperado pelo administrador (ex. um fluxo que deveria estar livre foi bloqueado indevidamente por uma regra genérica).
+* **Amarelo (`Error`):** Indica a ocorrência de um erro técnico durante a execução do teste, como a impossibilidade de alcançar um *host* (por estar desligado, por exemplo) ou uma falha de configuração na interface de rede, impedindo a conclusão da análise lógica.
 
-* **Vermelho (`Fail`):** Sinaliza uma falha de conformidade. Ocorre quando o resultado real é oposto ao esperado (ex. um fluxo que deveria estar livre foi bloqueado por uma regra genérica).
-
-* **Amarelo (`Error`):** Indica que ocorreu um erro técnico na execução do teste, como a impossibilidade de alcançar um *host* ou uma falha de configuração na interface de rede, impedindo a conclusão da análise.
+Além do diagnóstico visual por cores, a **Tabela de Testes** exibe informações técnicas detalhadas que auxiliam no processo de auditoria e depuração. A coluna *Flow* indica o estado do fluxo de rede para cada teste, diferenciando se o pacote foi apenas enviado (*Sent*) sem obter resposta — o que pode sugerir um bloqueio efetivo pelo *firewall* — ou se a comunicação foi bidirecional (*Sent/Received*), confirmando que o fluxo alcançou o destino e retornou. Complementarmente, a coluna *Data* detalha os parâmetros reais da transação, apresentando os endereços IP e as portas utilizados na comunicação entre os *hosts* durante a execução, o que permite ao administrador validar se o tráfego está ocorrendo conforme a topologia planejada.
 
 > **Ciclo de Teste Contínuo:** Com esse *feedback* visual, o administrador pode refinar as regras no *firewall* e reexecutar as validações instantaneamente. Esse processo substitui a complexidade do terminal por um ciclo ágil de correção e verificação, garantindo que a implementação final atinja plena conformidade com o planejamento lógico de segurança.
 

@@ -302,7 +302,7 @@ As principais funcionalidades desta aba incluem:
 
 * **Sincronização de Ambiente (_Refresh Hosts_):** Permite forçar uma nova varredura no GNS3 para detectar nós que foram iniciados após a abertura do **FirewallTester**, garantindo que a lista de alvos esteja sempre atualizada.
 
-* **Definição de Serviços de Rede:** Permite especificar os serviços ativos em cada *host* por meio de **portas TCP/UDP** (ex.: HTTP na porta 80 ou SSH na 22). A customização dessas portas é realizada pelo botão **_Edit Ports_** disponível em cada dispositivo na aba *Hosts*. Além da edição, o usuário pode controlar o estado dos serviços individualmente, utilizando o botão de ativação (ícone verde na Figura 1), ou de forma coletiva, através dos comandos **_Start All_** e **_Stop All_**, que iniciam ou encerram as atividades de rede em todos os *hosts* simultaneamente.
+* **Definição de Serviços de Rede:** Permite especificar os serviços ativos em cada *host* por meio de **portas TCP/UDP** (ex.: HTTP na porta 80 ou SSH na 22). A customização dessas portas é realizada pelo botão _Edit Ports_ disponível em cada dispositivo na aba *Hosts*. Além da edição, o usuário pode controlar o estado dos serviços individualmente, utilizando o botão de ativação (ícone verde na Figura 1), ou de forma coletiva, através dos comandos _Start All_ e _Stop All_, que iniciam ou encerram as atividades de rede em todos os *hosts* simultaneamente.
 
 Em resumo, a aba **Hosts** não apenas identifica "quem" está na rede, mas também estabelece "quais portas" serão testadas, servindo como a base de configuração essencial para o motor de testes da aplicação.
 
@@ -316,15 +316,15 @@ A aba ***Firewall Rules*** funciona como a central de gerência de políticas de
 
 As principais funcionalidades desta interface incluem:
 
-* **Editor de Regras Integrado:** Oferece um editor de texto dedicado que torna o trabalho de redigir políticas de segurança mais amigável e organizado do que o terminal padrão do GNS3.
+* **Editor de Regras Integrado:** Oferece um editor de texto dedicado (*Editor tools*, na Figura 2) que torna o trabalho de redigir políticas de segurança mais amigável e organizado do que o terminal padrão do GNS3. Além disso, o usuário pode importar as regras que já estão armazenadas no editor utilizando o botão *Load Rules from Editor*.
 
-* **Implantação de Regras:** Permite enviar as regras redigidas diretamente para o _host_ selecionado como *firewall* no cenário. Por padrão, a ferramenta oferece a opção de **limpar as regras anteriores** antes de aplicar o novo conjunto, garantindo que não haja conflitos de políticas.
+* **Implantação de Regras:** Permite enviar as políticas redigidas diretamente para o *host* selecionado como *firewall* por meio do botão *Apply Rules to Host*. Por padrão, a ferramenta oferece a opção de **limpar as regras anteriores** (caixa *Reset rules before applying*, na Figura 2) antes de aplicar o novo conjunto, evitando conflitos entre políticas antigas e novas.
 
-* **Consulta em Tempo Real:** Fornece a funcionalidade de **listar as regras atuais**, permitindo que o usuário visualize o que está efetivamente instalado e rodando no _host_ remoto sem sair da aplicação.
+* **Consulta em Tempo Real:** Fornece a funcionalidade de **listar as regras ativas** (botão *List Active Rules on Host*), permitindo visualizar o que está efetivamente instalado e em execução no *host* remoto sem a necessidade de alternar entre janelas ou terminais.
 
-* **Persistência e Portabilidade:** Inclui recursos para **salvar** o conjunto de regras redigido no _host_ hospedeiro ou **carregar** arquivos com regras de firewall previamente salvas, facilitando a reutilização de cenários de teste.
+* **Persistência e Portabilidade:** Inclui recursos para **salvar** (botões *Save Rules* ou *Save As...*) o conjunto de regras no *host* hospedeiro ou **carregar** (botão *Open Rules*) arquivos de regras previamente salvos, facilitando a reutilização de cenários de teste e a continuidade do trabalho.
 
-Dessa forma, o **FirewallTester** atua não apenas como um testador, mas como uma interface de controle, eliminando a necessidade de interação direta via linha de comando nos terminais individuais dos contêineres para a configuração das regras de _firewall_.
+Dessa forma, o FirewallTester atua não apenas como um testador, mas como uma interface de controle centralizada, eliminando a necessidade de interação direta via linha de comando nos terminais individuais dos contêineres para a configuração das regras de *firewall*.
 
 ### Aba *Firewall Tests*
 

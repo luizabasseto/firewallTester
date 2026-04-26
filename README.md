@@ -287,7 +287,7 @@ Para inicializar a ferramenta corretamente, siga as etapas a seguir:
 
 <img width="1209" height="694" alt="image" src="https://github.com/user-attachments/assets/adbc60d9-dad9-452f-ae91-178c4a0d2347" />
 
-**Figura 1:** Interface gráfica do FirewallTester exibindo a aba de gerenciamento de Hosts.
+**Figura 1:** Interface gráfica do FirewallTester exibindo a aba de gerenciamento de _Hosts_.
 
 
 A seguir, detalham-se as principais funcionalidades de cada aba da interface do FirewallTester.
@@ -302,9 +302,7 @@ As principais funcionalidades desta aba incluem:
 
 * **Sincronização de Ambiente (_Refresh Hosts_):** Permite forçar uma nova varredura no GNS3 para detectar nós que foram iniciados após a abertura do **FirewallTester**, garantindo que a lista de alvos esteja sempre atualizada.
 
-* **Definição de Serviços de Rede:** Permite determinar quais serviços estarão disponíveis para teste em cada host. No contexto da ferramenta, esses serviços são representados por **portas TCP/UDP**, que podem ser adicionadas ou removidas para simular aplicações reais (como HTTP na porta 80 ou SSH na porta 22).
-
-* **Configuração de Alvos:** Ao definir as portas em cada host, o usuário mapeia os pontos de escuta que o **FirewallTester** utilizará para verificar se o tráfego está sendo corretamente permitido ou bloqueado pelo *firewall*.
+* **Definição de Serviços de Rede:** Permite especificar os serviços ativos em cada *host* por meio de **portas TCP/UDP** (ex.: HTTP na porta 80 ou SSH na 22). A customização dessas portas é realizada pelo botão **_Edit Ports_** disponível em cada dispositivo na aba *Hosts*. Além da edição, o usuário pode controlar o estado dos serviços individualmente, utilizando o botão de ativação (ícone verde na Figura 1), ou de forma coletiva, através dos comandos **_Start All_** e **_Stop All_**, que iniciam ou encerram as atividades de rede em todos os *hosts* simultaneamente.
 
 Em resumo, a aba **Hosts** não apenas identifica "quem" está na rede, mas também estabelece "quais portas" serão testadas, servindo como a base de configuração essencial para o motor de testes da aplicação.
 

@@ -26,3 +26,8 @@ n8n/binaryData/
 n8n/nodes/
 n8n/
 n8n
+
+# ambiente virtual
+.venv
+venv/
+path/

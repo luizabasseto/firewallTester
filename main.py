@@ -9,7 +9,6 @@ and starts the event loop.
 import sys
 from PyQt5.QtWidgets import QApplication
 from ui.main_ui import MainWindow
-import docker
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

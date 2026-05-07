@@ -29,7 +29,7 @@ class TestRunner:
         processed_dst_ip = self._extract_destination_host(dst_ip)
         if not processed_dst_ip:
             error_result = {"status": "1", "status_msg": f"Invalid destination: {dst_ip}"}
-            print(f"Destino inválido: {dst_ip}", file=sys.stderr)
+            print(f"Invalid destiny: {dst_ip}", file=sys.stderr)
             sys.stderr.flush()
             return False, error_result
 
@@ -51,7 +51,7 @@ class TestRunner:
                 raise subprocess.CalledProcessError(result.returncode, command, stderr=result.stderr)
                 
             if not result.stdout:
-                raise json.JSONDecodeError("A saída do script estava vazia.", "", 0)
+                raise json.JSONDecodeError("The script output was empty.", "", 0)
 
             result_dict = json.loads(result.stdout)
             return True, result_dict
@@ -61,7 +61,7 @@ class TestRunner:
             if hasattr(e, 'stderr') and e.stderr:
                 error_msg = e.stderr.strip()
             
-            print(f"Erro TestRunner: {error_msg}", file=sys.stderr)
+            print(f"Error TestRunner: {error_msg}", file=sys.stderr)
             sys.stderr.flush()
             error_result = {"status": "1", "status_msg": f"Execution Error: {error_msg}"}
             return False, error_result

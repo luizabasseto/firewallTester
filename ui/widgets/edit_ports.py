@@ -6,8 +6,7 @@ from PyQt5.QtCore import Qt
 
 class EditPortsDialog(QDialog):
     """
-    Janela de diálogo para visualizar, adicionar e remover as portas que o
-    servidor de um host específico irá escutar.
+    Dialog box to view, add, and remove the ports that a specific host's server will listen on.
     """
     def __init__(self, container_manager, host_id, hostname, config, parent=None):
         super().__init__(parent)

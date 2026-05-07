@@ -19,9 +19,8 @@ import sys
 from datetime import datetime
 
 from scapy.all import IP, ICMP, sr1
-# TODO - Fazer essa validação para todos logo no inicio, 
-# se não passar nem inicia os testes - colocar uma msg no status
-def validar_host(host):
+
+def validate_host(host):
     """Checks if a hostname can be resolved."""
     try:
         socket.gethostbyname(host)  # Try to resolve the hostname.
@@ -37,8 +36,8 @@ def ping(host, count):
     if verbose > 0:
         print(f"\nPING {host}:")
     for seq in range(1, count + 1):
-        if not validar_host(host):
-            return -1 # TODO - colocar o valor -1 para caso de erro e colocar uma msg no status
+        if not validate_host(host):
+            return -1 
 
         packet = IP(dst=host) / ICMP()
         start_time = time.time()
@@ -57,26 +56,26 @@ def ping(host, count):
         time.sleep(1)
     return received
 
-def calcular_diferenca_timestamp(timestamp_envio, timestamp_recebido):
+def calculate_difference_timestamp(timestamp_send, timestamp_received):
     """Calculates the difference between two timestamps in ISO 8601 format in milliseconds."""
-    t1 = datetime.fromisoformat(timestamp_envio)
-    t2 = datetime.fromisoformat(timestamp_recebido)
+    t1 = datetime.fromisoformat(timestamp_send)
+    t2 = datetime.fromisoformat(timestamp_received)
     diferenca = (t2 - t1).total_seconds() * 1000  # Convert to milliseconds
     return diferenca
 
-# Configuração dos argumentos de linha de comando
+# Configuring command-line arguments
 parser = argparse.ArgumentParser(description="Firewall Tester Client (UDP/TCP/ICMP)")
-parser.add_argument("server_host", type=str, help="Endereço IP do servidor")
-parser.add_argument("protocol", type=str.lower, help="Protocolo utilizado TCP/UDP/ICMP")
-parser.add_argument("server_port", type=int, help="Porta do servidor")
-parser.add_argument("testId", type=int, help="ID do teste")
-parser.add_argument("timestamp", type=str, help="Timestamp do teste")
-parser.add_argument("verbose", type=int, help="Nível de verbose (0, 1, 2)")
+parser.add_argument("server_host", type=str, help="Server IP address")
+parser.add_argument("protocol", type=str.lower, help="Protocol used: TCP/UDP/ICMP")
+parser.add_argument("server_port", type=int, help="Server Port")
+parser.add_argument("testId", type=int, help="Test ID")
+parser.add_argument("timestamp", type=str, help="Timestamp of Test")
+parser.add_argument("verbose", type=int, help="Level of verbosity (0, 1, 2)")
 
 args = parser.parse_args()
 verbose = args.verbose
 
-# Inicializando socket de acordo com o protocolo
+# Initializing socket according to protocol.
 client_sock = None
 client_port = -1
 icmp_status = 0
@@ -99,13 +98,12 @@ elif args.protocol.lower() == "tcp" or args.protocol.lower() == "TCP":
 elif args.protocol.lower() == "icmp" or args.protocol.lower() == "ICMP":
     if verbose > 0: print("Protocol: ICMP")
     icmp_status = ping(args.server_host, args.server_port)
-    client_port = 0  # ICMP não usa portas convencionais
+    client_port = 0  # ICMP does not use conventional ports.
 else:
     if verbose > 0: print("Choose a valid protocol (TCP, UDP ou ICMP).")
     sys.exit(1)
 
-# Obtendo informações do cliente
-# TODO - se o nome do host estiver errado no arquivo /etc/host esse programa não funciona! Bem isso está aqui para pegar o ip do cliente, então não sei se precisa pegar o nome para pegar o IP - ver como fazer isso só pegando o IP - ai uma questão que teria, seria se o cliente tiver mais que um IP.
+# Obtaining customer information
 client_host = socket.gethostname()
 try:
     client_ip = socket.gethostbyname(client_host)
@@ -113,22 +111,23 @@ except socket.gaierror:
     client_ip = "0.0.0.0" # Could not resolve hostname
 timestamp = datetime.now().isoformat()
 
-# Criando diretório e nome do arquivo JSON
+# Creating the directory and naming the JSON file
 filename_timestamp = args.timestamp
 dir_name = f"log/{filename_timestamp}"
 filename = f"{dir_name}/test.json"
 os.makedirs(dir_name, exist_ok=True)
 
-# Carregando JSON existente ou criando um novo
+# Loading existing JSON or creating a new one.
 try:
     with open(filename, 'r', encoding="utf-8") as file:
         dados = json.load(file)
 except (FileNotFoundError, json.JSONDecodeError):
     dados = {"tests": []}
 
-# Criando estrutura do JSON
-# status - é caso aconteça algo, tal como o pacote não pode ser enviado pois o host cliente não tem rota!
-# message - pode ser utilizada para simular, por exemplo o envio de uma mensagem maliciosa na camada de aplicação, tal como com: com uso de palavras impróprias (porn, hacker, etc) ou termos suspeitos ("/etc/shadow")
+# Creating JSON Structure
+# status - this is for cases where something happens, such as the packet not being able to be sent because the client host has no route!
+
+# message - can be used to simulate, for example, sending a malicious message in the application layer, such as using inappropriate words (porn, hacker, etc.) or suspicious terms ("/etc/shadow")
 message = {
     "id": args.testId,
     "timestamp_teste": filename_timestamp,
@@ -145,14 +144,12 @@ message = {
     "status_msg": 'ok',
     "message" : 'Test successfully completed'
 }
-# se o status for zero, ocorreu tudo bem, caso contrário deu algum erro ,tal como:
-#  1 - erro de rede
+# If the status is zero, everything went well; otherwise, an error occurred, such as:
+# 1 - Network error
 
-# Tratamento para ICMP
+# Treatment for ICMP
 if args.protocol == "icmp":
     if icmp_status < 0:
-        # TODO - se o firewall barrar, está dando que é erro! mas foi o firewall, tinha que ver se há como identificar quando é erro e quando é o firewall, por agora vai ficar o status em 0
-        #message["status"] = "1"
         message["status"] = "0"
         message["status_msg"] = "Firewall Drop or Host desconhecido"
     else:
@@ -168,7 +165,7 @@ if args.protocol == "icmp":
     print(json.dumps(message, indent=4))
     sys.exit(0)
 
-# Envio de dados (UDP e TCP)
+# Data transmission (UDP and TCP)
 json_message = json.dumps(message, indent=4)
 server_address = (args.server_host, args.server_port)
 
@@ -185,10 +182,9 @@ try:
         else:  # TCP
             client_sock.connect(server_address)
             client_sock.send(json_message.encode())
-            # pega o IP do cliente que realmente foi utilizado na transmissão
+            # retrieves the IP address of the client that was actually used in the transmission.
             client_ip = client_sock.getsockname()[0]
-        # TODO - o cliente não está mostrando o json que o server está enviando alterado! para mostrar o DNAT
-        # TODO - ver se compensa colocar o campo NAT para indicar um possível nat - atualmente está no campo message
+        
         try:
             response, _ = client_sock.recvfrom(1024) if args.protocol == "udp" else (client_sock.recv(1024), None)
             timestamp_response = datetime.now().isoformat()
@@ -196,7 +192,7 @@ try:
                 print(f"\033[32m\t+ Response received from {args.server_host}:{args.server_port} -> {client_ip}:{client_port}.\033[0m")
             if verbose > 0:
                 try:
-                    rtt = calcular_diferenca_timestamp(message["timestamp_send"], timestamp_response)
+                    rtt = calculate_difference_timestamp(message["timestamp_send"], timestamp_response)
                     print(f"Round-trip time of the message: {rtt} ms")
                 except Exception as e:
                     print(f"Could not calculate round-trip time: {e}")
@@ -207,7 +203,6 @@ try:
             message["server_response"] = True
             message["client_ip"] = client_ip
 
-        # TODO - enviar essas mensagens para a interface gráfica utilizando o objeto json - colocar um campo observação ou algo do gênero - caso contrário a interface gráfica pode quebrar, já que ela espera o json.
         except socket.timeout:
             if verbose > 0:
                 print(f"\033[31m\t- No response from {args.server_host}:{args.server_port}/{args.protocol.upper()}.\033[0m")
@@ -221,9 +216,6 @@ try:
 
 except (socket.gaierror, socket.herror, socket.timeout, ConnectionResetError, OSError) as e:
     if verbose > 0: print(f"Communication error: {e}")
-    # TODO - se o firewall barrar, está dando que é erro! mas foi o firewall, tinha que ver se há como identificar quando é erro e quando é o firewall, por agora vai ficar o status em 0
-    #message["status"] = '1'
-    #message["status_msg"] = "Network Error"
     message["status"] = '0'
     message["status_msg"] = "Firewall Drop or Network Error"
     dados["tests"].append(message)
@@ -236,6 +228,5 @@ finally:
     if client_sock:
         client_sock.close()
 
-# print que manda a msg para a interface
 print(json.dumps(message, indent=4))
 sys.exit(0)

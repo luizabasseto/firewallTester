@@ -26,12 +26,16 @@ O repositório está organizado da seguinte forma:
 ```
 firewallTester/
 ├── assets/ # Imagens e arquivos auxiliares
+├── config/ # Arquivo de configuração de portas e do firewall
 ├── core/ # Lógica principal da aplicação
-├── docker/ # Configurações relacionadas aos contêineres
+├── docker_infra/ # Configurações relacionadas aos contêineres
 ├── gns3_projects/ # Projetos de exemplo para uso no GNS3
+├── tests/ #Alguns JSONs de testes de para possível uso
 ├── ui/ # Interface gráfica do usuário
 ├── main.py # Arquivo principal para execução
 ├── requirements.txt # Dependências do projeto
+├── LICENSE # Licença de uso do software
+├── ROADMAP # Arquivo de TODOs possíveis refatorações futuras ou funcionalidades novas
 ```
 
 ## Selos Considerados

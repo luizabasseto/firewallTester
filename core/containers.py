@@ -128,8 +128,6 @@ def get_port_from_container(container_id):
     )
     command = "docker exec "+container_id+net_command
     
-    #docker exec 9eb8ef3327d1 netstat -atuln | awk '$1 ~ /^(tcp|udp)$/ {split($4, a, ":"); print $1 "/" a[2]}' | sort -t '/' -k 2n
-
     result = subprocess.run(command, shell=True, capture_output=True, text=True, check=False)
 
     if result.returncode == 0:
@@ -387,8 +385,6 @@ def get_container_info_by_filter(filter_string):
                         "MacAddress": net_data["MacAddress"]
                     }
 
-                # TODO - here I changed it so that the search is by the name of the image on DockerHub, which is firewall_tester - that is, the search is by the image and not by the host name - but this has a problem if docker is not used, but here it would only be possible to use docker!
-                #if filter_string in hostname:
                 if filter_string in image:
                     matched_containers.append({
                         "id": container_id,

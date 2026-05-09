@@ -78,6 +78,4 @@ class AboutTab(QWidget):
         lbl_license.setOpenExternalLinks(True)
         info_layout.addRow("<b>License:</b>", lbl_license)
         
-        # TODO: Check if the button to open the GitHub repository works
-
         layout.addStretch(1)

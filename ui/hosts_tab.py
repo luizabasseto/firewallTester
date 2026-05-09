@@ -10,7 +10,7 @@ from .widgets.edit_ports import EditPortsDialog
 
 from ui.widgets.hosts_cards import HostCardWidget
 
-#TODO - Ajustar mudança de portas 
+
 class HostsTab(QWidget):
     """
     A QWidget that displays a card for each available host (Docker container).

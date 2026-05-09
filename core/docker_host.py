@@ -26,11 +26,12 @@ import json
 class DockerHost:
     def __init__(self, container_id, nome, hostname):
         """
-        Inicializa um objeto DockerHost.
+        Initializes a DockerHost object.
 
-        :param container_id: ID do container Docker.
-        :param nome: Nome do container.
-        :param hostname: Hostname do container.
+        :param container_id: Docker container ID.
+        :param name: Container name.
+        :param hostname: Container hostname.
+
         """
         self.container_id = container_id
         self.nome = nome
@@ -39,10 +40,11 @@ class DockerHost:
 
     def add_interface(self, interface_name, ips=None):
         """
-        Adiciona uma nova interface de rede ao container.
 
-        :param interface_name: Nome da interface (ex: eth0).
-        :param ips: Lista de endereços IPs da interface (opcional).
+        Adds a new network interface to the container.
+        :param interface_name: Interface name (e.g., eth0).
+        :param ips: List of IP addresses for the interface (optional).
+
         """
         if ips is None:
             ips = []
@@ -65,13 +67,12 @@ class DockerHost:
             if interface["nome"] == interface_name:
                 interface["ips"].append(ip)
                 return
-        raise ValueError(f"Interface '{interface_name}' não encontrada.")
+        raise ValueError(f"Interface '{interface_name}' not found.")
 
     def to_dict(self):
         """
-        Converte o objeto para um dicionário.
-
-        :return: Dicionário representando o objeto DockerHost.
+        Converts the object to a dictionary.
+        :return: Dictionary representing the DockerHost object.
         """
         return {
             "id": self.container_id,
@@ -82,17 +83,16 @@ class DockerHost:
 
     def to_json(self, indent=2):
         """
-        Converte o objeto para uma string JSON.
+        Converts the object to a JSON string.
+        :param indent: JSON indentation level (optional).
+        :return: JSON string representing the DockerHost object.
 
-        :param indent: Nível de indentação do JSON (opcional).
-        :return: String JSON representando o objeto DockerHost.
         """
         return json.dumps(self.to_dict(), indent=indent)
 
     def __str__(self):
         """
-        Retorna uma representação legível do objeto como JSON.
-
-        :return: String JSON formatada.
+        Returns a human-readable representation of the object as JSON.
+        :return: Formatted JSON string
         """
         return self.to_json()

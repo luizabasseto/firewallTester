@@ -232,7 +232,6 @@ def server_udp(port):
             #print("different ips")
             host_name = socket.getfqdn()
             server_ip = server_ips[0]
-            # TODO - the server IP may be presented strangely here, as we are taking the first IP of the server host, and in the rule it may have been redirected to another IP of the same server.
             json_data["message"] = f"Looks like DNAT was made {json_data["server_ip"]}->{host_name}"
             json_data = add_dnat_to_json(json_data, host_name, server_ip, port)
             print(json.dumps(json_data, indent=4))

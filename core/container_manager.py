@@ -216,7 +216,6 @@ class ContainerManager:
         """
         commands_to_run = []
         
-        # Comandos de reset (agora sem o -P FORWARD ACCEPT)
         if reset_first:
             commands_to_run.extend([
                 "iptables -F FORWARD",

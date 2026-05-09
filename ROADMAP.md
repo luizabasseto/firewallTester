@@ -4,20 +4,20 @@
 
 ### Client
 
-- TODO - Fazer essa validação para todos logo no inicio, se não passar nem inicia os testes - colocar uma msg no status.
+- TODO - Perform this validation for all at the beginning; if it fails, don't even start the tests - add a message to the status.
 
-- TODO - colocar o valor -1 para caso de erro e colocar uma msg no status
+- TODO - Set the value to -1 in case of error and add a message to the status.
 
-- TODO - se o nome do host estiver errado no arquivo /etc/host esse programa não funciona! Bem isso está aqui para pegar o ip do cliente, então não sei se precisa pegar o nome para pegar o IP - ver como fazer isso só pegando o IP - ai uma questão que teria, seria se o cliente tiver mais que um IP.
+- TODO - If the hostname is incorrect in the /etc/hosts file, this program won't work! This is here to get the client's IP address, so I don't know if you need to get the name to get the IP address - see how to do this just by getting the IP address - then a question that would arise is if the client has more than one IP address.
 
-- TODO - se o firewall barrar, está dando que é erro! mas foi o firewall, tinha que ver se há como identificar quando é erro e quando é o firewall, por agora vai ficar o status em 0, message["status"] = "1"
+- TODO - If the firewall blocks it, it's showing an error! But it was the firewall; you need to see if there's a way to identify when it's an error and when it's the firewall. For now, the status will remain at 0, message["status"] = "1"
 
-- TODO - o cliente não está mostrando o json que o server está enviando alterado! para mostrar o DNAT
-- TODO - ver se compensa colocar o campo NAT para indicar um possível nat atualmente está no campo message
+- TODO - The client is not showing the JSON that the server is sending altered! To show the DNAT
+- TODO - see if it's worthwhile to add the NAT field to indicate a possible NAT currently in the message field
 
-- TODO - enviar essas mensagens para a interface gráfica utilizando o objeto json - colocar um campo observação ou algo do gênero - caso contrário a interface gráfica pode quebrar, já que ela espera o json.
+- TODO - send these messages to the graphical interface using the json object - add a note field or something similar - otherwise the graphical interface may break, since it expects the json.
 
-- TODO - se o firewall barrar, está dando que é erro! mas foi o firewall, tinha que ver se há como identificar quando é erro e quando é o firewall, por agora vai ficar o status em 0; message["status"] = '1'; message["status_msg"] = "Network Error"
+- TODO - if the firewall blocks it, it's showing an error! but it was the firewall, we had to see if there's a way to identify when it's an error and when it's the firewall, for now the status will remain at 0; message["status"] = '1'; message["status_msg"] = "Network Error"
 
 ### Containers
 
@@ -29,14 +29,18 @@
 
 - TODO - make method to return hostname, interface, IP
 
+- TODO - here I changed it so that the search is by the name of the image on DockerHub, which is firewall_tester - that is, the search is by the image and not by the host name - but this has a problem if docker is not used, but here it would only be possible to use docker! if filter_string in hostname:
+
 ### Server
 
--  TODO - Test and remove this method.
- def is_not_loopback(ip):
-     return not ipaddress.ip_address(ip).is_loopback
+- TODO - Test and remove this method. 
+def is_not_loopback(ip):
 
-- TODO - alterar o objeto json enviado pelo cliente, caso a mensagem esteja com um IP diferente do host de destino, isso significa que a mensagem passou por um nat, então seria legal colocar o IP/porta do host que recebeu e tratou a informação para informar que o DNAT foi bem sucessido ou não - isso tem que ser feito para tcp e udp.
+return not ipaddress.ip_address(ip).is_loopback
 
+- TODO - Change the JSON object sent by the client. If the message has a different IP address than the destination host, this means the message went through NAT. Therefore, it would be good practice to include the IP address/port of the host that received and processed the information to indicate whether the DNAT was successful or not. This needs to be done for both TCP and UDP.
+
+- TODO - The server IP address may appear strangely here, as we are using the first IP address of the server host. As a rule, it may have been redirected to another IP address of the same server.
 
 ## UI
 
@@ -46,7 +50,7 @@
 
 ### Hosts Tab
 
-- TODO - Ajustar mudança de portas 
+- TODO - Adjust port change
 
 
 ### Main UI
@@ -58,7 +62,7 @@
 - TODO - Configuration tab - see if it is necessary and what to put there (e.g., location where rules should be loaded in the container; whether or not to display the container ID column, whether or not to start the servers, list iptables mangle rules, maybe list or not iptables nat or filter rules - now interface list filter and nat rules by default).
 - TODO - Create a help for the user.
 - TODO - When performing tests, check for errors such as testing a closed port on the server, the interface could warn about this (leave it, but warn).
-- TODO - Verify the message flow, such as, it arrived at the server but did not return, indicate this in the interface.
+- TODO - Verify the message flow, such as, it arrived at the server but did not return, indicating this in the interface.
 - TODO - Think about how to show the execution logs, which go to the text console, to the interface, this helps a lot in showing problems and the test flow.
 - TODO - Think about how to show "packet" details - JSON objects returned by client/server in tests.
 - TODO - In the container.py file - when starting a server on a port already in use by another program other than server.py, verify if it can really kill that process.
@@ -72,8 +76,8 @@
 - TODO - Check if scroll is needed in other areas of the program (vertical and horizontal). (Note: PyQt handles this better with layouts and QScrollArea).
 - TODO - Is it interesting to have a button to save firewall rules on the host? the user can do ctrl+c and ctrl+v - remembering that the rules are already saved in the container.
 - TODO - if only the host or all hosts in the scenario are turned off, there is no problem for the interface, but if GNS3 is turned off and the same scenario is turned on again, the interface becomes inconsistent, even the host update button does not work properly! Also, the rules deployed in the firewall are lost.
-- TODO - when saving and opening tests - do not reference the container ID, only the names and perhaps IPs (I think IPs are unavoidable for now), and when the rules are opened, the interface must relate or re-relate the hostname with the container_id, and perhaps the IPs (it would be nice not to relate with the IPs, because in the scenario the user could create or change the hostname to another IP and the test would continue to work).
+- TODO - when saving and opening tests - do not reference the container ID, only the names and perhaps IPs (I think IPs are unavoidable for now), and when the rules are opened, the interface must report or re-report the hostname with the container_id, and perhaps the IPs (it would be nice not to report with the IPs, because in the scenario the user could create or change the hostname to another IP and the test would continue to work).
 - TODO - the combobox of "Edit firewall rules on host" should not show multiple lines for the same host (it shows one per host IP), but rather only one name.
-- TODO - You need a scroll on the tabs and it also limits their size, because when you put too many hosts (about 7) the buttons to update hosts and exit the program disappeared, because the tabs pushed them off the screen. (Note: QTabWidget can handle this with scroll buttons).
+- TODO - You need to scroll on the tabs and it also limits their size, because when you put too many hosts (about 7) the buttons to update hosts and exit the program disappeared, because the tabs pushed them off the screen. (Note: QTabWidget can handle this with scroll buttons).
 - TODO - The information regarding docker containers is being performed three times in a row at the beginning, see if this is really necessary or if it can be done just once.
-- TODO - relate the name of the docker image with the name used in the configuration tab.
+- TODO - report the name of the docker image with the name used in the configuration tab.

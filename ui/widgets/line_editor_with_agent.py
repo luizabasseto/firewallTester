@@ -10,13 +10,14 @@ from dotenv import load_dotenv
 import markdown
 import re
 import json
+import uuid
 
 load_dotenv()
 API_URL = os.getenv("AGENT_API_URL")
 
 class Conversation:
     def __init__(self):
-        self.session_id = "sessao-luiza-001"
+        self.session_id = str(uuid.uuid4())
         
     def _extract_json_from_text(self, text: str) -> dict:
         match = re.search(r'\{[\s\S]*\}', text)
@@ -27,25 +28,18 @@ class Conversation:
                 pass
         return {"stepbystep": text, "suggestions": ""}
 
-
-    def ask_to_agent(self, ask):
-        payload = {
-            "chatInput": ask,
-            "sessionId": self.session_id
-        }
-
-        print("Call for agent...")
-
+    def ask_to_agent(self, payload: dict):
+        payload["sessionId"] = self.session_id
         try:
             response = requests.post(API_URL, json=payload, timeout=500)
 
             if response.status_code == 200:
-                dados = response.json()
+                data = response.json()
 
-                if isinstance(dados, list):
-                    dados = dados[0]
+                if isinstance(data, list):
+                    data = data[0]
 
-                output = dados.get('output', {})
+                output = data.get('output', {})
                 
                 if isinstance(output, str):
                     try:
@@ -59,10 +53,10 @@ class Conversation:
                 return {"stepbystep": str(output), "suggestions": ""}
 
             else:
-                return {"stepbystep": f"Erro {response.status_code}: {response.text}", "suggestions": ""}
+                return {"stepbystep": f"Error {response.status_code}: {response.text}", "suggestions": ""}
 
         except Exception as e:
-            return {"stepbystep": f"Error: {str(e)}", "suggestions": ""}
+            return {"stepbystep": f"Request Error: {str(e)}", "suggestions": ""}
 
 class LineNumberArea(QWidget):
     def __init__(self, editor):
@@ -98,8 +92,8 @@ class LineNumberArea(QWidget):
     def showContextMenu(self, position, line):
         menu = QMenu()
 
-        action1 = QAction("Ask about this line", self)
-        action2 = QAction("How can I improve this line", self)
+        action1 = QAction("Ask about this line in the context of all rules", self)
+        action2 = QAction("What this line do?", self)
 
         action1.triggered.connect(lambda: self.askAboutLine(line))
         action2.triggered.connect(lambda: self.askAboutImprove(line))
@@ -119,19 +113,26 @@ class LineNumberArea(QWidget):
     def askAboutLine(self, line):
         text = self.getLineText(line)
         text_all = self.getAllText()
-        answer = self.conversation.ask_to_agent(
-            f"Explain what this line of code does:\n{text} considering "
-            + f"that this: \n{text_all} are all the conjunction of the rules that I"
-            + "will apply on the firewall, remember to read if that is no conflict between the lines"
-        )
+        
+        payload = {
+            "type": "conflict_analysis",
+            "code": text,
+            "existing_rules": text_all.split('\n'),
+        }
+
+        answer = self.conversation.ask_to_agent(payload)
         html = self.buildHtml(answer, text)
         self.output_widget.setHtml(html)
 
     def askAboutImprove(self, line):
         text = self.getLineText(line)
-        answer = self.conversation.ask_to_agent(
-            f"Explain to me how I can improve this rule:\n{text}"
-        )
+        
+        payload = {
+            "type": "explanation",
+            "code": text,
+        }
+
+        answer = self.conversation.ask_to_agent(payload)
         html = self.buildHtml(answer, text)
         self.output_widget.setHtml(html)
         

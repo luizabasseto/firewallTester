@@ -531,15 +531,11 @@ class FirewallTestsTab(QWidget):
         tests_data = []
         for i in range(self.tree.topLevelItemCount()):
             item = self.tree.topLevelItem(i)
-            # Salvamos o header e o valor para cada coluna
-            # Importante: salvar o hostname puro extraído da UI
             test_dict = {}
             for j, key in enumerate(self.header_labels):
                 test_dict[key] = item.text(j)
             
-            # Adicionalmente, vamos salvar explicitamente o hostname (sem IP) se possível
-            # para facilitar a busca ao recarregar
-            src_text = item.text(2) # Coluna Origem
+            src_text = item.text(2)
             test_dict['src_hostname_only'] = self._extract_hostname_from_combo_text(src_text)
             
             tests_data.append(test_dict)

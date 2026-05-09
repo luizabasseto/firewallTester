@@ -44,15 +44,12 @@ def get_ips():
     for addrs in psutil.net_if_addrs().values():
         for addr in addrs:
             if addr.family in (2, 10):  # 2 = IPv4, 10 = IPv6
-                ip_obj = ipaddress.ip_address(addr.address)  # Converte para objeto IP
-                if not ip_obj.is_loopback:  # Exclui localhost IPv4 (127.0.0.0/8) e IPv6 (::1)
+                ip_obj = ipaddress.ip_address(addr.address)  # Converts to IP object.
+                if not ip_obj.is_loopback:  # Excludes localhost IPv4 (127.0.0.0/8) and IPv6 (::1)
                     server_ips.append(addr.address)
     
     return server_ips
 
-# TODO - Test and remove this method.
-# def is_not_loopback(ip):
-#     return not ipaddress.ip_address(ip).is_loopback
 
 def check_if_validIP_not_localhost_or_zero(ip):
     """
@@ -68,7 +65,7 @@ def check_if_validIP_not_localhost_or_zero(ip):
         loopback_rede = ipaddress.ip_network("127.0.0.0/8")
         return ip_obj != ipaddress.ip_address("0.0.0.0") and ip_obj not in loopback_rede
     except ValueError:
-        return False  # Retorna False se o endereço IP for inválido
+        return False  # Returns False if the IP address is invalid.
 
 def add_dnat_to_json(object_json, host_name, ip, port):
     """
@@ -167,7 +164,6 @@ def show_total_msgs():
     global total_tcp_msgs, total_udp_msgs
     print(f"Number of messages:\n\t * TCP: {total_tcp_msgs};\n\t * UDP: {total_udp_msgs};\n\t * Total: {total_tcp_msgs+total_udp_msgs};")
 
-# TODO - alterar o objeto json enviado pelo cliente, caso a mensagem esteja com um IP diferente do host de destino, isso significa que a mensagem passou por um nat, então seria legal colocar o IP/porta do host que recebeu e tratou a informação para informar que o DNAT foi bem sucessido ou não - isso tem que ser feito para tcp e udp.
 def lidar_com_cliente_TCP(client_socket):
     """
         Deals with communication with a client.
@@ -236,7 +232,6 @@ def server_udp(port):
             #print("different ips")
             host_name = socket.getfqdn()
             server_ip = server_ips[0]
-            # TODO - the server IP may be presented strangely here, as we are taking the first IP of the server host, and in the rule it may have been redirected to another IP of the same server.
             json_data["message"] = f"Looks like DNAT was made {json_data["server_ip"]}->{host_name}"
             json_data = add_dnat_to_json(json_data, host_name, server_ip, port)
             print(json.dumps(json_data, indent=4))

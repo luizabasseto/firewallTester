@@ -14,22 +14,27 @@ class ContainerManager:
 
     def _run_command(self, command_list, check=False):
         """
-        Método auxiliar privado para executar comandos de forma segura.
-        Aceita um argumento 'check' para lançar uma exceção em caso de erro.
+
+        Private helper method for executing commands safely.
+
+        Accepts a 'check' argument to throw an exception in case of error.
+
         """
         try:
-            # O 'check' recebido agora é passado para o subprocess.run
+            # The received 'check' is now passed to subprocess.run.
             return subprocess.run(command_list, capture_output=True, text=True, encoding='utf-8', check=check)
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
-            # Se 'check=True' falhar, a exceção é capturada aqui.
+            # If 'check=True' fails, the exception is caught here.
             print(f"Error executing command. {' '.join(command_list)}: {e}")
-            # Retorna um objeto de processo com o erro para consistência
+            # Returns a process object with the consistency error.
             return subprocess.CompletedProcess(command_list, 1, stderr=str(e), stdout="")
     
     def _get_container_info_by_image_filter(self):
         """
-        Busca IDs de containers em execução e inspeciona-os para filtrar pela imagem.
-        Adaptado de get_container_info_by_filter do código original.
+        Searches for IDs of running containers and inspects them to filter by image.
+
+        Adapted from get_container_info_by_filter in the original code.
+
         """
         ps_cmd = ["docker", "ps", "-q"]
         result = self._run_command(ps_cmd, check=True)
@@ -211,7 +216,6 @@ class ContainerManager:
         """
         commands_to_run = []
         
-        # Comandos de reset (agora sem o -P FORWARD ACCEPT)
         if reset_first:
             commands_to_run.extend([
                 "iptables -F FORWARD",

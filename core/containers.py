@@ -53,7 +53,6 @@ def start_server(container_id):
     Args:
         container_id: container ID - container that will start the server.
     """
-    # TODO - if you are using DHCP, UDP ports 68 and 69 may be in use, so you will not be able to run these ports! See how to solve...
     print(f"Start server in container {container_id}")
     try:
         result = subprocess.run(
@@ -91,7 +90,6 @@ def run_command(command):
     Args:
         command: command that will be executed as a list of arguments.
     """
-    # TODO - if you are using DHCP, UDP ports 68 and 69 may be in use, so you will not be able to run these ports! see how to solve...
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         return result
@@ -100,7 +98,6 @@ def run_command(command):
         print("Error executing Docker command:", e)
         return e
 
-# para executar sem precisar separar em lista
 def run_command_shell(command):
     """
     Execute a command in a shell.
@@ -108,7 +105,6 @@ def run_command_shell(command):
     Args:
         command: command that will be executed as a single string.
     """
-    # TODO - if you are using DHCP, UDP ports 68 and 69 may be in use, so you will not be able to run these ports! see how to solve...
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True, check=False)
         return result.stdout
@@ -116,8 +112,6 @@ def run_command_shell(command):
     except subprocess.CalledProcessError as e:
         print("Error executing Docker command:", e)
         return None
-
-
 
 def get_port_from_container(container_id):
     """
@@ -134,8 +128,6 @@ def get_port_from_container(container_id):
     )
     command = "docker exec "+container_id+net_command
     
-    #docker exec 9eb8ef3327d1 netstat -atuln | awk '$1 ~ /^(tcp|udp)$/ {split($4, a, ":"); print $1 "/" a[2]}' | sort -t '/' -k 2n
-
     result = subprocess.run(command, shell=True, capture_output=True, text=True, check=False)
 
     if result.returncode == 0:
@@ -182,7 +174,6 @@ def copy_ports2server(container_id, source_file):
     print(f"Copy port file to server in container {container_id}")
     return copy_host2container(container_id, source_file, "/firewallTester/src/conf/ports.conf")
 
-#teste_id, container_id, src_ip, dst_ip, protocol, src_port, dst_port
 def run_client_test(container_id, dst_ip, protocol, dst_port, teste_id, timestamp, verbose):
     """
     Executes the client test script inside a container.
@@ -394,8 +385,6 @@ def get_container_info_by_filter(filter_string):
                         "MacAddress": net_data["MacAddress"]
                     }
 
-                # TODO - here I changed it so that the search is by the name of the image on DockerHub, which is firewall_tester - that is, the search is by the image and not by the host name - but this has a problem if docker is not used, but here it would only be possible to use docker!
-                #if filter_string in hostname:
                 if filter_string in image:
                     matched_containers.append({
                         "id": container_id,
@@ -409,8 +398,6 @@ def get_container_info_by_filter(filter_string):
     except subprocess.CalledProcessError as e:
         print("Error executing Docker command:", e)
         return []
-
-# TODO - make method to return hostname, interface, IP
 
 def get_containers_by_image_name():
     """

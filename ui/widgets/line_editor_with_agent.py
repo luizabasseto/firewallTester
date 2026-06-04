@@ -16,8 +16,6 @@ load_dotenv()
 API_URL = os.getenv("AGENT_API_URL")
 
 class Conversation:
-    def __init__(self):
-        self.session_id = str(uuid.uuid4())
         
     def _extract_json_from_text(self, text: str) -> dict:
         match = re.search(r'\{[\s\S]*\}', text)
@@ -29,7 +27,7 @@ class Conversation:
         return {"stepbystep": text, "suggestions": ""}
 
     def ask_to_agent(self, payload: dict):
-        payload["sessionId"] = self.session_id
+        payload["sessionId"] = str(uuid.uuid4())
         try:
             response = requests.post(API_URL, json=payload, timeout=500)
 
@@ -111,6 +109,8 @@ class LineNumberArea(QWidget):
         return self.code_editor.document().toPlainText()   
 
     def askAboutLine(self, line):
+        self.conversation = Conversation()
+        
         text = self.getLineText(line)
         text_all = self.getAllText()
         
@@ -125,6 +125,8 @@ class LineNumberArea(QWidget):
         self.output_widget.setHtml(html)
 
     def askAboutImprove(self, line):
+        self.conversation = Conversation()
+        
         text = self.getLineText(line)
         
         payload = {

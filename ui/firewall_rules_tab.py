@@ -150,20 +150,20 @@ class FirewallRulesTab(QWidget):
         self.btn_save = QPushButton("Save Rules")
         self.btn_save_as = QPushButton("Save As...")
         self.btn_load = QPushButton("Open Rules")
-        self.btn_agent = QPushButton("Chat with IA")
+       #self.btn_agent = QPushButton("Chat with IA")
         
 
         file_buttons_layout.addStretch(1)
         file_buttons_layout.addWidget(self.btn_save)
         file_buttons_layout.addWidget(self.btn_save_as)
         file_buttons_layout.addWidget(self.btn_load)
-        file_buttons_layout.addWidget(self.btn_agent)
+        #file_buttons_layout.addWidget(self.btn_agent)
         file_buttons_layout.addStretch(1)
 
         self.btn_save.clicked.connect(self._save_rules)
         self.btn_save_as.clicked.connect(self._save_rules_as)
         self.btn_load.clicked.connect(self._open_rules)
-        self.btn_agent.clicked.connect(self._open_AgentIA_Dialog)
+       # self.btn_agent.clicked.connect(self._open_AgentIA_Dialog)
         
         self.output_box = QGroupBox("Output and Active Rules")
         output_layout = QVBoxLayout(self.output_box)

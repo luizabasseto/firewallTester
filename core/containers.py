@@ -192,7 +192,7 @@ def run_client_test(container_id, dst_ip, protocol, dst_port, teste_id, timestam
     try:
         result = subprocess.run(
             ["docker", "exec", container_id, "/firewallTester/src/client.py",
-             dst_ip, protocol, str(dst_port), str(test_id), "2025", "0"],
+            dst_ip, protocol, str(dst_port), str(test_id), "2025", "0"],
             capture_output=True, text=True, check=True
         )
         #return json.loads(result.stdout)

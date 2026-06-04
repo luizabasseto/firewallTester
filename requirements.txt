@@ -3,3 +3,4 @@ docker==7.1.0
 scapy==2.7.0
 python-dotenv==1.2.2
 uuid==1.30
+markdown

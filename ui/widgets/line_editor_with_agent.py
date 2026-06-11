@@ -1,5 +1,4 @@
-from PyQt5.QtWidgets import (
-    QApplication, QPlainTextEdit, QWidget, QTextEdit,
+from PyQt5.QtWidgets import (QPlainTextEdit, QWidget, QTextEdit,
     QMenu, QAction
 )
 from PyQt5.QtGui import QPainter, QColor, QTextFormat
@@ -15,46 +14,69 @@ import uuid
 load_dotenv()
 API_URL = os.getenv("AGENT_API_URL")
 
+FALLBACK = {"stepbystep": "Sem resposta do agente.", "suggestions": ""}
+
 class Conversation:
-        
-    def _extract_json_from_text(self, text: str) -> dict:
-        match = re.search(r'\{[\s\S]*\}', text)
+    def __init__(self, max_retries: int = 2, timeout: int = 60):
+        self.max_retries = max_retries
+        self.timeout = timeout
+
+    def _parse(self, raw) -> dict:
+        if isinstance(raw, dict):
+            if "stepbystep" in raw:
+                return raw
+            raw = json.dumps(raw)
+
+        if not isinstance(raw, str) or not raw.strip():
+            return FALLBACK
+
+        raw = raw.strip()
+
+        try:
+            data = json.loads(raw)
+            if isinstance(data, dict) and "stepbystep" in data:
+                return data
+        except json.JSONDecodeError:
+            pass
+
+        match = re.search(r'\{[\s\S]*?"stepbystep"[\s\S]*?\}', raw)
         if match:
             try:
-                return json.loads(match.group())
+                data = json.loads(match.group())
+                if isinstance(data, dict) and "stepbystep" in data:
+                    return data
             except json.JSONDecodeError:
                 pass
-        return {"stepbystep": text, "suggestions": ""}
 
-    def ask_to_agent(self, payload: dict):
+        return {"stepbystep": raw, "suggestions": ""}
+
+    def _post(self, payload: dict) -> dict:
         payload["sessionId"] = str(uuid.uuid4())
-        try:
-            response = requests.post(API_URL, json=payload, timeout=500)
+        resp = requests.post(API_URL, json=payload, timeout=self.timeout)
+        resp.raise_for_status()
 
-            if response.status_code == 200:
-                data = response.json()
+        data = resp.json()
+        if isinstance(data, list):
+            data = data[0] if data else {}
 
-                if isinstance(data, list):
-                    data = data[0]
+        return self._parse(data.get("output", ""))
 
-                output = data.get('output', {})
-                
-                if isinstance(output, str):
-                    try:
-                        output = json.loads(output)
-                    except json.JSONDecodeError:
-                        output = self._extract_json_from_text(output)
+    def ask_to_agent(self, payload: dict) -> dict:
+        last_error = None
 
-                if isinstance(output, dict):
-                    return output
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                return self._post(payload)
+            except requests.Timeout:
+                last_error = f"Timeout (tentativa {attempt}/{self.max_retries})."
+            except requests.HTTPError as e:
+                last_error = f"Erro HTTP {e.response.status_code}: {e.response.text[:300]}"
+                break
+            except Exception as e:
+                last_error = f"Erro: {str(e)}"
+                break
 
-                return {"stepbystep": str(output), "suggestions": ""}
-
-            else:
-                return {"stepbystep": f"Error {response.status_code}: {response.text}", "suggestions": ""}
-
-        except Exception as e:
-            return {"stepbystep": f"Request Error: {str(e)}", "suggestions": ""}
+        return {"stepbystep": last_error or "Erro desconhecido.", "suggestions": ""}
 
 class LineNumberArea(QWidget):
     def __init__(self, editor):
@@ -265,7 +287,7 @@ class CodeEditor(QPlainTextEdit):
 
         if self.highlighted_line is not None:
             selection = QTextEdit.ExtraSelection()
-            selection.format.setBackground(QColor(Qt.cyan).lighter(160))
+            selection.format.setBackground(QColor("#5ea59bac"))
             selection.format.setProperty(QTextFormat.FullWidthSelection, True)
 
             block = self.document().findBlockByNumber(self.highlighted_line - 1)
@@ -278,15 +300,3 @@ class CodeEditor(QPlainTextEdit):
             extra_selections.append(selection)
 
         self.setExtraSelections(extra_selections)
-
-if __name__ == '__main__':
-    import sys
-
-    app = QApplication(sys.argv)
-
-    editor = CodeEditor()
-    editor.setWindowTitle("Editor com IA por linha")
-    editor.resize(700, 500)
-
-    editor.show()
-    sys.exit(app.exec_())

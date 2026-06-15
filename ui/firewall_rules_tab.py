@@ -118,16 +118,15 @@ class FirewallRulesTab(QWidget):
         self.text_editor_rules = CodeEditor()
         self.text_editor_rules.setFont(QFont("Consolas", 11))
         
-        editor_ai_layout = QHBoxLayout()
-        self.ai_output = QTextBrowser()
-        self.ai_output.setMinimumWidth(200)
+        #editor_ai_layout = QHBoxLayout()
+        #self.ai_output = QTextBrowser()
+       #self.ai_output.setMinimumWidth(200)
 
-        editor_ai_layout.addWidget(self.text_editor_rules, 3)
-        editor_ai_layout.addWidget(self.ai_output, 2)
-        
-        self.text_editor_rules.line_number_area.setOutputWidget(self.ai_output)
+        #editor_ai_layout.addWidget(self.text_editor_rules, 3)
+        ##self.text_editor_rules.line_number_area.setOutputWidget(self.ai_output)
 
-        rules_layout.addLayout(editor_ai_layout)
+        #rules_layout.addLayout(editor_ai_layout)
+        rules_layout.addWidget(self.text_editor_rules)
         
         editor_buttons_layout = QHBoxLayout()
         self.check_reset_rules = QCheckBox("Reset rules before applying")

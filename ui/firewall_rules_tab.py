@@ -9,8 +9,8 @@ to analyze and explain firewall rules.
 import os
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                             QComboBox, QGroupBox, QTextEdit, QCheckBox, QMessageBox,
-                            QApplication, QMessageBox, QFileDialog, QDockWidget, QTextBrowser, QLineEdit, QToolButton)
-from PyQt5.QtGui import QFont, QTextCursor, QIcon
+                            QApplication, QMessageBox, QFileDialog, QLineEdit, QToolButton)
+from PyQt5.QtGui import QFont, QTextCursor, QIcon, QKeySequence
 from PyQt5.QtCore import Qt
 from .widgets.agentIA_modal import AgentIA
 import pathlib
@@ -118,14 +118,6 @@ class FirewallRulesTab(QWidget):
         self.text_editor_rules = CodeEditor()
         self.text_editor_rules.setFont(QFont("Consolas", 11))
         
-        #editor_ai_layout = QHBoxLayout()
-        #self.ai_output = QTextBrowser()
-       #self.ai_output.setMinimumWidth(200)
-
-        #editor_ai_layout.addWidget(self.text_editor_rules, 3)
-        ##self.text_editor_rules.line_number_area.setOutputWidget(self.ai_output)
-
-        #rules_layout.addLayout(editor_ai_layout)
         rules_layout.addWidget(self.text_editor_rules)
         
         editor_buttons_layout = QHBoxLayout()
@@ -149,20 +141,17 @@ class FirewallRulesTab(QWidget):
         self.btn_save = QPushButton("Save Rules")
         self.btn_save_as = QPushButton("Save As...")
         self.btn_load = QPushButton("Open Rules")
-       #self.btn_agent = QPushButton("Chat with IA")
         
 
         file_buttons_layout.addStretch(1)
         file_buttons_layout.addWidget(self.btn_save)
         file_buttons_layout.addWidget(self.btn_save_as)
         file_buttons_layout.addWidget(self.btn_load)
-        #file_buttons_layout.addWidget(self.btn_agent)
         file_buttons_layout.addStretch(1)
 
         self.btn_save.clicked.connect(self._save_rules)
         self.btn_save_as.clicked.connect(self._save_rules_as)
         self.btn_load.clicked.connect(self._open_rules)
-       # self.btn_agent.clicked.connect(self._open_AgentIA_Dialog)
         
         self.output_box = QGroupBox("Output and Active Rules")
         output_layout = QVBoxLayout(self.output_box)
@@ -392,4 +381,10 @@ class FirewallRulesTab(QWidget):
     def _open_AgentIA_Dialog(self):
         dialog = AgentIA(self.container_manager, self.config, parent=self)
         dialog.exec()
-        
+    
+    def keyPressEvent(self, event):
+        if event.matches(QKeySequence.Save):
+            self._apply_rules()
+            event.accept() 
+        else:
+            super().keyPressEvent(event)

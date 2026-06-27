@@ -407,7 +407,7 @@ class FirewallTestsTab(QWidget):
         self.protocol_combo.setCurrentText(item.text(4))
         self.dst_port_entry.setText(item.text(6))
         
-        if item.text(7).lower() == "Allowed":
+        if item.text(7) == "Allowed":
             self.expected_yes_radio.setChecked(True)
         else:
             self.expected_no_radio.setChecked(True)

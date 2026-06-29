@@ -1,11 +1,11 @@
 import requests
 import datetime
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
-API_URL = os.getenv("AGENT_API_URL")
+API_URL = 'http://192.168.2.20:5678/webhook/firewall-chat'
 
 def ask_to_agent(ask, file_path=None):
     

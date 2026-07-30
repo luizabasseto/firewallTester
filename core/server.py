@@ -29,11 +29,163 @@ import ipaddress
 import os
 import signal
 import time
+from datetime import datetime
+import subprocess
+import re
 
 total_udp_msgs = 0
 total_tcp_msgs = 0
 server_ips = []
 server_name = "noName"
+
+# Lock registry per log file path to avoid concurrent write corruption
+_log_locks = {}
+_log_locks_mutex = threading.Lock()
+
+def get_log_lock(filepath):
+    """Returns (or creates) a per-file lock for safe concurrent writes."""
+    with _log_locks_mutex:
+        if filepath not in _log_locks:
+            _log_locks[filepath] = threading.Lock()
+        return _log_locks[filepath]
+
+def log_received_packet(json_data, server_ip, server_port, protocol):
+    """
+    Appends a received-packet entry to the server_log.json for this test session.
+    The log directory is derived from the timestamp_teste field inside the client JSON,
+    so it mirrors the client's log/  structure.
+
+    Args:
+        json_data:   Parsed JSON dict sent by the client.
+        server_ip:   The server-side IP that accepted the connection.
+        server_port: The server-side port that accepted the connection.
+        protocol:    'tcp' or 'udp'
+    """
+    timestamp_teste = json_data.get("timestamp_teste", "unknown")
+    dir_name = f"log/{timestamp_teste}"
+    os.makedirs(dir_name, exist_ok=True)
+    filepath = f"{dir_name}/server_log.json"
+
+    entry = {
+        "id":                 json_data.get("id", -1),
+        "timestamp_teste":    timestamp_teste,
+        "timestamp_received": datetime.now().isoformat(),
+        "client_ip":          json_data.get("client_ip", ""),
+        "client_port":        json_data.get("client_port", -1),
+        "server_ip":          server_ip,
+        "server_port":        server_port,
+        "protocol":           protocol.upper(),
+        "packet_arrived":     True,       # always True – this entry only exists if the packet arrived
+    }
+
+    lock = get_log_lock(filepath)
+    with lock:
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                log_data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            log_data = {"received": []}
+
+        log_data["received"].append(entry)
+
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(log_data, f, indent=4)
+
+    print(f"[LOG] Packet logged -> {filepath}")
+
+
+def _append_to_log_file(filepath, entry):
+    lock = get_log_lock(filepath)
+    with lock:
+        try:
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    log_data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                log_data = {"received": []}
+
+            log_data.setdefault("received", [])
+            log_data["received"].append(entry)
+
+            tmp_filepath = f"{filepath}.tmp"
+            with open(tmp_filepath, 'w', encoding='utf-8') as f:
+                json.dump(log_data, f, indent=4)
+            try:
+                os.replace(tmp_filepath, filepath)
+            except Exception:
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    json.dump(log_data, f, indent=4)
+
+        except Exception as e:
+            try:
+                import traceback
+                tb = traceback.format_exc()
+            except Exception:
+                tb = str(e)
+            print(f"[LOG-ERROR] Failed to append to {filepath}: {e}\n{tb}")
+
+
+def _start_tcpdump_monitor():
+    """Start a background thread that runs tcpdump and logs SYN attempts."""
+    def monitor():
+        tcpdump_cmd = [
+            "tcpdump", "-l", "-nn", "-i", "any", "tcp and (tcp[13] & 0x12 = 0x02)" # checks only TCP SYN
+        ]
+        try:
+            proc = subprocess.Popen(tcpdump_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+        except FileNotFoundError:
+            print("[SYN-MONITOR] tcpdump not found; SYN monitor disabled.")
+            return
+        except PermissionError:
+            print("[SYN-MONITOR] Permission denied running tcpdump; run as root or grant CAP_NET_RAW.")
+            return
+
+        ip_line_re = re.compile(
+            r"(?P<time>\d+:\d+:\d+\.\d+)\s+\S+\s+(?:In|Out|in|out)\s+(?:IP|IP6|IP6?)\s+"
+            r"(?P<src>[\d.:a-fA-F]+)\.(?P<srcp>\d+)\s+>\s+(?P<dst>[\d.:a-fA-F]+)\.(?P<dstp>\d+):\s+"
+            r"Flags\s+\[(?P<flags>[^\]]+)\]"
+        )
+
+        syn_log_dir = "log"
+        os.makedirs(syn_log_dir, exist_ok=True)
+        syn_log_path = os.path.join(syn_log_dir, "syn_log.json")
+
+        print("[SYN-MONITOR] tcpdump monitor started")
+
+        for raw in proc.stdout:
+            line = raw.strip()
+            if not line:
+                continue
+            m = ip_line_re.search(line)
+            if not m:
+                continue
+
+            src = m.group('src')
+            srcp = int(m.group('srcp'))
+            dst = m.group('dst')
+            dstp = int(m.group('dstp'))
+
+            entry = {
+                "timestamp": datetime.now().isoformat(),
+                "client_ip": src,
+                "client_port": srcp,
+                "server_ip": dst,
+                "server_port": dstp,
+                "protocol": "TCP",
+                "note": "SYN seen (handshake incomplete or in-progress)"
+            }
+            _append_to_log_file(syn_log_path, entry)
+            print(f"[SYN-MONITOR] {src}:{srcp} -> {dst}:{dstp} (SYN)")
+
+        try:
+            proc.stdout.close()
+            proc.stderr.close()
+            proc.kill()
+        except Exception:
+            pass
+
+    t = threading.Thread(target=monitor, daemon=True, name="tcpdump-monitor")
+    t.start()
 
 def get_ips():
     """
@@ -164,7 +316,7 @@ def show_total_msgs():
     global total_tcp_msgs, total_udp_msgs
     print(f"Number of messages:\n\t * TCP: {total_tcp_msgs};\n\t * UDP: {total_udp_msgs};\n\t * Total: {total_tcp_msgs+total_udp_msgs};")
 
-def lidar_com_cliente_TCP(client_socket):
+def lead_with_client_TCP(client_socket):
     """
         Deals with communication with a client.
 
@@ -184,6 +336,9 @@ def lidar_com_cliente_TCP(client_socket):
         server_ip, server_port = server_address
         #server_ips.append("0.0.0.0")
         #if (dest_ip not in server_ips) and is_not_loopback(dest_ip): ip_valido_nao_loopback_nem_zero
+         # Log the received packet immediately
+        log_received_packet(json_data, server_ip, server_port, "tcp")
+       
         if (dest_ip not in server_ips) and check_if_validIP_not_localhost_or_zero(dest_ip):
             #print(f"ips diferentes {dest_ip}")
             host_name = socket.getfqdn()
@@ -213,6 +368,11 @@ def server_udp(port):
     host = '0.0.0.0'
     protocol = 'udp'
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    except OSError:
+        pass
     sock.bind((host, port))  # Bind to local address and port
 
     while True:
@@ -227,12 +387,17 @@ def server_udp(port):
         
         dest_ip = json_data["server_ip"]
         #if (dest_ip not in server_ips) and is_not_loopback(dest_ip):
+        server_ip = server_ips[0] if server_ips else "0.0.0.0"
+
+        # Log the received packet immediately
+        log_received_packet(json_data, server_ip, port, "udp")
+
         if (dest_ip not in server_ips) and check_if_validIP_not_localhost_or_zero(dest_ip):
             print(f"The IP is not in the server list and is not loopback - {dest_ip}")
             #print("different ips")
             host_name = socket.getfqdn()
             server_ip = server_ips[0]
-            json_data["message"] = f"Looks like DNAT was made {json_data["server_ip"]}->{host_name}"
+            json_data["message"] = f"Looks like DNAT was made {json_data['server_ip']}->{host_name}"
             json_data = add_dnat_to_json(json_data, host_name, server_ip, port)
             print(json.dumps(json_data, indent=4))
         
@@ -252,6 +417,11 @@ def start_server(host, protocol, port):
     if protocol == "tcp":
         try:
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            except OSError:
+                pass
             server_socket.bind((host, port))
             server_socket.listen(1)
             print(f"\t++ Listening on port  {protocol.upper()}/{port}")
@@ -280,14 +450,21 @@ def main():
     """
         Main method.
     """
+    global server_name, server_ips
     server_name = socket.getfqdn() # dont remove, not used in main method, but is used is another methods.
     print(socket.getfqdn())
     server_ips = get_ips() # dont remove, not used in main method, but is used is another methods.
+    # start tcpdump-based SYN monitor (logs SYN attempts to log/syn_log.json)
+    try:
+        _start_tcpdump_monitor()
+    except Exception as e:
+        print(f"[SYN-MONITOR] failed to start: {e}")
     host = '0.0.0.0'  # Server IP address (localhost)
     #ports = [5000, 5001]  # Ports for the server
     threads = []
-    ports_file = "conf/ports.conf"
+    ports_file = "config/ports.conf"
     tuples = read_ports_from_file(ports_file)
+    tuples = list(set(tuples)) # removing duplicates
     print(f"Starting servers with ports present in file: {ports_file} - This file must contain lines with port/protocol, example 80/tcp.")
     if tuples:
         print("Tuples read from file:")

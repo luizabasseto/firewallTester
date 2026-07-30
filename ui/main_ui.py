@@ -136,7 +136,7 @@ class MainWindow(QMainWindow):
         self.firewall_rules_tab = FirewallRulesTab(
             self.container_manager, hosts_for_combobox, self.config
         )
-        self.tests_tab = FirewallTestsTab(self.test_runner, all_hosts_data, self.config)
+        self.tests_tab = FirewallTestsTab(self.test_runner, all_hosts_data, self.config,  self.container_manager)
         self.settings_tab = SettingsTab(self.config)
         self.help_tab = HelpTab()
         self.about_tab = AboutTab()

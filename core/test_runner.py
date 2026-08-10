@@ -9,7 +9,7 @@ import subprocess
 import sys
 from . import containers
 import time
-import uuid
+import random
 
 class TestRunner:
     """Orchestrates the execution of tests and interpretation of outcomes."""
@@ -206,12 +206,11 @@ class TestRunner:
                 }
                 return False, result_dict_warn
 
-        test_id = str(uuid.uuid4())
+        test_id = str(random.randint(10000, 999999))
         command = [
             "docker", "exec", container_id_src,
             "python3",
-            # "/firewallTester/src/client.py",
-            "core/client.py",
+            "/firewallTester/src/client.py",
             processed_dst_ip,
             protocol.lower(),
             dst_port,

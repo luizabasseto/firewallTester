@@ -161,7 +161,7 @@ class ContainerManager:
 
     def start_server(self, host_id):
         """Starts the server.py script inside a container."""
-        cmd = ["docker", "exec", "-d", host_id, "/usr/local/bin/python", "./server.py"]
+        cmd = ["docker", "exec", "-d", host_id, "/usr/local/bin/python", "/firewallTester/src/server.py"]
         result = self._run_command(cmd)
         if result.returncode != 0:
             return (False, result.stderr)

@@ -16,6 +16,7 @@ import json
 import os
 import time
 import sys
+import uuid
 from datetime import datetime
 
 from scapy.all import IP, ICMP, sr1
@@ -75,6 +76,27 @@ parser.add_argument("verbose", type=int, help="Level of verbosity (0, 1, 2)")
 args = parser.parse_args()
 verbose = args.verbose
 
+# Normalize/validate testId: accept integer strings or UUID4
+def _normalize_test_id(tid):
+    # allow numeric ids
+    try:
+        int(tid)
+        return str(tid)
+    except Exception:
+        pass
+
+    try:
+        u = uuid.UUID(tid)
+        if u.version == 4:
+            return str(u)
+    except Exception:
+        pass
+
+    # if not int or uuid4, keep as-is
+    return str(tid)
+
+args.testId = _normalize_test_id(args.testId)
+
 # Initializing socket according to protocol.
 client_sock = None
 client_port = -1
@@ -85,6 +107,7 @@ if args.protocol.lower() == "udp" or args.protocol.lower() == "UDP":
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_sock.bind(("", 0))
     client_sock.settimeout(2)
+    # client_ip = client_sock.getsockname()[0]
     client_port = client_sock.getsockname()[1]
 
 elif args.protocol.lower() == "tcp" or args.protocol.lower() == "TCP":
@@ -92,6 +115,7 @@ elif args.protocol.lower() == "tcp" or args.protocol.lower() == "TCP":
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_sock.bind(("", 0))
     client_sock.settimeout(2)
+    # client_ip = client_sock.getsockname()[0]
     client_port = client_sock.getsockname()[1]
 
 
@@ -134,6 +158,7 @@ message = {
     "timestamp_send": timestamp,
     "timestamp_recv": timestamp,
     "client_host": client_host,
+    #aqui tava comentado a linha abaixo
     "client_ip": client_ip,
     "client_port": client_port,
     "server_ip": args.server_host,
@@ -151,7 +176,7 @@ message = {
 if args.protocol == "icmp":
     if icmp_status < 0:
         message["status"] = "0"
-        message["status_msg"] = "Firewall Drop or Host desconhecido"
+        message["status_msg"] = "Firewall Drop or Host unknown"
     else:
         message["server_response"] = icmp_status > 0
         message["server_port"] = 8  # ICMP echo reply
@@ -178,12 +203,18 @@ try:
         message["status_msg"] = "Error by using destination IP 0.0.0.0"
     else:
         if args.protocol == "udp":
+            client_sock.connect(server_address)
+            client_ip = client_sock.getsockname()[0]  # getting IP used to do the request 
+            message["client_ip"] = client_ip
+            json_message = json.dumps(message, indent=4) # updating message to be send to server
             client_sock.sendto(json_message.encode(), server_address)
         else:  # TCP
             client_sock.connect(server_address)
+            client_ip = client_sock.getsockname()[0] # getting IP used to do the request
+            message["client_ip"] = client_ip
+            json_message = json.dumps(message, indent=4) # updating message to be send to server
             client_sock.send(json_message.encode())
             # retrieves the IP address of the client that was actually used in the transmission.
-            client_ip = client_sock.getsockname()[0]
         
         try:
             response, _ = client_sock.recvfrom(1024) if args.protocol == "udp" else (client_sock.recv(1024), None)

@@ -14,6 +14,8 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushBut
     QAbstractItemView, QProgressDialog, QMessageBox, QFileDialog, QDialog)
 from PyQt5.QtGui import QColor, QBrush
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject, QEvent
+import time
+from .widgets.loading_bar import LoadingBar
 
 class TestWorker(QObject):
     """A worker that runs firewall tests in a separate thread."""
@@ -27,6 +29,7 @@ class TestWorker(QObject):
         self.test_runner = test_runner
         self.hosts_map = hosts_map 
         self.is_cancelled = False
+        
     def run(self):
         """Executes the test items and emits signals for progress and results."""
         total = len(self.test_items)
@@ -43,6 +46,8 @@ class TestWorker(QObject):
             
             destination_ip = dst_hostname
             clean_name = dst_hostname.split(' (')[0].strip()
+
+            container_id_destination = self.hosts_map.get(dst_hostname, {}).get('id')
             
             found = False
             for data in self.hosts_map.values():
@@ -55,13 +60,12 @@ class TestWorker(QObject):
 
             effective_port = "1" if proto.upper() == "ICMP" else dst_port
 
-            _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, effective_port)
-            
+            _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, effective_port, container_id_destination)
+
             if self.is_cancelled:
                 break
             
             expected_back= "yes" if expected == "Allowed" else "no"
-            
             analysis, tag = self.test_runner.analyze_test_result(expected_back, result_dict)
             self.item_tested.emit(item, analysis, tag)
             
@@ -80,7 +84,7 @@ class FirewallTestsTab(QWidget):
     # where widgets are stored as instance attributes for later access.
     # R0903: This class has few public methods as it's primarily a display
     # widget updated by the main window, which is an acceptable design.
-    def __init__(self, test_runner, hosts_data, config, parent=None):
+    def __init__(self, test_runner, hosts_data, config, container_manager,parent=None):
         super().__init__(parent)
         self.test_runner = test_runner
         self.hosts_data = hosts_data
@@ -88,6 +92,7 @@ class FirewallTestsTab(QWidget):
         self.config = config
         self.save_file_path = None
         self.is_editing = False
+        self.container_manager = container_manager
 
         # W0201: Initialize thread-related attributes to None
         self.progress_dialog = None
@@ -155,7 +160,7 @@ class FirewallTestsTab(QWidget):
         buttons_layout.addStretch(1)
 
         self.tree = QTreeWidget()
-        self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tree.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.header_labels = ["#","Container ID","Source","Destination","Protocol","Src Port","Dst Port",
             "Expected","Result","Flow","Data"
         ]
@@ -164,7 +169,6 @@ class FirewallTestsTab(QWidget):
         main_layout.addWidget(self.tree)
         self.tree.setColumnWidth(0, 40)
         self.tree.setColumnHidden(1, not self.config.get("show_container_id", False))
-        self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tree.viewport().installEventFilter(self)
 
         legend_box = QGroupBox("Test Legend")
@@ -182,6 +186,7 @@ class FirewallTestsTab(QWidget):
         add_legend_item("lightblue", "Passed (Blocked)")
         add_legend_item("salmon", "Failed")
         add_legend_item("yellow", "Error")
+        add_legend_item("orange", "Port not open on server")
         legend_layout.addStretch(1)
 
         file_buttons_layout = QHBoxLayout()
@@ -213,24 +218,76 @@ class FirewallTestsTab(QWidget):
         selected_items = self.tree.selectedItems()
         if not selected_items:
             return
-        item = selected_items[0]
 
-        _, container_id, _, dst_hostname, proto, _, dst_port, expected, _, _, _ = [
-            item.text(c) for c in range(item.columnCount())
-        ]
-        
-        destination_ip = self._find_ip_by_hostname(dst_hostname)
-        
-        effective_port = "1" if proto.upper() == "ICMP" else dst_port
-        
-        _, result_dict = self.test_runner.run_single_test(container_id, destination_ip, proto, effective_port)
-        
-        expected_back = "yes" if expected == "Allowed" else "no"
-        analysis, tag = self.test_runner.analyze_test_result(expected_back, result_dict)
+        ports_not_open = self._check_ports_server(selected_items)
+        if ports_not_open:
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Info")
+            msg.setText("There are unopened ports on some hosts. Would you like to open these ports before running the tests?")
+            msg.setIcon(QMessageBox.Information)
+            msg.addButton("Yes", QMessageBox.AcceptRole)
+            msg.addButton("No", QMessageBox.RejectRole)
+            result = msg.exec_()
+            if result == QMessageBox.AcceptRole:
+                self._open_ports_on_servers(ports_not_open)
+                popup = LoadingBar(title="Wait", message="Adding ports on hosts", time=3000)
+                popup.exec_()
 
-        self._paint_test_result(item, analysis, tag)
+        self.tree.clearSelection()
+        self.progress_dialog = DraggableDialog("Running tests", "Cancel", 0, 100, self)
+        self.progress_dialog.setWindowTitle("Processing tests")
+        self.progress_dialog.setWindowModality(Qt.NonModal)
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.setAutoClose(False)
         
-    def _paint_test_result(self, item, analysis_dict, tag):
+        self.btn_test.setEnabled(False)
+        self.btn_test_all.setEnabled(False)
+        self.btn_del.setEnabled(False)
+        self.btn_del_all.setEnabled(False)
+
+        self.thread = QThread()
+        self.worker = TestWorker(selected_items, self.test_runner, self.hosts_map)
+        self.worker.moveToThread(self.thread)
+
+        def on_cancel():
+            self.worker.cancel()
+            self.progress_dialog.close()
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.item_tested.connect(self._update_tree_item)
+        self.worker.progress.connect(self._update_progress_dialog)
+        self.progress_dialog.canceled.connect(on_cancel)
+        self.thread.finished.connect(self.progress_dialog.close)
+
+        self.thread.finished.connect(self._clear_selection_and_reset_buttons)
+
+        self.thread.start()
+        
+        self.progress_dialog.show()
+        
+    # def _add_port_on_server(self, container_id: str, protocol: str, port: str): 
+    #     '''
+    #     Add a new port on container specified.
+
+    #     Args:
+    #         container_id (str): The ID of the server container.
+    #         protocol (str): The protocol to use (TCP, UDP).
+    #         port (str): The port to be opened.
+
+    #     Returns:
+    #         tuple: A tuple containing a boolean indicating success and a message.
+    #     '''
+    #     ports_on_host = self.container_manager.get_host_ports(container_id)
+    #     ports_on_host.append((protocol,port))
+
+    #     local_path = self.config.get("server_ports_file")
+    #     return self.container_manager.update_host_ports(container_id, ports_on_host, local_path)
+
+    
+    def _paint_test_result(self, item, analysis_dict, tag, clear_selection=True):
         print(f"\nResult: {analysis_dict['result']}")
         print(f"Container ID: {item.text(1)}")
         print(f"Flow: {analysis_dict['data']}")
@@ -241,19 +298,92 @@ class FirewallTestsTab(QWidget):
 
         color_map = {
             "yes": "lightgreen", "yesFail": "lightblue",
-            "no": "salmon", "error": "yellow"
+            "no": "salmon", "error": "yellow", "portNotOpen": "orange"
         }
         color = QColor(color_map.get(tag, "transparent"))
         for i in range(item.columnCount()):
             item.setBackground(i, QBrush(color))
+            
+        self.tree.scrollToItem(item)
         
-        self._clear_selection_and_reset_buttons()
+        if clear_selection:
+            self._clear_selection_and_reset_buttons()
 
     def _update_tree_item(self, item, analysis_dict, tag):
         if self.progress_dialog and not self.progress_dialog.isVisible():
             return
         
-        self._paint_test_result(item, analysis_dict, tag)
+        is_batch = self.progress_dialog is not None and self.progress_dialog.isVisible()
+        self._paint_test_result(item, analysis_dict, tag, clear_selection=not is_batch)
+        
+    def _check_ports_server(self, list_test):
+        """Check whether the destination hosts in a test list have the required ports open.
+
+        Args:
+            list_test (list[QTreeWidgetItem]): A list of test items selected in the UI.
+
+        Returns:
+            dict: A mapping where each destination container ID maps to a list of
+                    (protocol, port) tuples for ports that are not open on that container.
+        """
+
+        ports_not_open = {}
+
+        for item in list_test:
+            _, _, _, dst_hostname, proto, _, dst_port, _, _, _, _ = [
+                item.text(c) for c in range(item.columnCount())
+            ]
+            if proto.upper() != "ICMP":
+                container_id_destination = self.hosts_map.get(dst_hostname, {}).get('id')
+                result = self.container_manager.check_port_open(container_id_destination, dst_port, proto)
+                
+                if not result:
+                    if container_id_destination not in ports_not_open:
+                        ports_not_open[container_id_destination] = []
+                    
+                    port_tuple = (proto.upper(), int(dst_port))
+                    if port_tuple not in ports_not_open[container_id_destination]:
+                        ports_not_open[container_id_destination].append(port_tuple)
+        
+        return ports_not_open
+
+    def _open_ports_on_servers(self, servers_and_ports_to_open):
+        """Open missing ports on destination server containers.
+
+        Args:
+            servers_and_ports_to_open (dict): A dictionary mapping a destination container ID
+                                                to a list of (protocol, port) tuples that must be opened.
+
+        Returns:
+            None
+
+        Side effects:
+            Attempts to open the configured ports by updating the host port configuration
+            via the container manager. If an update fails, shows a warning dialog.
+        """
+        
+        for container_id, ports in servers_and_ports_to_open.items():
+            ports_on_host = self.container_manager.get_host_ports(container_id)
+            
+            for proto, port in ports:
+                new_port = (proto.upper(), str(port))
+                if new_port not in ports_on_host:
+                    ports_on_host.append(new_port)
+            
+            unique_ports = []
+            seen = set()
+            for prot, p in ports_on_host:
+                identifier = f"{prot.upper()}:{str(p)}"
+                if identifier not in seen:
+                    seen.add(identifier)
+                    unique_ports.append((prot, str(p)))
+            
+            local_path = self.config.get("server_ports_file")
+            result, msg = self.container_manager.update_host_ports(container_id, unique_ports, local_path)
+            
+            if not result: 
+                QMessageBox.warning(self, "Error", f"Error while open port on server {container_id}")
+                print(f"Error while open port on server {container_id}\n{msg}")
 
     def _run_all_tests(self):
         tests_to_run = [self.tree.topLevelItem(i) for i in range(self.tree.topLevelItemCount())]
@@ -261,12 +391,32 @@ class FirewallTestsTab(QWidget):
             print("No tests to run.")
             return
         
+        result_check_ports_not_open = self._check_ports_server(tests_to_run)
+        if(result_check_ports_not_open):
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Info")
+            msg.setText(f"There are unopened ports on some hosts. Would you like to open these ports before running the tests?")
+            msg.setIcon(QMessageBox.Information)
+            msg.addButton("Yes", QMessageBox.AcceptRole)
+            msg.addButton("No", QMessageBox.RejectRole)
+            result = msg.exec_()
+            if result == QMessageBox.AcceptRole:
+                self._open_ports_on_servers(result_check_ports_not_open)
+                popup = LoadingBar(title="Wait", message=f"Adding port on hosts", time=3000)
+                popup.exec_()
+            
+        
         self.tree.clearSelection()
         self.progress_dialog = DraggableDialog("Running tests", "Cancel", 0, 100, self)
         self.progress_dialog.setWindowTitle("Processing tests")
-        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setWindowModality(Qt.NonModal)
         self.progress_dialog.setMinimumDuration(0)
         self.progress_dialog.setAutoClose(False) 
+        
+        self.btn_test.setEnabled(False)
+        self.btn_test_all.setEnabled(False)
+        self.btn_del.setEnabled(False)
+        self.btn_del_all.setEnabled(False)
         
         self.thread = QThread()
         self.worker = TestWorker(tests_to_run, self.test_runner, self.hosts_map)
@@ -286,9 +436,11 @@ class FirewallTestsTab(QWidget):
         self.thread.finished.connect(self.progress_dialog.close)
         
 
+        self.thread.finished.connect(self._clear_selection_and_reset_buttons)
+
         self.thread.start()
-        self.progress_dialog.exec_()
-    
+        
+        self.progress_dialog.show()
 
     def mouseReleaseEvent(self, event):
         self.dragging = False
@@ -327,6 +479,14 @@ class FirewallTestsTab(QWidget):
             selected_items = self.tree.selectedItems()
             if not selected_items:
                 return
+            if len(selected_items) > 1:
+                QMessageBox.information(
+                    self,
+                    "Select one item",
+                    "Please select only one test item to edit."
+                )
+                return
+            
             self.is_editing = True
             self.btn_edit.setText("Save edit")
             self.btn_add.setEnabled(False)
@@ -391,6 +551,7 @@ class FirewallTestsTab(QWidget):
     def _renumber_tests(self):
         for i in range(self.tree.topLevelItemCount()):
             self.tree.topLevelItem(i).setText(0, str(i + 1))
+            
     def _on_item_double_clicked(self):
         self.src_ip_combo.setFocus()
         self._edit_test()
@@ -407,7 +568,7 @@ class FirewallTestsTab(QWidget):
         self.protocol_combo.setCurrentText(item.text(4))
         self.dst_port_entry.setText(item.text(6))
         
-        if item.text(7).lower() == "Allowed":
+        if item.text(7).lower() == "allowed":
             self.expected_yes_radio.setChecked(True)
         else:
             self.expected_no_radio.setChecked(True)

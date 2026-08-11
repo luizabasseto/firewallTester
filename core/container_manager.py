@@ -159,9 +159,17 @@ class ContainerManager:
         status = "on" if result.returncode == 0 and result.stdout.strip() else "off"
         return (True, status)
 
+    # def start_server(self, host_id):
+    #     """Starts the server.py script inside a container."""
+    #     cmd = ["docker", "exec", "-d", host_id, "/usr/local/bin/python", "/firewallTester/src/server.py"]
+    #     result = self._run_command(cmd)
+    #     if result.returncode != 0:
+    #         return (False, result.stderr)
+    #     return (True, "Server started.")
+    
     def start_server(self, host_id):
         """Starts the server.py script inside a container."""
-        cmd = ["docker", "exec", "-d", host_id, "/usr/local/bin/python", "/firewallTester/src/server.py"]
+        cmd = ["docker", "exec", "-d", "-w", "/firewallTester/src", host_id, "python3", "server.py"]
         result = self._run_command(cmd)
         if result.returncode != 0:
             return (False, result.stderr)

@@ -74,6 +74,8 @@ class FirewallRulesTab(QWidget):
         zoom_in_path = assets_path / "zoom-in-area.svg"
         zoom_out_path = assets_path / "zoom-out-area.svg"
         search_path = assets_path / "search.svg"
+        expand_path = assets_path / "expand.svg"
+        
         
         btn_undo = QToolButton()
         btn_undo.setIcon(QIcon(str(undo_path)))
@@ -94,6 +96,10 @@ class FirewallRulesTab(QWidget):
         btn_zoom_out = QToolButton()
         btn_zoom_out.setIcon(QIcon(str(zoom_out_path)))
         btn_zoom_out.setToolTip("Decrease font size")
+        
+        btn_expand = QToolButton()
+        btn_expand.setIcon(QIcon(str(expand_path)))
+        btn_expand.setToolTip("Expand size of editor rules")
 
         btn_find = QToolButton()
         btn_find.setIcon(QIcon(str(search_path)))
@@ -105,6 +111,7 @@ class FirewallRulesTab(QWidget):
         editor_toolbar.addWidget(btn_select_all)
         editor_toolbar.addWidget(btn_zoom_in)
         editor_toolbar.addWidget(btn_zoom_out)
+        editor_toolbar.addWidget(btn_expand)
         
         editor_toolbar.addStretch(1)
         
@@ -125,6 +132,7 @@ class FirewallRulesTab(QWidget):
         btn_find.clicked.connect(self._find_text_in_editor)
         btn_zoom_in.clicked.connect(lambda: self._zoom_editor_font(+1))
         btn_zoom_out.clicked.connect(lambda: self._zoom_editor_font(-1))
+        btn_expand.clicked.connect(lambda: self.output_box.setVisible(not self.output_box.isVisible()))
 
 
         editor_buttons_layout.addWidget(self.check_reset_rules)

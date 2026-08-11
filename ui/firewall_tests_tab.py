@@ -236,9 +236,14 @@ class FirewallTestsTab(QWidget):
         self.tree.clearSelection()
         self.progress_dialog = DraggableDialog("Running tests", "Cancel", 0, 100, self)
         self.progress_dialog.setWindowTitle("Processing tests")
-        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setWindowModality(Qt.NonModal)
         self.progress_dialog.setMinimumDuration(0)
         self.progress_dialog.setAutoClose(False)
+        
+        self.btn_test.setEnabled(False)
+        self.btn_test_all.setEnabled(False)
+        self.btn_del.setEnabled(False)
+        self.btn_del_all.setEnabled(False)
 
         self.thread = QThread()
         self.worker = TestWorker(selected_items, self.test_runner, self.hosts_map)
@@ -257,10 +262,11 @@ class FirewallTestsTab(QWidget):
         self.progress_dialog.canceled.connect(on_cancel)
         self.thread.finished.connect(self.progress_dialog.close)
 
-        self.thread.start()
-        self.progress_dialog.exec_()
+        self.thread.finished.connect(self._clear_selection_and_reset_buttons)
 
-        self._clear_selection_and_reset_buttons()
+        self.thread.start()
+        
+        self.progress_dialog.show()
         
     # def _add_port_on_server(self, container_id: str, protocol: str, port: str): 
     #     '''
@@ -297,6 +303,8 @@ class FirewallTestsTab(QWidget):
         color = QColor(color_map.get(tag, "transparent"))
         for i in range(item.columnCount()):
             item.setBackground(i, QBrush(color))
+            
+        self.tree.scrollToItem(item)
         
         if clear_selection:
             self._clear_selection_and_reset_buttons()
@@ -305,7 +313,8 @@ class FirewallTestsTab(QWidget):
         if self.progress_dialog and not self.progress_dialog.isVisible():
             return
         
-        self._paint_test_result(item, analysis_dict, tag)
+        is_batch = self.progress_dialog is not None and self.progress_dialog.isVisible()
+        self._paint_test_result(item, analysis_dict, tag, clear_selection=not is_batch)
         
     def _check_ports_server(self, list_test):
         """Check whether the destination hosts in a test list have the required ports open.
@@ -400,9 +409,14 @@ class FirewallTestsTab(QWidget):
         self.tree.clearSelection()
         self.progress_dialog = DraggableDialog("Running tests", "Cancel", 0, 100, self)
         self.progress_dialog.setWindowTitle("Processing tests")
-        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setWindowModality(Qt.NonModal)
         self.progress_dialog.setMinimumDuration(0)
         self.progress_dialog.setAutoClose(False) 
+        
+        self.btn_test.setEnabled(False)
+        self.btn_test_all.setEnabled(False)
+        self.btn_del.setEnabled(False)
+        self.btn_del_all.setEnabled(False)
         
         self.thread = QThread()
         self.worker = TestWorker(tests_to_run, self.test_runner, self.hosts_map)
@@ -422,8 +436,11 @@ class FirewallTestsTab(QWidget):
         self.thread.finished.connect(self.progress_dialog.close)
         
 
+        self.thread.finished.connect(self._clear_selection_and_reset_buttons)
+
         self.thread.start()
-        self.progress_dialog.exec_()
+        
+        self.progress_dialog.show()
 
     def mouseReleaseEvent(self, event):
         self.dragging = False

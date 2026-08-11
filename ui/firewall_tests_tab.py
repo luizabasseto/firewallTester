@@ -160,7 +160,7 @@ class FirewallTestsTab(QWidget):
         buttons_layout.addStretch(1)
 
         self.tree = QTreeWidget()
-        self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tree.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.header_labels = ["#","Container ID","Source","Destination","Protocol","Src Port","Dst Port",
             "Expected","Result","Flow","Data"
         ]
@@ -169,7 +169,6 @@ class FirewallTestsTab(QWidget):
         main_layout.addWidget(self.tree)
         self.tree.setColumnWidth(0, 40)
         self.tree.setColumnHidden(1, not self.config.get("show_container_id", False))
-        self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tree.viewport().installEventFilter(self)
 
         legend_box = QGroupBox("Test Legend")
@@ -263,23 +262,23 @@ class FirewallTestsTab(QWidget):
 
         self._clear_selection_and_reset_buttons()
         
-    def _add_port_on_server(self, container_id: str, protocol: str, port: str): 
-        '''
-        Add a new port on container specified.
+    # def _add_port_on_server(self, container_id: str, protocol: str, port: str): 
+    #     '''
+    #     Add a new port on container specified.
 
-        Args:
-            container_id (str): The ID of the server container.
-            protocol (str): The protocol to use (TCP, UDP).
-            port (str): The port to be opened.
+    #     Args:
+    #         container_id (str): The ID of the server container.
+    #         protocol (str): The protocol to use (TCP, UDP).
+    #         port (str): The port to be opened.
 
-        Returns:
-            tuple: A tuple containing a boolean indicating success and a message.
-        '''
-        ports_on_host = self.container_manager.get_host_ports(container_id)
-        ports_on_host.append((protocol,port))
+    #     Returns:
+    #         tuple: A tuple containing a boolean indicating success and a message.
+    #     '''
+    #     ports_on_host = self.container_manager.get_host_ports(container_id)
+    #     ports_on_host.append((protocol,port))
 
-        local_path = self.config.get("server_ports_file")
-        return self.container_manager.update_host_ports(container_id, ports_on_host, local_path)
+    #     local_path = self.config.get("server_ports_file")
+    #     return self.container_manager.update_host_ports(container_id, ports_on_host, local_path)
 
     
     def _paint_test_result(self, item, analysis_dict, tag, clear_selection=True):
@@ -322,21 +321,21 @@ class FirewallTestsTab(QWidget):
         ports_not_open = {}
 
         for item in list_test:
-                _, _, _, dst_hostname, proto, _, dst_port, _, _, _, _ = [
+            _, _, _, dst_hostname, proto, _, dst_port, _, _, _, _ = [
                 item.text(c) for c in range(item.columnCount())
             ]
-                if proto.upper() != "ICMP":
-                    container_id_destination = self.hosts_map.get(dst_hostname, {}).get('id')
-                    result = self.container_manager.check_port_open(container_id_destination, dst_port, proto)
-                    if not result:
-                        if container_id_destination in ports_not_open:
-                            # caso esteja aqui, só incrementa a lista existente
-                            ports_not_open[container_id_destination].append((proto, int(dst_port)))
-                        else:
-                            # cria uma nova lista com a tupla contendo o protocolo + porta
-                            ports_not_open[container_id_destination] = [(proto, int(dst_port))]
-
-            
+            if proto.upper() != "ICMP":
+                container_id_destination = self.hosts_map.get(dst_hostname, {}).get('id')
+                result = self.container_manager.check_port_open(container_id_destination, dst_port, proto)
+                
+                if not result:
+                    if container_id_destination not in ports_not_open:
+                        ports_not_open[container_id_destination] = []
+                    
+                    port_tuple = (proto.upper(), int(dst_port))
+                    if port_tuple not in ports_not_open[container_id_destination]:
+                        ports_not_open[container_id_destination].append(port_tuple)
+        
         return ports_not_open
 
     def _open_ports_on_servers(self, servers_and_ports_to_open):
@@ -353,13 +352,29 @@ class FirewallTestsTab(QWidget):
             Attempts to open the configured ports by updating the host port configuration
             via the container manager. If an update fails, shows a warning dialog.
         """
+        
         for container_id, ports in servers_and_ports_to_open.items():
+            ports_on_host = self.container_manager.get_host_ports(container_id)
+            
             for proto, port in ports:
-                result, msg = self._add_port_on_server(container_id, proto, str(port))
-                if not result: 
-                    QMessageBox.warning(self, "Error", f"Error while open port {port} on server {container_id}")
-                    print(f"Error while open port {port} on server {container_id}")
-                    print(msg)
+                new_port = (proto.upper(), str(port))
+                if new_port not in ports_on_host:
+                    ports_on_host.append(new_port)
+            
+            unique_ports = []
+            seen = set()
+            for prot, p in ports_on_host:
+                identifier = f"{prot.upper()}:{str(p)}"
+                if identifier not in seen:
+                    seen.add(identifier)
+                    unique_ports.append((prot, str(p)))
+            
+            local_path = self.config.get("server_ports_file")
+            result, msg = self.container_manager.update_host_ports(container_id, unique_ports, local_path)
+            
+            if not result: 
+                QMessageBox.warning(self, "Error", f"Error while open port on server {container_id}")
+                print(f"Error while open port on server {container_id}\n{msg}")
 
     def _run_all_tests(self):
         tests_to_run = [self.tree.topLevelItem(i) for i in range(self.tree.topLevelItemCount())]

@@ -8,12 +8,13 @@ from PyQt5.QtGui import QTextCursor
 
 import requests
 
-# import os
-# from dotenv import load_dotenv
+import os
+from dotenv import load_dotenv
 
-# load_dotenv()
+load_dotenv()
 
-API_URL = 'http://192.168.2.20:5678/webhook/firewall-chat'
+API_URL = os.getenv("AGENT_API_URL")
+
 class AgentIA(QDialog):
     """
     Dialog window for interacting with AgentIA helper.

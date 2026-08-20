@@ -1,11 +1,11 @@
 import requests
 import datetime
 import os
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-# load_dotenv()
+load_dotenv()
 
-API_URL = 'http://192.168.2.20:5678/webhook/firewall-chat'
+API_URL = os.getenv("AGENT_API_URL")
 
 def ask_to_agent(ask, file_path=None):
     
@@ -47,9 +47,9 @@ def ask_to_agent(ask, file_path=None):
 
 
 if __name__ == "__main__":
-    pergunta = input("What is your doubt? \n")
+    pergunta = "Baseado nesse pdf, crie regras de firewall que atenda a todo o cenário descrito, gere um arquivo JSON com as regras e me retorne o conteúdo do arquivo JSON."
     
-    caminho_arquivo = input("Digite o caminho do arquivo (PDF, JSON, etc) ou aperte ENTER para enviar sem arquivo: \n").strip()
+    caminho_arquivo = "/home/alunos/a2251825/firewallTester/ui/Atividade-firewallIPtables.pdf"
     
     retorno = ""
     if pergunta:

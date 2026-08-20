@@ -9,15 +9,15 @@ from PyQt5.QtCore import Qt, QRect, QThread, pyqtSignal
 from PyQt5.QtGui import QPainter, QColor, QTextFormat
 from PyQt5.QtCore import Qt, QRect
 import requests
-#import os
-#from dotenv import load_dotenv
+import os
+from dotenv import load_dotenv
 import markdown
 import re
 import json
 import uuid
 
 
-API_URL = 'http://192.168.2.20:5678/webhook/firewall-chat'
+API_URL = os.getenv("AGENT_API_URL")
 
 FALLBACK = {"stepbystep": "No answer from agent", "suggestions": ""}
 

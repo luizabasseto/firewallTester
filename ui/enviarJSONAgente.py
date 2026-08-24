@@ -11,6 +11,7 @@ def ask_to_agent(ask, file_path=None):
     
     payload = {
         "chatInput": ask,
+        "type": "construt",
         "sessionId": "sessao-luiza-001"
     }
 
@@ -19,9 +20,9 @@ def ask_to_agent(ask, file_path=None):
     try:
         if file_path and os.path.exists(file_path):
             with open(file_path, 'rb') as f:
-                files = {'arquivo_enviado': (os.path.basename(file_path), f)}
+                files = {'arquivo_enviado': (os.path.basename(file_path), f, 'application/pdf')}
                 
-                response = requests.post(API_URL, data=payload, files=files, timeout=60)
+                response = requests.post(API_URL, data=payload, files=files, timeout=2000)
         else:
             response = requests.post(API_URL, json=payload, timeout=60)
         
@@ -49,7 +50,7 @@ def ask_to_agent(ask, file_path=None):
 if __name__ == "__main__":
     pergunta = "Baseado nesse pdf, crie regras de firewall que atenda a todo o cenário descrito, gere um arquivo JSON com as regras e me retorne o conteúdo do arquivo JSON."
     
-    caminho_arquivo = "/home/alunos/a2251825/firewallTester/ui/Atividade-firewallIPtables.pdf"
+    caminho_arquivo = "/home/luiza/Área de trabalho/Projetos/firewallTester/ui/Atividade-firewallIPtables.pdf"
     
     retorno = ""
     if pergunta:

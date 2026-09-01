@@ -40,7 +40,7 @@ firewallTester/
 
 ## Selos Considerados
 
-Os selos considerados para avaliação deste artefato são:
+Após avaliação durante o SBRC, o software recebeu os 4 selos disponíveis para artefatos:
 
 - Artefatos Disponíveis (SeloD);
 

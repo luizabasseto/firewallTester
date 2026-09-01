@@ -57,7 +57,7 @@ def start_server(container_id):
     try:
         result = subprocess.run(
             # docker exec -d 9a0a52c42ea8 ./server.py
-            ["docker", "exec", "-d", container_id, "./server.py"],
+            ["docker", "exec", "-d", container_id, "/firewallTester/src/server.py"],
             capture_output=True, text=True, check=True
         )
         try:

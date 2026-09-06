@@ -35,3 +35,6 @@ n8n/database.sqlite-journal
 .venv
 venv/
 path/
+
+files/
+files

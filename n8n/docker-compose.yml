@@ -1,11 +1,15 @@
 services:
   n8n:
-    image: n8nio/n8n
+    image: n8nio/n8n:1.68.0
+    restart: unless-stopped
     ports:
       - "5678:5678"
+    env_file:
+      - .env
     environment:
       - N8N_SECURE_COOKIE=false
-      - WEBHOOK_URL=http://192.168.2.20:5678/
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:

@@ -24,8 +24,12 @@ env/
 n8n/data/
 n8n/binaryData/
 n8n/nodes/
-n8n/
-n8n
+
+
+n8n/database.sqlite
+n8n/database.sqlite-shm
+n8n/database.sqlite-wal
+n8n/database.sqlite-journal
 
 # ambiente virtual
 .venv

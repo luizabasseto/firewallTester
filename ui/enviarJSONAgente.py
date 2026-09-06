@@ -26,6 +26,7 @@ MIME_POR_EXTENSAO = {
     ".pdf": "application/pdf",
     ".json": "application/json",
     ".txt": "text/plain",
+    ".sh": "application/x-sh",
 }
 
 def ask_to_agent(chat_input, tipo, session_id, file_paths=None):

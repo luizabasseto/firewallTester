@@ -1,5 +1,3 @@
-# Command to build the Docker image
-# docker build -t cyberinfra:firewall_tester .
 FROM python:3.10-slim
 
 LABEL maintainer="Luiz Arthur <luizsantos@utfpr.edu.br>"
@@ -25,16 +23,13 @@ RUN apt update && apt install -y \
     libx11-xcb1 \
     && rm -rf /var/lib/apt/lists/*
 
-#COPY . /app
-#WORKDIR /app
-COPY . /firewallTester/
-WORKDIR /firewallTester/
+COPY . /app
+WORKDIR /app
 
-RUN echo 4 > VERSION
-#COPY requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY etc/firewall.sh /etc/
-COPY etc/reset_firewall.sh /etc/
+COPY docker_infra/etc/firewall.sh /etc/
+COPY docker_infra/etc/reset_firewall.sh /etc/
 
-CMD ["/bin/bash"]
+CMD ["tail", "-f", "/dev/null"]

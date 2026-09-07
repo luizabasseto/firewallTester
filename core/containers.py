@@ -57,7 +57,7 @@ def start_server(container_id):
     try:
         result = subprocess.run(
             # docker exec -d 9a0a52c42ea8 ./server.py
-            ["docker", "exec", "-d", container_id, "/firewallTester/src/server.py"],
+            ["docker", "exec", "-d", container_id, "/firewallTester/core/server.py"],
             capture_output=True, text=True, check=True
         )
         try:
@@ -172,7 +172,7 @@ def copy_ports2server(container_id, source_file):
         source_file: Source file.
     """
     print(f"Copy port file to server in container {container_id}")
-    return copy_host2container(container_id, source_file, "/firewallTester/src/conf/ports.conf")
+    return copy_host2container(container_id, source_file, "/firewallTester/config/ports.conf")
 
 def run_client_test(container_id, dst_ip, protocol, dst_port, teste_id, timestamp, verbose):
     """
@@ -189,15 +189,18 @@ def run_client_test(container_id, dst_ip, protocol, dst_port, teste_id, timestam
     """
     # The 'timestamp' and 'verbose' arguments are kept for signature consistency
     # but are hardcoded in the command below for now.
+    print(">>>>> run_client_test")
     try:
         result = subprocess.run(
-            ["docker", "exec", container_id, "/firewallTester/src/client.py",
+            ["docker", "exec", container_id, "/firewallTester/core/client.py",
              dst_ip, protocol, str(dst_port), str(test_id), "2025", "0"],
             capture_output=True, text=True, check=True
         )
         #return json.loads(result.stdout)
+        print(">>>>> run_client_test - retorno - inicio")
         print(f"Returned code {result.returncode}")
         print(result.stdout)
+        print(">>>>> run_client_test - retorno - fim")
         return result.stdout
     except subprocess.CalledProcessError as e:
         print("Error executing Docker command:", e)

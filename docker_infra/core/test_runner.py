@@ -4,18 +4,15 @@ executing individual firewall tests and analyzing their results.
 """
 
 import json
-import os
 import re
 import subprocess
 import sys
-import time
-import uuid
 from . import containers
-import uuid
+import time
+import random
 
 class TestRunner:
     """Orchestrates the execution of tests and interpretation of outcomes."""
-
     def _list_open_ports(self, port:str, protocol: str, container_id: str) -> bool:
         """
         Checks if there is a open port on container, checking port and protocol.
@@ -122,7 +119,7 @@ class TestRunner:
             tuple: A tuple of (bool, str) where:
                 - bool: True if packet was found and received, False otherwise.
                 - str: A descriptive message explaining the result (e.g., "Received by the server",
-                       "TCP SYN received on server", or empty string if packet not found).
+                        "TCP SYN received on server", or empty string if packet not found).
         """
         log_path = f"log/{timestamp_teste}/server_log.json"
         deadline = time.monotonic() + wait_seconds
@@ -191,7 +188,7 @@ class TestRunner:
 
         Returns:
             tuple: A tuple containing a boolean for success and a dictionary
-                   with the test result.
+                    with the test result.
         """
         processed_dst_ip = self._extract_destination_host(dst_ip)
         if not processed_dst_ip:
@@ -209,12 +206,11 @@ class TestRunner:
                 }
                 return False, result_dict_warn
 
-        test_id = str(uuid.uuid4())
+        test_id = str(random.randint(10000, 999999))
         command = [
             "docker", "exec", container_id_src,
             "python3",
-            # "/firewallTester/core/client.py",
-            "core/client.py",
+            "/firewallTester/core/client.py",
             processed_dst_ip,
             protocol.lower(),
             dst_port,
@@ -279,10 +275,7 @@ class TestRunner:
         if test_output.get("status", "1") != '0':
             result_status = "ERROR"
             network_flow = "Not Sent"
-            if test_output.get("status", "") != "":
-                tag = test_output.get("status")
-            else: 
-                tag = "error"
+            tag = "error"
 
         elif test_output.get("server_response"):
             network_flow = "Sent/Received"
@@ -295,10 +288,6 @@ class TestRunner:
 
         elif not test_output.get("server_response"):
             network_flow = "Sent"
-            if test_output.get("packet_arrived", False) == True:
-                # if the packet was recieved on server, add this info into network_flow
-                if test_output.get("message") != "":
-                    network_flow = f"Sent/{test_output.get('message')}"
             if expected in ["no", "bloqueado"]:
                 result_status = "Pass"
                 tag = "yesFail"
@@ -310,6 +299,7 @@ class TestRunner:
             network_flow += " (DNAT)"
 
         return {"result": result_status, "flow": network_flow, "data": str(test_output)}, tag
+    
     def _extract_destination_host(self, destination):
         if ip_match := re.search(r'\((\d+\.\d+\.\d+\.\d+)\)', destination):
             return ip_match[1]

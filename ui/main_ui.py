@@ -117,7 +117,7 @@ class MainWindow(QMainWindow):
 
     def _load_app_config(self):
         try:
-            with open("config/config.json", "r", encoding="utf-8") as f:
+            with open("docker_infra/config/config.json", "r", encoding="utf-8") as f:
                 default_settings = SettingsTab.DEFAULT_SETTINGS.copy()
                 loaded_settings = json.load(f)
                 default_settings.update(loaded_settings)

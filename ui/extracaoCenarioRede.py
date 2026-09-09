@@ -51,5 +51,3 @@ if zipfile.is_zipfile(caminho_do_arquivo):
             with open(caminho_salvar_json, 'w', encoding='utf-8') as arquivo_saida:
                 json.dump(topologia_sanitizada, arquivo_saida, indent=2, ensure_ascii=False)
                 
-            print(f"Topologia sanitizada com sucesso em: {caminho_salvar_json}")
-            print(f"Tamanho reduzido drasticamente! Pronto para envio ao LLM.")

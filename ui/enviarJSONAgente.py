@@ -1,7 +1,7 @@
 import argparse
 import os
 import uuid
-
+import json
 import requests
 from dotenv import load_dotenv
 
@@ -28,6 +28,37 @@ MIME_POR_EXTENSAO = {
     ".txt": "text/plain",
     ".sh": "application/x-sh",
 }
+
+def processar_resposta(response):
+    dados = response.json()
+
+    if isinstance(dados, list):
+        dados = dados[0]
+
+    texto = dados.get("text")
+
+    if not texto:
+        return "A IA processou, mas o campo 'text' não foi encontrado."
+
+    texto = texto.strip()
+
+    if texto.startswith("```json"):
+        texto = texto[len("```json"):].strip()
+
+    if texto.endswith("```"):
+        texto = texto[:-3].strip()
+
+    try:
+        resultado = json.loads(texto)
+
+        return json.dumps(
+            resultado,
+            indent=2,
+            ensure_ascii=False
+        )
+
+    except json.JSONDecodeError:
+        return texto
 
 def ask_to_agent(chat_input, tipo, session_id, file_paths=None):
 
@@ -76,14 +107,7 @@ def ask_to_agent(chat_input, tipo, session_id, file_paths=None):
             response = requests.post(API_URL, json=payload, timeout=60)
 
         if response.status_code == 200:
-            dados = response.json()
-
-            if isinstance(dados, list):
-                dados = dados[0]
-
-            return dados.get(
-                "output", 'A IA processou, mas o campo "output" não foi encontrado.'
-            )
+            return processar_resposta(response)
 
         elif response.status_code == 404:
             return (
@@ -173,7 +197,6 @@ def main():
     if not API_URL:
         raise SystemExit(
             "AGENT_API_URL não definido. Configure no .env (ex.: "
-            "AGENT_API_URL=http://192.168.2.20:5678/webhook/seu-endpoint)."
         )
 
     arquivos = montar_lista_arquivos(args.tipo, args)

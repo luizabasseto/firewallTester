@@ -1,9 +1,9 @@
 {
-    "docker_image": "luizarthur/cyberinfra:firewall_tester",
+    "docker_image": "cyberinfra:firewall_tester",
     "firewall_directory": "/etc/",
     "reset_rules_file": "config/firewall_reset.sh",
     "firewall_rules_file": "config/firewall.sh",
-    "server_ports_file": "config/ports.conf",
+    "server_ports_file": "docker_infra/config/ports.conf",
     "show_container_id": true,
     "include_filter_table": true,
     "include_nat_table": true,

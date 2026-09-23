@@ -199,7 +199,7 @@ def get_ips():
                 ip_obj = ipaddress.ip_address(addr.address)  # Converts to IP object.
                 if not ip_obj.is_loopback:  # Excludes localhost IPv4 (127.0.0.0/8) and IPv6 (::1)
                     server_ips.append(addr.address)
-    
+
     return server_ips
 
 
@@ -209,7 +209,7 @@ def check_if_validIP_not_localhost_or_zero(ip):
 
     Args:
         ip: Ip to be tested.
-    
+
     :return: False if the address is not valid. True if is a valid IP.
     """
     try:
@@ -282,7 +282,7 @@ def get_pid_by_port(protocol, port):
         Args:
             protocol: Protocol (TCP/UDP)
             port: Network port
-        
+
         :return: PID - Process ID
     """
     print(f"Get process pid on port {port}.")
@@ -316,7 +316,7 @@ def show_total_msgs():
     global total_tcp_msgs, total_udp_msgs
     print(f"Number of messages:\n\t * TCP: {total_tcp_msgs};\n\t * UDP: {total_udp_msgs};\n\t * Total: {total_tcp_msgs+total_udp_msgs};")
 
-def lead_with_client_TCP(client_socket):
+def lidar_com_cliente_TCP(client_socket):
     """
         Deals with communication with a client.
 
@@ -336,9 +336,10 @@ def lead_with_client_TCP(client_socket):
         server_ip, server_port = server_address
         #server_ips.append("0.0.0.0")
         #if (dest_ip not in server_ips) and is_not_loopback(dest_ip): ip_valido_nao_loopback_nem_zero
-         # Log the received packet immediately
+
+        # Log the received packet immediately
         log_received_packet(json_data, server_ip, server_port, "tcp")
-       
+
         if (dest_ip not in server_ips) and check_if_validIP_not_localhost_or_zero(dest_ip):
             #print(f"ips diferentes {dest_ip}")
             host_name = socket.getfqdn()
@@ -362,7 +363,7 @@ def server_udp(port):
         Start UDP server.
 
         Args:
-            port: UDP port where the server will run. 
+            port: UDP port where the server will run.
     """
     global total_udp_msgs
     host = '0.0.0.0'
@@ -384,7 +385,7 @@ def server_udp(port):
         response = f"Received: {data.decode()}"
         message_json = data.decode('utf-8')
         json_data = json.loads(message_json)
-        
+
         dest_ip = json_data["server_ip"]
         #if (dest_ip not in server_ips) and is_not_loopback(dest_ip):
         server_ip = server_ips[0] if server_ips else "0.0.0.0"
@@ -400,7 +401,7 @@ def server_udp(port):
             json_data["message"] = f"Looks like DNAT was made {json_data['server_ip']}->{host_name}"
             json_data = add_dnat_to_json(json_data, host_name, server_ip, port)
             print(json.dumps(json_data, indent=4))
-        
+
         response = json.dumps(json_data).encode('utf-8')
         sock.sendto(response, addr)
         show_total_msgs()
@@ -462,7 +463,7 @@ def main():
     host = '0.0.0.0'  # Server IP address (localhost)
     #ports = [5000, 5001]  # Ports for the server
     threads = []
-    ports_file = "conf/ports.conf"
+    ports_file = "config/ports.conf"
     tuples = read_ports_from_file(ports_file)
     tuples = list(set(tuples)) # removing duplicates
     print(f"Starting servers with ports present in file: {ports_file} - This file must contain lines with port/protocol, example 80/tcp.")

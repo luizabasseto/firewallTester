@@ -2,9 +2,9 @@
 
 """
     Program Name: Firewall Tester - Client
-    Description: Acts as a client so that the firewall rule testing software 
+    Description: Acts as a client so that the firewall rule testing software
     can send packets to the server software in the test scenario.
-    Author: Luiz Arthur Feitosa dos Santos - 
+    Author: Luiz Arthur Feitosa dos Santos -
     luiz.arthur.feitosa.santos@gmail.com / luizsantos@utfpr.edu.br
     License: GNU General Public License v3.0
     Version: 1.0
@@ -38,7 +38,7 @@ def ping(host, count):
         print(f"\nPING {host}:")
     for seq in range(1, count + 1):
         if not validate_host(host):
-            return -1 
+            return -1
 
         packet = IP(dst=host) / ICMP()
         start_time = time.time()
@@ -69,7 +69,7 @@ parser = argparse.ArgumentParser(description="Firewall Tester Client (UDP/TCP/IC
 parser.add_argument("server_host", type=str, help="Server IP address")
 parser.add_argument("protocol", type=str.lower, help="Protocol used: TCP/UDP/ICMP")
 parser.add_argument("server_port", type=int, help="Server Port")
-parser.add_argument("testId", type=int, help="Test ID")
+parser.add_argument("testId", type=str, help="Test ID")
 parser.add_argument("timestamp", type=str, help="Timestamp of Test")
 parser.add_argument("verbose", type=int, help="Level of verbosity (0, 1, 2)")
 
@@ -158,8 +158,7 @@ message = {
     "timestamp_send": timestamp,
     "timestamp_recv": timestamp,
     "client_host": client_host,
-    #aqui tava comentado a linha abaixo
-    "client_ip": client_ip,
+    # "client_ip": client_ip,
     "client_port": client_port,
     "server_ip": args.server_host,
     "server_port": args.server_port,
@@ -176,7 +175,7 @@ message = {
 if args.protocol == "icmp":
     if icmp_status < 0:
         message["status"] = "0"
-        message["status_msg"] = "Firewall Drop or Host unknown"
+        message["status_msg"] = "Firewall Drop or Host desconhecido"
     else:
         message["server_response"] = icmp_status > 0
         message["server_port"] = 8  # ICMP echo reply
@@ -204,7 +203,7 @@ try:
     else:
         if args.protocol == "udp":
             client_sock.connect(server_address)
-            client_ip = client_sock.getsockname()[0]  # getting IP used to do the request 
+            client_ip = client_sock.getsockname()[0]  # getting IP used to do the request
             message["client_ip"] = client_ip
             json_message = json.dumps(message, indent=4) # updating message to be send to server
             client_sock.sendto(json_message.encode(), server_address)
@@ -215,7 +214,7 @@ try:
             json_message = json.dumps(message, indent=4) # updating message to be send to server
             client_sock.send(json_message.encode())
             # retrieves the IP address of the client that was actually used in the transmission.
-        
+
         try:
             response, _ = client_sock.recvfrom(1024) if args.protocol == "udp" else (client_sock.recv(1024), None)
             timestamp_response = datetime.now().isoformat()

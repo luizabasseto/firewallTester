@@ -167,9 +167,18 @@ class ContainerManager:
     #         return (False, result.stderr)
     #     return (True, "Server started.")
     
+    # def start_server(self, host_id):
+    #     """Starts the server.py script inside a container."""
+    #     cmd = ["docker", "exec", "-d", "-w", "/firewallTester/core/", host_id, "python3", "server.py"]
+    #     result = self._run_command(cmd)
+    #     if result.returncode != 0:
+    #         return (False, result.stderr)
+    #     return (True, "Server started.")
+
     def start_server(self, host_id):
         """Starts the server.py script inside a container."""
-        cmd = ["docker", "exec", "-d", "-w", "/firewallTester/src", host_id, "python3", "server.py"]
+        cmd = ["docker", "exec", "-d", host_id, "/usr/local/bin/python", "./core/server.py"]
+        # cmd = ["docker", "exec", "-d", host_id, "/usr/local/bin/python", "./server.py"]
         result = self._run_command(cmd)
         if result.returncode != 0:
             return (False, result.stderr)
@@ -267,7 +276,7 @@ class ContainerManager:
     
     def get_host_ports(self, host_id):
         #Aqui era diferente o path
-        container_path = "/firewallTester/src/conf/ports.conf"
+        container_path = "/firewallTester/config/ports.conf"
         cmd = ["docker", "exec", host_id, "cat", container_path]
         result = self._run_command(cmd)
         if result.returncode != 0:
@@ -293,7 +302,7 @@ class ContainerManager:
             return (False, f"Failed to save local file: {e}")
 
         #diferente aqui dnv o path
-        container_path = "/firewallTester/src/conf/ports.conf"
+        container_path = "/firewallTester/config/ports.conf"
         copy_result = self._run_command(["docker", "cp", local_ports_file_path, f"{host_id}:{container_path}"])
         if copy_result.returncode != 0:
             return (False, f"Failed to copy port file:\n{copy_result.stderr}")

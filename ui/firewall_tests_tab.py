@@ -407,7 +407,6 @@ class FirewallTestsTab(QWidget):
             
         
         self.tree.clearSelection()
-        self._clear_test_results()
         self.progress_dialog = DraggableDialog("Running tests", "Cancel", 0, 100, self)
         self.progress_dialog.setWindowTitle("Processing tests")
         self.progress_dialog.setWindowModality(Qt.NonModal)
@@ -569,7 +568,7 @@ class FirewallTestsTab(QWidget):
         self.protocol_combo.setCurrentText(item.text(4))
         self.dst_port_entry.setText(item.text(6))
         
-        if item.text(7) == "Allowed":
+        if item.text(7).lower() == "allowed":
             self.expected_yes_radio.setChecked(True)
         else:
             self.expected_no_radio.setChecked(True)
@@ -901,17 +900,6 @@ class FirewallTestsTab(QWidget):
                 return data['ip']
 
         return clean_hostname
-    
-    def _clear_test_results(self):
-        for i in range(self.tree.topLevelItemCount()):
-            item = self.tree.topLevelItem(i)
-
-            item.setText(8, "-")
-            item.setText(9, "")
-            item.setText(10, "")
-
-            for col in range(item.columnCount()):
-                item.setBackground(col, QBrush(QColor("transparent")))
     
 class DraggableDialog(QProgressDialog):
     def __init__(self, *args, **kwargs):

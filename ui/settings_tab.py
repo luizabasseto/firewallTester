@@ -65,7 +65,7 @@ class SettingsTab(QWidget):
 
         self.config_show_container_id_check = QCheckBox("Show Container ID in the Hosts tab")
         self.config_include_filter_check = QCheckBox("Include 'Filter' table in the listing")
-        self.config_include_nat_check = QCheckBox("Include 'Filter' table in the listing")
+        self.config_include_nat_check = QCheckBox("Include 'Nat' table in the listing")
         self.config_include_mangle_check = QCheckBox("Include 'Mangle' table in the listing")
 
         checkbox_layout.addWidget(self.config_show_container_id_check)

@@ -12,7 +12,7 @@ API_URL = os.getenv("AGENT_API_URL")
 
 TIPOS_VALIDOS = {
     "validar_regras": ["pdf", "regras", "rede"],
-    "sugerir_testes": ["rede", "regras"],
+    "sugerir_testes": ["rede", "regras", "pdf"],
     "sugerir_regras": ["rede", "pdf"],
 }
 
